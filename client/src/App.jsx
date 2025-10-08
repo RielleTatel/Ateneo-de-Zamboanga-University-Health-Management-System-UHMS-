@@ -1,15 +1,50 @@
-import './App.css'
+import React, { useState } from 'react';
+import { patientsData } from './data/patientData';
+import Sidebar from './Components/Layout/Sidebar';
+import RecordsPage from './Components/Pages/RecordsPage';
+import ProfilePage from './Components/Pages/ProfilePage';
+import ClinicalRecordsPage from './Components/Pages/ClinicalRecordsPage';
+import ImmunizationPage from './Components/Pages/ImmunizationPage';
 
-  function App() {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-red-500 w-64 h-32 rounded-lg shadow-lg flex items-center justify-center"> 
-          <h1 className="text-white text-2xl font-bold"> 
-            Hello Tailwind!
-          </h1>
-        </div>
-      </div>
-    )
-  }
+const App = () => {
+  const [currentPage, setCurrentPage] = useState('records');
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
-export default App
+  const currentPatientDetails = selectedPatient ? patientsData[selectedPatient.id] : null;
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      
+      {currentPage === 'records' && (
+        <RecordsPage 
+          setCurrentPage={setCurrentPage} 
+          setSelectedPatient={setSelectedPatient} 
+        />
+      )}
+      
+      {currentPage === 'profile' && currentPatientDetails && (
+        <ProfilePage 
+          setCurrentPage={setCurrentPage} 
+          patientDetails={currentPatientDetails} 
+        />
+      )}
+      
+      {currentPage === 'clinical-records' && (
+      <ClinicalRecordsPage 
+         setCurrentPage={setCurrentPage}
+          patientDetails={currentPatientDetails}
+        />
+      )}
+      
+      {currentPage === 'immunization' && currentPatientDetails && (
+        <ImmunizationPage 
+          setCurrentPage={setCurrentPage} 
+          patientDetails={currentPatientDetails} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default App;
