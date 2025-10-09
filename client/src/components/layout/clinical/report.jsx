@@ -21,30 +21,89 @@ const Report = () => {
         lifestyleAdvice: '',
         nextCheckupDate: ''
     });
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Date validation
+        if (!formData.date) {
+            newErrors.date = 'Date is required';
+        } else {
+            const reportDate = new Date(formData.date);
+            const today = new Date();
+            if (reportDate > today) {
+                newErrors.date = 'Report date cannot be in the future';
+            }
+        }
+        
+        // Clinical Findings validation
+        if (!formData.clinicalFindings.trim()) {
+            newErrors.clinicalFindings = 'Clinical findings are required';
+        } else if (formData.clinicalFindings.trim().length < 5) {
+            newErrors.clinicalFindings = 'Clinical findings must be at least 5 characters';
+        }
+        
+        // Diagnosis validation
+        if (!formData.diagnosis.trim()) {
+            newErrors.diagnosis = 'Diagnosis is required';
+        } else if (formData.diagnosis.trim().length < 3) {
+            newErrors.diagnosis = 'Diagnosis must be at least 3 characters';
+        }
+        
+        // Treatment Plan validation
+        if (!formData.treatmentPlan.trim()) {
+            newErrors.treatmentPlan = 'Treatment plan is required';
+        } else if (formData.treatmentPlan.trim().length < 10) {
+            newErrors.treatmentPlan = 'Treatment plan must be at least 10 characters';
+        }
+        
+        // Next Checkup Date validation (optional but if provided, should be in future)
+        if (formData.nextCheckupDate && formData.date) {
+            const nextDate = new Date(formData.nextCheckupDate);
+            const reportDate = new Date(formData.date);
+            if (nextDate <= reportDate) {
+                newErrors.nextCheckupDate = 'Next checkup date must be after report date';
+            }
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
     };
 
     const handleSubmit = () => {
-        console.log('Report submitted:', formData);
-        setIsModalOpen(false);
-        // Reset form 
-        
-        setFormData({
-            date: '',
-            medicalClearanceStatus: 'fit',
-            clinicalFindings: '',
-            diagnosis: '',
-            chronicRiskFactors: '',
-            treatmentPlan: '',
-            medicationPrescribed: '',
-            lifestyleAdvice: '',
-            nextCheckupDate: ''
-        });
+        if (validateForm()) {
+            console.log('Report submitted:', formData);
+            setIsModalOpen(false);
+            // Reset form
+            setFormData({
+                date: '',
+                medicalClearanceStatus: 'fit',
+                clinicalFindings: '',
+                diagnosis: '',
+                chronicRiskFactors: '',
+                treatmentPlan: '',
+                medicationPrescribed: '',
+                lifestyleAdvice: '',
+                nextCheckupDate: ''
+            });
+            setErrors({});
+        }
     };
 
     return (
@@ -70,26 +129,30 @@ const Report = () => {
                                 +Add Report
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                                <DialogTitle>Edit Report</DialogTitle>
+                                <DialogTitle>Add Report</DialogTitle>
                             </DialogHeader>
                             
                             <Card>
-                                <CardContent className="p-6 space-y-4">
+                                <CardContent className="p-4 sm:p-6 space-y-4">
                                     {/* Date and Medical Clearance Status */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Field>
-                                            <FieldLabel>Date</FieldLabel>
+                                            <FieldLabel>Date *</FieldLabel>
                                             <FieldContent>
                                                 <div className="relative">
                                                     <Input
                                                         type="date"
                                                         value={formData.date}
                                                         onChange={(e) => handleInputChange('date', e.target.value)}
+                                                        className={errors.date ? 'border-red-500' : ''}
                                                     />
-                                                    <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                    <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                                                 </div>
+                                                {errors.date && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.date}</p>
+                                                )}
                                             </FieldContent>
                                         </Field>
 
@@ -112,27 +175,35 @@ const Report = () => {
 
                                     {/* Clinical Findings */}
                                     <Field>
-                                        <FieldLabel>Clinical Findings</FieldLabel>
+                                        <FieldLabel>Clinical Findings *</FieldLabel>
                                         <FieldContent>
                                             <Textarea
                                                 placeholder="Slight wheezing in lungs"
                                                 value={formData.clinicalFindings}
                                                 onChange={(e) => handleInputChange('clinicalFindings', e.target.value)}
                                                 rows={2}
+                                                className={errors.clinicalFindings ? 'border-red-500' : ''}
                                             />
+                                            {errors.clinicalFindings && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.clinicalFindings}</p>
+                                            )}
                                         </FieldContent>
                                     </Field>
 
                                     {/* Diagnosis */}
                                     <Field>
-                                        <FieldLabel>Diagnosis</FieldLabel>
+                                        <FieldLabel>Diagnosis *</FieldLabel>
                                         <FieldContent>
                                             <Textarea
                                                 placeholder="Asthma - Mild"
                                                 value={formData.diagnosis}
                                                 onChange={(e) => handleInputChange('diagnosis', e.target.value)}
                                                 rows={2}
+                                                className={errors.diagnosis ? 'border-red-500' : ''}
                                             />
+                                            {errors.diagnosis && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.diagnosis}</p>
+                                            )}
                                         </FieldContent>
                                     </Field>
 
@@ -151,14 +222,18 @@ const Report = () => {
 
                                     {/* Treatment Plan */}
                                     <Field>
-                                        <FieldLabel>Treatment Plan</FieldLabel>
+                                        <FieldLabel>Treatment Plan *</FieldLabel>
                                         <FieldContent>
                                             <Textarea
                                                 placeholder="Continue current Asthma controller, follow-up if worse"
                                                 value={formData.treatmentPlan}
                                                 onChange={(e) => handleInputChange('treatmentPlan', e.target.value)}
                                                 rows={2}
+                                                className={errors.treatmentPlan ? 'border-red-500' : ''}
                                             />
+                                            {errors.treatmentPlan && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.treatmentPlan}</p>
+                                            )}
                                         </FieldContent>
                                     </Field>
 
@@ -197,9 +272,13 @@ const Report = () => {
                                                     type="date"
                                                     value={formData.nextCheckupDate}
                                                     onChange={(e) => handleInputChange('nextCheckupDate', e.target.value)}
+                                                    className={errors.nextCheckupDate ? 'border-red-500' : ''}
                                                 />
-                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                                             </div>
+                                            {errors.nextCheckupDate && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.nextCheckupDate}</p>
+                                            )}
                                         </FieldContent>
                                     </Field>
                                 </CardContent>

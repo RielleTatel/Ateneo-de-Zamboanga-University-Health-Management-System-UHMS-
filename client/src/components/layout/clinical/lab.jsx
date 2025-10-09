@@ -1,11 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
+import { Card, CardContent } from "@/components/ui/card";
+import { FileText, Download, Edit, Plus, Trash2 } from "lucide-react";
 
 const Lab = () => {
-    const labData = [
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingRow, setEditingRow] = useState(null);
+    const [newRowData, setNewRowData] = useState({
+        test: '',
+        unit: '',
+        "11/3/2025": '',
+        "10/15/2025": '',
+        "9/3/2025": '',
+        "3/31/2025": '',
+        "8/3/2024": ''
+    });
+    const [errors, setErrors] = useState({});
+    const [labData, setLabData] = useState([
         {
             test: "Weight",
             unit: "kg",
@@ -168,9 +185,85 @@ const Lab = () => {
             "3/31/2025": "-",
             "8/3/2024": { type: "file", name: "Doe...EKG.dcm" }
         }
-    ];
+    ]);
 
     const dates = ["11/3/2025", "10/15/2025", "9/3/2025", "3/31/2025", "8/3/2024"];
+
+    const validateForm = (data) => {
+        const newErrors = {};
+        
+        if (!data.test.trim()) {
+            newErrors.test = 'Test name is required';
+        }
+        
+        if (!data.unit.trim()) {
+            newErrors.unit = 'Unit is required';
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleInputChange = (field, value, isEditing = false) => {
+        if (isEditing) {
+            setEditingRow(prev => ({
+                ...prev,
+                [field]: value
+            }));
+        } else {
+            setNewRowData(prev => ({
+                ...prev,
+                [field]: value
+            }));
+        }
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
+    };
+
+    const handleAddRow = () => {
+        if (validateForm(newRowData)) {
+            setLabData(prev => [...prev, { ...newRowData, id: Date.now() }]);
+            setNewRowData({
+                test: '',
+                unit: '',
+                "11/3/2025": '',
+                "10/15/2025": '',
+                "9/3/2025": '',
+                "3/31/2025": '',
+                "8/3/2024": ''
+            });
+            setIsAddModalOpen(false);
+            setErrors({});
+        }
+    };
+
+    const handleEditRow = (rowIndex) => {
+        setEditingRow({ ...labData[rowIndex], index: rowIndex });
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateRow = () => {
+        if (validateForm(editingRow)) {
+            const updatedData = [...labData];
+            updatedData[editingRow.index] = { ...editingRow };
+            delete updatedData[editingRow.index].index;
+            setLabData(updatedData);
+            setIsEditModalOpen(false);
+            setEditingRow(null);
+            setErrors({});
+        }
+    };
+
+    const handleDeleteRow = (rowIndex) => {
+        const updatedData = labData.filter((_, index) => index !== rowIndex);
+        setLabData(updatedData);
+    };
 
     const renderCell = (value) => {
         if (typeof value === 'object' && value !== null) {
@@ -206,10 +299,88 @@ const Lab = () => {
             {/* Component header */}
             <div className="flex justify-between items-center gap-2 mb-6">
                 <p className="text-xl font-bold">Laboratory Test Results</p>
-                <Button variant="modify" className="flex items-center gap-2">
-                    Add To Table
-                    <Download className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-2">
+                    <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="modify" className="flex items-center gap-2">
+                                <Plus className="w-4 h-4" />
+                                Add Row
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Add New Lab Test</DialogTitle>
+                            </DialogHeader>
+                            
+                            <Card>
+                                <CardContent className="p-4 sm:p-6 space-y-4">
+                                    {/* Test Name and Unit */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <Field>
+                                            <FieldLabel>Test Name *</FieldLabel>
+                                            <FieldContent>
+                                                <Input
+                                                    placeholder="e.g., Weight, Blood Pressure"
+                                                    value={newRowData.test}
+                                                    onChange={(e) => handleInputChange('test', e.target.value)}
+                                                    className={errors.test ? 'border-red-500' : ''}
+                                                />
+                                                {errors.test && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.test}</p>
+                                                )}
+                                            </FieldContent>
+                                        </Field>
+
+                                        <Field>
+                                            <FieldLabel>Unit *</FieldLabel>
+                                            <FieldContent>
+                                                <Input
+                                                    placeholder="e.g., kg, mmHg, mg/dL"
+                                                    value={newRowData.unit}
+                                                    onChange={(e) => handleInputChange('unit', e.target.value)}
+                                                    className={errors.unit ? 'border-red-500' : ''}
+                                                />
+                                                {errors.unit && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.unit}</p>
+                                                )}
+                                            </FieldContent>
+                                        </Field>
+                                    </div>
+
+                                    {/* Date Values */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {dates.map((date) => (
+                                            <Field key={date}>
+                                                <FieldLabel>{date}</FieldLabel>
+                                                <FieldContent>
+                                                    <Input
+                                                        placeholder="Value or '-'"
+                                                        value={newRowData[date]}
+                                                        onChange={(e) => handleInputChange(date, e.target.value)}
+                                                    />
+                                                </FieldContent>
+                                            </Field>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <DialogFooter className="gap-2">
+                                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button onClick={handleAddRow}>
+                                    Add Test
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Button variant="outline" className="flex items-center gap-2">
+                        <Download className="w-4 h-4" />
+                        Export
+                    </Button>
+                </div>
             </div>
 
             {/* Lab Results Table */}
@@ -223,6 +394,7 @@ const Lab = () => {
                                     {date}
                                 </TableHead>
                             ))}
+                            <TableHead className="text-white font-semibold text-center min-w-24">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -239,11 +411,104 @@ const Lab = () => {
                                         {renderCell(row[date])}
                                     </TableCell>
                                 ))}
+                                <TableCell className="text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleEditRow(index)}
+                                            className="h-8 w-8 p-0"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteRow(index)}
+                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </div>
+
+            {/* Edit Modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Edit Lab Test</DialogTitle>
+                    </DialogHeader>
+                    
+                    {editingRow && (
+                        <Card>
+                            <CardContent className="p-4 sm:p-6 space-y-4">
+                                {/* Test Name and Unit */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <Field>
+                                        <FieldLabel>Test Name *</FieldLabel>
+                                        <FieldContent>
+                                            <Input
+                                                placeholder="e.g., Weight, Blood Pressure"
+                                                value={editingRow.test}
+                                                onChange={(e) => handleInputChange('test', e.target.value, true)}
+                                                className={errors.test ? 'border-red-500' : ''}
+                                            />
+                                            {errors.test && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.test}</p>
+                                            )}
+                                        </FieldContent>
+                                    </Field>
+
+                                    <Field>
+                                        <FieldLabel>Unit *</FieldLabel>
+                                        <FieldContent>
+                                            <Input
+                                                placeholder="e.g., kg, mmHg, mg/dL"
+                                                value={editingRow.unit}
+                                                onChange={(e) => handleInputChange('unit', e.target.value, true)}
+                                                className={errors.unit ? 'border-red-500' : ''}
+                                            />
+                                            {errors.unit && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.unit}</p>
+                                            )}
+                                        </FieldContent>
+                                    </Field>
+                                </div>
+
+                                {/* Date Values */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {dates.map((date) => (
+                                        <Field key={date}>
+                                            <FieldLabel>{date}</FieldLabel>
+                                            <FieldContent>
+                                                <Input
+                                                    placeholder="Value or '-'"
+                                                    value={typeof editingRow[date] === 'object' ? JSON.stringify(editingRow[date]) : editingRow[date] || ''}
+                                                    onChange={(e) => handleInputChange(date, e.target.value, true)}
+                                                />
+                                            </FieldContent>
+                                        </Field>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleUpdateRow}>
+                            Update Test
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

@@ -15,24 +15,70 @@ const Immunization = () => {
         nextDue: '',
         complianceStatus: 'up-to-date'
     });
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Vaccine Type validation
+        if (!formData.vaccineType.trim()) {
+            newErrors.vaccineType = 'Vaccine type is required';
+        } else if (formData.vaccineType.trim().length < 2) {
+            newErrors.vaccineType = 'Vaccine type must be at least 2 characters';
+        }
+        
+        // Last Administered validation
+        if (!formData.lastAdministered) {
+            newErrors.lastAdministered = 'Last administered date is required';
+        } else {
+            const adminDate = new Date(formData.lastAdministered);
+            const today = new Date();
+            if (adminDate > today) {
+                newErrors.lastAdministered = 'Last administered date cannot be in the future';
+            }
+        }
+        
+        // Next Due validation (optional but if provided, should be after last administered)
+        if (formData.nextDue && formData.lastAdministered) {
+            const nextDueDate = new Date(formData.nextDue);
+            const adminDate = new Date(formData.lastAdministered);
+            if (nextDueDate <= adminDate) {
+                newErrors.nextDue = 'Next due date must be after last administered date';
+            }
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
     };
 
     const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        setIsModalOpen(false);
-        // Reset form
-        setFormData({
-            vaccineType: '',
-            lastAdministered: '',
-            nextDue: '',
-            complianceStatus: 'up-to-date'
-        });
+        if (validateForm()) {
+            console.log('Form submitted:', formData);
+            setIsModalOpen(false);
+            // Reset form
+            setFormData({
+                vaccineType: '',
+                lastAdministered: '',
+                nextDue: '',
+                complianceStatus: 'up-to-date'
+            });
+            setErrors({});
+        }
     };
 
     return (
@@ -48,38 +94,46 @@ const Immunization = () => {
                                             + Add Immunization
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-md">
+                                    <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
                                         <DialogHeader>
                                             <DialogTitle>Add Immunization</DialogTitle>
                                         </DialogHeader>
                                         
                                         <Card>
-                                            <CardContent className="p-6 space-y-4">
+                                            <CardContent className="p-4 sm:p-6 space-y-4">
                                                 {/* Vaccine Type */}
                                                 <Field>
-                                                    <FieldLabel>Vaccine Type</FieldLabel>
+                                                    <FieldLabel>Vaccine Type *</FieldLabel>
                                                     <FieldContent>
                                                         <Input
                                                             placeholder="COVID - 19 (PFIZER)"
                                                             value={formData.vaccineType}
                                                             onChange={(e) => handleInputChange('vaccineType', e.target.value)}
+                                                            className={errors.vaccineType ? 'border-red-500' : ''}
                                                         />
+                                                        {errors.vaccineType && (
+                                                            <p className="text-red-500 text-sm mt-1">{errors.vaccineType}</p>
+                                                        )}
                                                     </FieldContent>
                                                 </Field>
 
                                                 {/* Date Fields */}
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <Field>
-                                                        <FieldLabel>Last Administered</FieldLabel>
+                                                        <FieldLabel>Last Administered *</FieldLabel>
                                                         <FieldContent>
                                                             <div className="relative">
                                                                 <Input
                                                                     type="date"
                                                                     value={formData.lastAdministered}
                                                                     onChange={(e) => handleInputChange('lastAdministered', e.target.value)}
+                                                                    className={errors.lastAdministered ? 'border-red-500' : ''}
                                                                 />
-                                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                                                             </div>
+                                                            {errors.lastAdministered && (
+                                                                <p className="text-red-500 text-sm mt-1">{errors.lastAdministered}</p>
+                                                            )}
                                                         </FieldContent>
                                                     </Field>
 
@@ -91,9 +145,13 @@ const Immunization = () => {
                                                                     type="date"
                                                                     value={formData.nextDue}
                                                                     onChange={(e) => handleInputChange('nextDue', e.target.value)}
+                                                                    className={errors.nextDue ? 'border-red-500' : ''}
                                                                 />
-                                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                                                             </div>
+                                                            {errors.nextDue && (
+                                                                <p className="text-red-500 text-sm mt-1">{errors.nextDue}</p>
+                                                            )}
                                                         </FieldContent>
                                                     </Field>
                                                 </div>

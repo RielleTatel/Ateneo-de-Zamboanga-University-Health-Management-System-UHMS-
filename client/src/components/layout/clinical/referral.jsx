@@ -16,24 +16,57 @@ const Referral = () => {
         status: 'ongoing',
         reason: ''
     });
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Clinic Visit Date validation
+        if (!formData.clinicVisitDate) {
+            newErrors.clinicVisitDate = 'Clinic visit date is required';
+        }
+        
+        // Reason validation
+        if (!formData.reason.trim()) {
+            newErrors.reason = 'Reason is required';
+        } else if (formData.reason.trim().length < 10) {
+            newErrors.reason = 'Reason must be at least 10 characters';
+        } else if (formData.reason.trim().length > 500) {
+            newErrors.reason = 'Reason must not exceed 500 characters';
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
     };
 
     const handleSubmit = () => {
-        console.log('Referral submitted:', formData);
-        setIsModalOpen(false);
-        // Reset form
-        setFormData({
-            clinicVisitDate: 'September 3, 2025',
-            type: 'referral',
-            status: 'ongoing',
-            reason: ''
-        });
+        if (validateForm()) {
+            console.log('Referral submitted:', formData);
+            setIsModalOpen(false);
+            // Reset form
+            setFormData({
+                clinicVisitDate: 'September 3, 2025',
+                type: 'referral',
+                status: 'ongoing',
+                reason: ''
+            });
+            setErrors({});
+        }
     };
 
     return (
@@ -69,19 +102,19 @@ const Referral = () => {
                                 +Add
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
+                        <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Add Follow-up/Referral</DialogTitle>
                             </DialogHeader>
                             
                             <Card>
-                                <CardContent className="p-6 space-y-4">
+                                <CardContent className="p-4 sm:p-6 space-y-4">
                                     {/* Date of Clinic Visit */}
                                     <Field>
-                                        <FieldLabel>Date of Clinic Visit</FieldLabel>
+                                        <FieldLabel>Date of Clinic Visit *</FieldLabel>
                                         <FieldContent>
                                             <Select value={formData.clinicVisitDate} onValueChange={(value) => handleInputChange('clinicVisitDate', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger className={errors.clinicVisitDate ? 'border-red-500' : ''}>
                                                     <SelectValue placeholder="Select date" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -90,11 +123,14 @@ const Referral = () => {
                                                     <SelectItem value="July 20, 2025">July 20, 2025</SelectItem>
                                                 </SelectContent>
                                             </Select>
+                                            {errors.clinicVisitDate && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.clinicVisitDate}</p>
+                                            )}
                                         </FieldContent>
                                     </Field>
 
                                     {/* Type and Status */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Field>
                                             <FieldLabel>Type</FieldLabel>
                                             <FieldContent>
@@ -130,14 +166,24 @@ const Referral = () => {
 
                                     {/* Reason */}
                                     <Field>
-                                        <FieldLabel>Reason</FieldLabel>
+                                        <FieldLabel>Reason *</FieldLabel>
                                         <FieldContent>
                                             <Textarea
-                                                placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                                                placeholder="Provide detailed reason for referral or follow-up (minimum 10 characters)"
                                                 value={formData.reason}
                                                 onChange={(e) => handleInputChange('reason', e.target.value)}
-                                                rows={3}
+                                                rows={4}
+                                                maxLength={500}
+                                                className={errors.reason ? 'border-red-500' : ''}
                                             />
+                                            <div className="flex justify-between items-center mt-1">
+                                                {errors.reason && (
+                                                    <p className="text-red-500 text-sm">{errors.reason}</p>
+                                                )}
+                                                <p className="text-gray-400 text-xs ml-auto">
+                                                    {formData.reason.length}/500
+                                                </p>
+                                            </div>
                                         </FieldContent>
                                     </Field>
                                 </CardContent>

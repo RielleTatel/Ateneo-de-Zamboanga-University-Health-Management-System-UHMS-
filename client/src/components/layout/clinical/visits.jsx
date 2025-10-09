@@ -15,24 +15,68 @@ const Visits = () => {
         reason: '',
         actionTaken: 'referral-followup'
     });
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Date validation
+        if (!formData.date) {
+            newErrors.date = 'Date is required';
+        } else {
+            const visitDate = new Date(formData.date);
+            const today = new Date();
+            if (visitDate > today) {
+                newErrors.date = 'Visit date cannot be in the future';
+            }
+        }
+        
+        // Attending Staff validation
+        if (!formData.attendingStaff.trim()) {
+            newErrors.attendingStaff = 'Attending staff is required';
+        } else if (formData.attendingStaff.trim().length < 2) {
+            newErrors.attendingStaff = 'Attending staff name must be at least 2 characters';
+        }
+        
+        // Reason validation
+        if (!formData.reason.trim()) {
+            newErrors.reason = 'Reason is required';
+        } else if (formData.reason.trim().length < 3) {
+            newErrors.reason = 'Reason must be at least 3 characters';
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
     };
 
     const handleSubmit = () => {
-        console.log('Visit log submitted:', formData);
-        setIsModalOpen(false);
-        // Reset form
-        setFormData({
-            date: '',
-            attendingStaff: '',
-            reason: '',
-            actionTaken: 'referral-followup'
-        });
+        if (validateForm()) {
+            console.log('Visit log submitted:', formData);
+            setIsModalOpen(false);
+            // Reset form
+            setFormData({
+                date: '',
+                attendingStaff: '',
+                reason: '',
+                actionTaken: 'referral-followup'
+            });
+            setErrors({});
+        }
     };
 
     return (
@@ -58,26 +102,30 @@ const Visits = () => {
                                 + Add Visit Log
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
+                        <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                                <DialogTitle>Edit Visit Log</DialogTitle>
+                                <DialogTitle>Add Visit Log</DialogTitle>
                             </DialogHeader>
                             
                             <Card>
-                                <CardContent className="p-6 space-y-4">
+                                <CardContent className="p-4 sm:p-6 space-y-4">
                                     {/* Date and Action Taken */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Field>
-                                            <FieldLabel>Date</FieldLabel>
+                                            <FieldLabel>Date *</FieldLabel>
                                             <FieldContent>
                                                 <div className="relative">
                                                     <Input
                                                         type="date"
                                                         value={formData.date}
                                                         onChange={(e) => handleInputChange('date', e.target.value)}
+                                                        className={errors.date ? 'border-red-500' : ''}
                                                     />
-                                                    <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                    <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                                                 </div>
+                                                {errors.date && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.date}</p>
+                                                )}
                                             </FieldContent>
                                         </Field>
 
@@ -100,26 +148,34 @@ const Visits = () => {
                                     </div>
 
                                     {/* Attending Staff and Reason */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Field>
-                                            <FieldLabel>Attending Staff</FieldLabel>
+                                            <FieldLabel>Attending Staff *</FieldLabel>
                                             <FieldContent>
                                                 <Input
                                                     placeholder="Dr. AC"
                                                     value={formData.attendingStaff}
                                                     onChange={(e) => handleInputChange('attendingStaff', e.target.value)}
+                                                    className={errors.attendingStaff ? 'border-red-500' : ''}
                                                 />
+                                                {errors.attendingStaff && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.attendingStaff}</p>
+                                                )}
                                             </FieldContent>
                                         </Field>
 
                                         <Field>
-                                            <FieldLabel>Reason</FieldLabel>
+                                            <FieldLabel>Reason *</FieldLabel>
                                             <FieldContent>
                                                 <Input
                                                     placeholder="Medical Check"
                                                     value={formData.reason}
                                                     onChange={(e) => handleInputChange('reason', e.target.value)}
+                                                    className={errors.reason ? 'border-red-500' : ''}
                                                 />
+                                                {errors.reason && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.reason}</p>
+                                                )}
                                             </FieldContent>
                                         </Field>
                                     </div>
