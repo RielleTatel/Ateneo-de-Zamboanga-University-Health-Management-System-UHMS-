@@ -1,15 +1,26 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom"; 
+import Dashboard from "./pages/Dashboard.jsx";
+import Profile from "./pages/Profile.jsx";
+import Records from "./pages/Records.jsx";
+
 import './App.css'
 
-  function App() {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-red-500 w-64 h-32 rounded-lg shadow-lg flex items-center justify-center"> 
-          <h1 className="text-white text-2xl font-bold"> 
-            Hello Tailwind!
-          </h1>
-        </div>
-      </div>
-    )
-  }
+const queryClient = new QueryClient();
+
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/records" element={<Records />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
 
 export default App
