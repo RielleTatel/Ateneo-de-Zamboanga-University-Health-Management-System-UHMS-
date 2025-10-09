@@ -1,8 +1,10 @@
 import React, { useState } from "react"; 
+import { Link } from "react-router-dom";
 import Navigation from "@/components/layout/navigation";
+import ProfileHeader from "@/components/layout/profileHeader";
 import Overview from "@/components/layout/profile/overview";
 import Immunization from "@/components/layout/profile/immunization";
-import ProfileHeader from "@/components/layout/profileHeader";
+
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState('overview');
@@ -28,7 +30,7 @@ const Profile = () => {
                                 <span className="text-text-primary font-medium"> PROFILE </span>
                             </div>
                             <div className="bg-transparent rounded-full px-6 py-3">
-                                <span className="text-text-primary"> CLINICAL RECORDS </span>
+                                <span className="text-text-primary"> <Link to={"/Clinical"}>  CLINICAL RECORDS </Link> </span>
                             </div>
                         </div>
 

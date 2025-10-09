@@ -1,0 +1,138 @@
+import React, { useState } from "react"; 
+import Navigation from "@/components/layout/navigation";
+import ProfileHeader from "@/components/layout/profileHeader";
+import Vitals from "@/components/layout/clinical/vitals";
+import Lab from "@/components/layout/clinical/lab";
+import Visits from "@/components/layout/clinical/visits";
+import Referral from "@/components/layout/clinical/referral";
+import Report from "@/components/layout/clinical/report";
+
+
+const Clinical = () => {
+    const [activeTab, setActiveTab] = useState('vitals');
+
+    return (
+            <div className="bg-background-primary w-screen min-h-screen flex flex-row">
+    
+                {/* First container */}
+                <Navigation/> 
+    
+                {/* Second container */}
+                <div className="flex-1 flex-col p-4"> 
+                    <div className=" min-w-ful p-3"> 
+                        <p className="text-[20px]"> <b> Profile </b> </p>
+                    </div> 
+    
+                        {/* Second container */}
+                        <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7 "> 
+    
+                            {/* Tab Navigation */}
+                            <div className="flex gap-4 mb-8">
+                                <div className="bg-transparent rounded-full px-6 py-3">
+                                    <span className="text-text-primary"> PROFILE </span>
+                                </div>
+                                <div className="bg-gray-200 rounded-full px-6 py-3">
+                                    <span className="text-text-primary font-medium"> CLINICAL RECORDS </span>
+                                </div>
+                            </div>
+    
+                            <ProfileHeader/>
+    
+                            {/* Clinical Navigation */}
+                        <div className="flex flex-row justify-center bg-background-primary rounded-[23px] p-1 border-outline border-2 mb-4">
+                            <div 
+                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                    activeTab === 'vitals' 
+                                        ? 'bg-outline' 
+                                        : 'hover:bg-gray-100'
+                                }`}
+                                onClick={() => setActiveTab('vitals')}
+                            > 
+                                <p className={`${
+                                    activeTab === 'vitals' 
+                                        ? 'text-text-primary font-medium' 
+                                        : 'text-text-primary'
+                                }`}> 
+                                    Vitals 
+                                </p>
+                            </div> 
+                            <div 
+                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                    activeTab === 'lab' 
+                                        ? 'bg-outline' 
+                                        : 'hover:bg-gray-100'
+                                }`}
+                                onClick={() => setActiveTab('lab')}
+                            > 
+                                <p className={`${
+                                    activeTab === 'lab' 
+                                        ? 'text-text-primary font-medium' 
+                                        : 'text-text-primary'
+                                }`}> 
+                                    Lab Results 
+                                </p>
+                            </div> 
+                            <div 
+                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                    activeTab === 'visits' 
+                                        ? 'bg-outline' 
+                                        : 'hover:bg-gray-100'
+                                }`}
+                                onClick={() => setActiveTab('visits')}
+                            > 
+                                <p className={`${
+                                    activeTab === 'visits' 
+                                        ? 'text-text-primary font-medium' 
+                                        : 'text-text-primary'
+                                }`}> 
+                                    Clinic Visits 
+                                </p>
+                            </div> 
+                            <div 
+                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                    activeTab === 'referrals' 
+                                        ? 'bg-outline' 
+                                        : 'hover:bg-gray-100'
+                                }`}
+                                onClick={() => setActiveTab('referrals')}
+                            > 
+                                <p className={`${
+                                    activeTab === 'referrals' 
+                                        ? 'text-text-primary font-medium' 
+                                        : 'text-text-primary'
+                                }`}> 
+                                    Referrals 
+                                </p>
+                            </div> 
+                            <div 
+                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                    activeTab === 'report' 
+                                        ? 'bg-outline' 
+                                        : 'hover:bg-gray-100'
+                                }`}
+                                onClick={() => setActiveTab('report')}
+                            > 
+                                <p className={`${
+                                    activeTab === 'report' 
+                                        ? 'text-text-primary font-medium' 
+                                        : 'text-text-primary'
+                                }`}> 
+                                    Doctor's Report 
+                                </p>
+                            </div> 
+
+                        </div> 
+
+                        {/* Conditional Rendering based on active tab */}
+                        {activeTab === 'vitals' && <Vitals />}
+                        {activeTab === 'lab' && <Lab />}
+                        {activeTab === 'visits' && <Visits />}
+                        {activeTab === 'referrals' && <Referral />}
+                        {activeTab === 'report' && <Report />}
+                    </div>
+                </div>
+            </div>
+    )
+}
+
+export default Clinical; 
