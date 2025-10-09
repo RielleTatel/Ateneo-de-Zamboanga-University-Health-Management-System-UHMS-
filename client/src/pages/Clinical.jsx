@@ -1,4 +1,5 @@
 import React, { useState } from "react"; 
+import { Link } from "react-router-dom";
 import Navigation from "@/components/layout/navigation";
 import ProfileHeader from "@/components/layout/profileHeader";
 import Vitals from "@/components/layout/clinical/vitals";
@@ -20,7 +21,7 @@ const Clinical = () => {
                 {/* Second container */}
                 <div className="flex-1 flex-col p-4"> 
                     <div className=" min-w-ful p-3"> 
-                        <p className="text-[20px]"> <b> Profile </b> </p>
+                        <p className="text-[20px]"> <b>  Profile  </b> </p>
                     </div> 
     
                         {/* Second container */}
@@ -28,10 +29,10 @@ const Clinical = () => {
     
                             {/* Tab Navigation */}
                             <div className="flex gap-4 mb-8">
-                                <div className="bg-transparent rounded-full px-6 py-3">
-                                    <span className="text-text-primary"> PROFILE </span>
+                                <div className="bg-transparent rounded-full px-6 py-3 w-3/6 text-center">
+                                    <span className="text-text-primary"> <Link to={"/profile"}> PROFILE </Link> </span>
                                 </div>
-                                <div className="bg-gray-200 rounded-full px-6 py-3">
+                                <div className="bg-outline rounded-full px-6 py-3 w-3/6 text-center">
                                     <span className="text-text-primary font-medium"> CLINICAL RECORDS </span>
                                 </div>
                             </div>

@@ -1,9 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Archive } from "lucide-react";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
+import { Card, CardContent } from "@/components/ui/card";
+import { Edit, Archive, Calendar } from "lucide-react";
 
 const Visits = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        date: '',
+        attendingStaff: '',
+        reason: '',
+        actionTaken: 'referral-followup'
+    });
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSubmit = () => {
+        console.log('Visit log submitted:', formData);
+        setIsModalOpen(false);
+        // Reset form
+        setFormData({
+            date: '',
+            attendingStaff: '',
+            reason: '',
+            actionTaken: 'referral-followup'
+        });
+    };
+
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
             {/* Component header */}
@@ -20,9 +51,91 @@ const Visits = () => {
                             <SelectItem value="date">By Date</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="modify">
-                        + Add Visit Log
-                    </Button>
+                    
+                    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="modify">
+                                + Add Visit Log
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Edit Visit Log</DialogTitle>
+                            </DialogHeader>
+                            
+                            <Card>
+                                <CardContent className="p-6 space-y-4">
+                                    {/* Date and Action Taken */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Field>
+                                            <FieldLabel>Date</FieldLabel>
+                                            <FieldContent>
+                                                <div className="relative">
+                                                    <Input
+                                                        type="date"
+                                                        value={formData.date}
+                                                        onChange={(e) => handleInputChange('date', e.target.value)}
+                                                    />
+                                                    <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                </div>
+                                            </FieldContent>
+                                        </Field>
+
+                                        <Field>
+                                            <FieldLabel>Action Taken</FieldLabel>
+                                            <FieldContent>
+                                                <Select value={formData.actionTaken} onValueChange={(value) => handleInputChange('actionTaken', value)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select action" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="referral-followup">Referral/Follow-up</SelectItem>
+                                                        <SelectItem value="treatment">Treatment</SelectItem>
+                                                        <SelectItem value="consultation">Consultation</SelectItem>
+                                                        <SelectItem value="checkup">Check-up</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FieldContent>
+                                        </Field>
+                                    </div>
+
+                                    {/* Attending Staff and Reason */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Field>
+                                            <FieldLabel>Attending Staff</FieldLabel>
+                                            <FieldContent>
+                                                <Input
+                                                    placeholder="Dr. AC"
+                                                    value={formData.attendingStaff}
+                                                    onChange={(e) => handleInputChange('attendingStaff', e.target.value)}
+                                                />
+                                            </FieldContent>
+                                        </Field>
+
+                                        <Field>
+                                            <FieldLabel>Reason</FieldLabel>
+                                            <FieldContent>
+                                                <Input
+                                                    placeholder="Medical Check"
+                                                    value={formData.reason}
+                                                    onChange={(e) => handleInputChange('reason', e.target.value)}
+                                                />
+                                            </FieldContent>
+                                        </Field>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <DialogFooter className="gap-2">
+                                <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button onClick={handleSubmit}>
+                                    Save Changes
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 

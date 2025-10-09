@@ -26,10 +26,10 @@ const Profile = () => {
 
                         {/* Tab Navigation */}
                         <div className="flex gap-4 mb-8">
-                            <div className="bg-gray-200 rounded-full px-6 py-3">
+                            <div className="bg-outline rounded-full px-6 py-3 w-3/6 text-center">
                                 <span className="text-text-primary font-medium"> PROFILE </span>
                             </div>
-                            <div className="bg-transparent rounded-full px-6 py-3">
+                            <div className="bg-transparent rounded-full px-6 py-3 w-3/6 text-center">
                                 <span className="text-text-primary"> <Link to={"/Clinical"}>  CLINICAL RECORDS </Link> </span>
                             </div>
                         </div>
