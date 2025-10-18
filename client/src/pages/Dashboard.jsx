@@ -51,7 +51,7 @@ const Dashboard = () => {
 
                         {/* Statistics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <Card className="bg-white shadow-sm">
+                            <Card className="bg-white shadow-sm border-outline">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
                                     <Users className="h-4 w-4 text-blue-600" />
@@ -65,7 +65,7 @@ const Dashboard = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white shadow-sm">
+                            <Card className="bg-white shadow-sm border-outline">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">Appointments Today</CardTitle>
                                     <Calendar className="h-4 w-4 text-green-600" />
@@ -78,7 +78,7 @@ const Dashboard = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white shadow-sm">
+                            <Card className="bg-white shadow-sm border-outline">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">Lab Reports</CardTitle>
                                     <FileText className="h-4 w-4 text-purple-600" />
@@ -91,7 +91,7 @@ const Dashboard = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white shadow-sm">
+                            <Card className="bg-white shadow-sm border-outline">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">Critical Alerts</CardTitle>
                                     <AlertCircle className="h-4 w-4 text-red-600" />
@@ -108,7 +108,7 @@ const Dashboard = () => {
                         {/* Charts Section */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                             {/* Monthly Visits Chart */}
-                            <Card className="bg-white shadow-sm">
+                            <Card className="bg-white shadow-sm border-outline">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">Monthly Clinic Visits</CardTitle>
                                 </CardHeader>
@@ -132,7 +132,7 @@ const Dashboard = () => {
                             </Card>
 
                             {/* Health Status Distribution */}
-                            <Card className="bg-white shadow-sm">
+                            <Card className="bg-white shadow-sm border-outline">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">Patient Health Status</CardTitle>
                                 </CardHeader>
@@ -171,7 +171,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Weekly Appointments Chart */}
-                        <Card className="bg-white shadow-sm">
+                        <Card className="bg-white shadow-sm border-outline">
                             <CardHeader>
                                 <CardTitle className="text-lg font-semibold">Weekly Appointments</CardTitle>
                             </CardHeader>

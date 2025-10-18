@@ -22,20 +22,21 @@ const Navigation = () => {
   
         <div className="flex flex-col items-start w-full gap-y-2 text-[13px]">
             {/* Overview Button */}
-            <div className="w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all duration-300 ease-in-out cursor-pointer"> 
-                <LayoutDashboard className="ml-10 w-6 h-6 text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out" />
-                <p className="font-semibold text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out">
-                <Link to="/Dashboard"> Overview </Link>
-                </p>
-            </div>
+        {/* Overview Button */}
+        <div className="w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all duration-300 ease-in-out cursor-pointer"> 
+          <LayoutDashboard className="ml-10 w-6 h-6 text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out" />
+          <p className="font-semibold text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out hidden md:block">
+            <Link to="/Dashboard">Overview</Link>
+          </p>
+        </div>
 
-            {/* Records Button */}
-            <div className="w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all duration-300 ease-in-out cursor-pointer">
-                <Users2 className="ml-10 w-6 h-6 text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out" />
-                <p className="font-semibold text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out">
-                <Link to="/records"> Records </Link>
-                </p>
-            </div>
+        {/* Records Button */}
+        <div className="w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all duration-300 ease-in-out cursor-pointer">
+          <Users2 className="ml-10 w-6 h-6 text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out" />
+          <p className="font-semibold text-text-primary group-hover:text-white transition-colors duration-300 ease-in-out hidden md:block">
+            <Link to="/records">Records</Link>
+          </p>
+        </div>
         </div>
 
       </div>

@@ -34,13 +34,13 @@ const Records = () => {
                             <input 
                                 type="text" 
                                 placeholder="Search with ID, name, or email"
-                                className="w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 bg-outline text-gray-400 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 bg-outline text-gray-700 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                         
                         {/* Filter Dropdown */}
                         <Select className="bg-outline">
-                            <SelectTrigger className="w-[180px] h-12 bg-outline">
+                            <SelectTrigger className="w-[180px] h-12 bg-outline text-gray-700">
                                 <SelectValue placeholder="Filter by" />
                             </SelectTrigger>
                             <SelectContent>
@@ -53,7 +53,7 @@ const Records = () => {
                         
                         {/* Sort Dropdown */}
                         <Select className="bg-outline">
-                            <SelectTrigger className="w-[180px] h-12 bg-outline">
+                            <SelectTrigger className="w-[180px] h-12 bg-outline text-gray-700">
                                 <SelectValue placeholder="Alphabetical" />
                             </SelectTrigger>
                             <SelectContent>
@@ -80,9 +80,9 @@ const Records = () => {
                                                     John Doe 
                                                 </Link>
                                             </h3>
-                                            <span className="px-3 py-1 bg-gray-800 text-white text-xs rounded-full font-medium">STUDENT</span>
+                                            <span className="px-3 py-1 bg-gray-800 text-white text-xs rounded-full font-medium"> STUDENT </span>
                                         </div>
-                                        <p className="text-gray-600 text-sm mt-1">ID: co250001 • Computer Science</p>
+                                        <p className="text-gray-600 text-sm mt-1"> ID: co250001 • Computer Science</p>
                                     </div>
                                 </div>
                             </div>

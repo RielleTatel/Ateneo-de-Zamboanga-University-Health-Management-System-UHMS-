@@ -1,25 +1,51 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
-import { Card, CardContent } from "@/components/ui/card";
-import { Edit, Archive, Calendar } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Edit, Archive, Calendar, AlertTriangle } from "lucide-react";
+
+// Mock data for initial vitals
+const initialVitals = [
+    {
+        id: 1,
+        dateTaken: '2025-09-03',
+        bloodPressure: '120/80',
+        temperature: '36.8',
+        weight: '65',
+        height: '170',
+        heartRate: '72',
+        respiratoryRate: '16',
+        bmi: '22.5' // Calculated or stored
+    }
+];
+
+// Blank form data
+const blankForm = {
+    dateTaken: '',
+    bloodPressure: '',
+    temperature: '',
+    weight: '',
+    height: '',
+    heartRate: '',
+    respiratoryRate: ''
+};
 
 const Vitals = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({
-        dateTaken: '',
-        bloodPressure: '',
-        temperature: '',
-        weight: '',
-        height: '',
-        heartRate: '',
-        respiratoryRate: ''
-    });
+    const [vitalsRecords, setVitalsRecords] = useState(initialVitals);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isViewEditModalOpen, setIsViewEditModalOpen] = useState(false);
+    const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+    
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedVital, setSelectedVital] = useState(null);
+    
+    const [formData, setFormData] = useState(blankForm);
     const [errors, setErrors] = useState({});
 
+    // --- Validation Functions ---
     const validateNumericInput = (value, min, max, fieldName) => {
         if (!value) return `${fieldName} is required`;
         const num = parseFloat(value);
@@ -43,40 +69,35 @@ const Vitals = () => {
 
     const validateForm = () => {
         const newErrors = {};
+        const data = isEditing ? selectedVital : formData;
         
-        // Date validation
-        if (!formData.dateTaken) {
+        if (!data.dateTaken) {
             newErrors.dateTaken = 'Date is required';
         } else {
-            const takenDate = new Date(formData.dateTaken);
+            const takenDate = new Date(data.dateTaken);
             const today = new Date();
-            if (takenDate > today) {
+            today.setHours(0, 0, 0, 0); // Normalize
+            if (takenDate > today && takenDate.toDateString() !== today.toDateString()) {
                 newErrors.dateTaken = 'Date cannot be in the future';
             }
         }
         
-        // Blood pressure validation
-        const bpError = validateBloodPressure(formData.bloodPressure);
+        const bpError = validateBloodPressure(data.bloodPressure);
         if (bpError) newErrors.bloodPressure = bpError;
         
-        // Temperature validation (Celsius)
-        const tempError = validateNumericInput(formData.temperature, 30, 45, 'Temperature');
+        const tempError = validateNumericInput(data.temperature, 30, 45, 'Temperature');
         if (tempError) newErrors.temperature = tempError;
         
-        // Weight validation (kg)
-        const weightError = validateNumericInput(formData.weight, 1, 500, 'Weight');
+        const weightError = validateNumericInput(data.weight, 1, 500, 'Weight');
         if (weightError) newErrors.weight = weightError;
         
-        // Height validation (cm)
-        const heightError = validateNumericInput(formData.height, 30, 300, 'Height');
+        const heightError = validateNumericInput(data.height, 30, 300, 'Height');
         if (heightError) newErrors.height = heightError;
         
-        // Heart rate validation (bpm)
-        const hrError = validateNumericInput(formData.heartRate, 30, 250, 'Heart rate');
+        const hrError = validateNumericInput(data.heartRate, 30, 250, 'Heart rate');
         if (hrError) newErrors.heartRate = hrError;
         
-        // Respiratory rate validation (breaths per minute)
-        const rrError = validateNumericInput(formData.respiratoryRate, 5, 60, 'Respiratory rate');
+        const rrError = validateNumericInput(data.respiratoryRate, 5, 60, 'Respiratory rate');
         if (rrError) newErrors.respiratoryRate = rrError;
         
         setErrors(newErrors);
@@ -84,37 +105,131 @@ const Vitals = () => {
     };
 
     const handleInputChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        const updater = isEditing ? setSelectedVital : setFormData;
+        updater(prev => ({ ...prev, [field]: value }));
         
-        // Clear error when user starts typing
         if (errors[field]) {
-            setErrors(prev => ({
-                ...prev,
-                [field]: ''
-            }));
+            setErrors(prev => ({ ...prev, [field]: '' }));
         }
+    };
+
+    // Calculate BMI
+    const calculateBMI = (weight, height) => {
+        if (!weight || !height || height <= 0) return 'N/A';
+        const heightInMeters = parseFloat(height) / 100;
+        const bmi = parseFloat(weight) / (heightInMeters * heightInMeters);
+        return bmi.toFixed(1);
     };
 
     const handleSubmit = () => {
         if (validateForm()) {
-            console.log('Vitals submitted:', formData);
-            setIsModalOpen(false);
-            // Reset form
-            setFormData({
-                dateTaken: '',
-                bloodPressure: '',
-                temperature: '',
-                weight: '',
-                height: '',
-                heartRate: '',
-                respiratoryRate: ''
-            });
+            const dataToSubmit = isEditing ? selectedVital : formData;
+            const bmi = calculateBMI(dataToSubmit.weight, dataToSubmit.height);
+            const finalData = { ...dataToSubmit, bmi };
+
+            if (isEditing) {
+                setVitalsRecords(vitalsRecords.map(v => v.id === finalData.id ? finalData : v));
+                console.log('Vitals updated:', finalData);
+            } else {
+                setVitalsRecords([{ ...finalData, id: Date.now() }, ...vitalsRecords]);
+                console.log('Vitals submitted:', finalData);
+            }
+
+            setIsAddModalOpen(false);
+            setIsViewEditModalOpen(false);
+            setIsEditing(false);
+            setSelectedVital(null);
+            setFormData(blankForm);
             setErrors({});
         }
     };
+
+    const handleOpenAddModal = () => {
+        setIsEditing(false);
+        setFormData(blankForm);
+        setErrors({});
+        setIsAddModalOpen(true);
+    };
+
+    const handleOpenViewModal = (vitals) => {
+        setSelectedVital(vitals);
+        setIsEditing(false);
+        setIsViewEditModalOpen(true);
+    };
+
+    const handleOpenEditModal = (e, vitals) => {
+        e.stopPropagation();
+        setSelectedVital({ ...vitals });
+        setIsEditing(true);
+        setErrors({});
+        setIsViewEditModalOpen(true);
+    };
+
+    const handleOpenArchiveModal = (e, vitals) => {
+        e.stopPropagation();
+        setSelectedVital(vitals);
+        setIsArchiveModalOpen(true);
+    };
+
+    const handleArchive = () => {
+        setVitalsRecords(vitalsRecords.filter(v => v.id !== selectedVital.id));
+        setIsArchiveModalOpen(false);
+        setSelectedVital(null);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+        });
+    };
+
+    // Reusable Form
+    const VitalsFormFields = ({ data, onInputChange }) => (
+        <Card>
+            <CardContent className="p-4 sm:p-6 space-y-4">
+                <Field>
+                    <FieldLabel>Date Taken *</FieldLabel>
+                    <FieldContent>
+                        <div className="relative">
+                            <Input type="date" value={data.dateTaken} onChange={(e) => onInputChange('dateTaken', e.target.value)} className={errors.dateTaken ? 'border-red-500' : ''} />
+                            <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+                        </div>
+                        {errors.dateTaken && <p className="text-red-500 text-sm mt-1">{errors.dateTaken}</p>}
+                    </FieldContent>
+                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field><FieldLabel>Blood Pressure *</FieldLabel><FieldContent><Input placeholder="120/80" value={data.bloodPressure} onChange={(e) => onInputChange('bloodPressure', e.target.value)} className={errors.bloodPressure ? 'border-red-500' : ''} />{errors.bloodPressure && <p className="text-red-500 text-sm mt-1">{errors.bloodPressure}</p>}</FieldContent></Field>
+                    <Field><FieldLabel>Temperature (°C) *</FieldLabel><FieldContent><Input type="number" step="0.1" min="30" max="45" placeholder="36.5" value={data.temperature} onChange={(e) => onInputChange('temperature', e.target.value)} className={errors.temperature ? 'border-red-500' : ''} />{errors.temperature && <p className="text-red-500 text-sm mt-1">{errors.temperature}</p>}</FieldContent></Field>
+                    <Field><FieldLabel>Weight (kg) *</FieldLabel><FieldContent><Input type="number" step="0.1" min="1" max="500" placeholder="65.0" value={data.weight} onChange={(e) => onInputChange('weight', e.target.value)} className={errors.weight ? 'border-red-500' : ''} />{errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}</FieldContent></Field>
+                    <Field><FieldLabel>Height (cm) *</FieldLabel><FieldContent><Input type="number" step="0.1" min="30" max="300" placeholder="170.0" value={data.height} onChange={(e) => onInputChange('height', e.target.value)} className={errors.height ? 'border-red-500' : ''} />{errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}</FieldContent></Field>
+                    <Field><FieldLabel>Heart Rate (bpm) *</FieldLabel><FieldContent><Input type="number" min="30" max="250" placeholder="72" value={data.heartRate} onChange={(e) => onInputChange('heartRate', e.target.value)} className={errors.heartRate ? 'border-red-500' : ''} />{errors.heartRate && <p className="text-red-500 text-sm mt-1">{errors.heartRate}</p>}</FieldContent></Field>
+                    <Field><FieldLabel>Respiratory Rate *</FieldLabel><FieldContent><Input type="number" min="5" max="60" placeholder="16" value={data.respiratoryRate} onChange={(e) => onInputChange('respiratoryRate', e.target.value)} className={errors.respiratoryRate ? 'border-red-500' : ''} />{errors.respiratoryRate && <p className="text-red-500 text-sm mt-1">{errors.respiratoryRate}</p>}</FieldContent></Field>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    // Reusable View
+    const VitalsRecordView = ({ vitals }) => (
+        <Card>
+            <CardHeader>
+                <CardTitle>Vitals on {formatDate(vitals.dateTaken)}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">Blood Pressure</p><p className="font-medium text-gray-900">{vitals.bloodPressure} <span className="text-xs">mmHg</span></p></div>
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">Weight</p><p className="font-medium text-gray-900">{vitals.weight} <span className="text-xs">kg</span></p></div>
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">Height</p><p className="font-medium text-gray-900">{vitals.height} <span className="text-xs">cm</span></p></div>
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">BMI</p><p className="font-medium text-gray-900">{vitals.bmi}</p></div>
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">Heart Rate</p><p className="font-medium text-gray-900">{vitals.heartRate} <span className="text-xs">bpm</span></p></div>
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">Temperature</p><p className="font-medium text-gray-900">{vitals.temperature} <span className="text-xs">°C</span></p></div>
+                    <div className="text-center sm:text-left"><p className="text-xs text-gray-500 mb-1">Respiratory Rate</p><p className="font-medium text-gray-900">{vitals.respiratoryRate}</p></div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
@@ -123,9 +238,7 @@ const Vitals = () => {
                 <p className="text-xl font-bold">Vitals</p>
                 <div className="flex items-center gap-4">
                     <Select defaultValue="recent">
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Most Recent" />
-                        </SelectTrigger>
+                        <SelectTrigger className="w-40"><SelectValue placeholder="Most Recent" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="recent">Most Recent</SelectItem>
                             <SelectItem value="oldest">Oldest First</SelectItem>
@@ -133,158 +246,19 @@ const Vitals = () => {
                         </SelectContent>
                     </Select>
                     
-                    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    {/* ADD MODAL */}
+                    <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="modify">
+                            <Button variant="modify" onClick={handleOpenAddModal}>
                                 + Add Vitals
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Add Vitals</DialogTitle>
-                            </DialogHeader>
-                            
-                            <Card>
-                                <CardContent className="p-4 sm:p-6 space-y-4">
-                                    {/* Date Taken */}
-                                    <Field>
-                                        <FieldLabel>Date Taken *</FieldLabel>
-                                        <FieldContent>
-                                            <div className="relative">
-                                                <Input
-                                                    type="date"
-                                                    value={formData.dateTaken}
-                                                    onChange={(e) => handleInputChange('dateTaken', e.target.value)}
-                                                    className={errors.dateTaken ? 'border-red-500' : ''}
-                                                />
-                                                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
-                                            </div>
-                                            {errors.dateTaken && (
-                                                <p className="text-red-500 text-sm mt-1">{errors.dateTaken}</p>
-                                            )}
-                                        </FieldContent>
-                                    </Field>
-
-                                    {/* Vital Signs Grid */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <Field>
-                                            <FieldLabel>Blood Pressure *</FieldLabel>
-                                            <FieldContent>
-                                                <Input
-                                                    placeholder="120/80"
-                                                    value={formData.bloodPressure}
-                                                    onChange={(e) => handleInputChange('bloodPressure', e.target.value)}
-                                                    className={errors.bloodPressure ? 'border-red-500' : ''}
-                                                />
-                                                {errors.bloodPressure && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.bloodPressure}</p>
-                                                )}
-                                            </FieldContent>
-                                        </Field>
-
-                                        <Field>
-                                            <FieldLabel>Temperature *</FieldLabel>
-                                            <FieldContent>
-                                                <Input
-                                                    type="number"
-                                                    step="0.1"
-                                                    min="30"
-                                                    max="45"
-                                                    placeholder="36.5"
-                                                    value={formData.temperature}
-                                                    onChange={(e) => handleInputChange('temperature', e.target.value)}
-                                                    className={errors.temperature ? 'border-red-500' : ''}
-                                                />
-                                                {errors.temperature && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.temperature}</p>
-                                                )}
-                                            </FieldContent>
-                                        </Field>
-
-                                        <Field>
-                                            <FieldLabel>Weight *</FieldLabel>
-                                            <FieldContent>
-                                                <Input
-                                                    type="number"
-                                                    step="0.1"
-                                                    min="1"
-                                                    max="500"
-                                                    placeholder="65.0"
-                                                    value={formData.weight}
-                                                    onChange={(e) => handleInputChange('weight', e.target.value)}
-                                                    className={errors.weight ? 'border-red-500' : ''}
-                                                />
-                                                {errors.weight && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.weight}</p>
-                                                )}
-                                            </FieldContent>
-                                        </Field>
-
-                                        <Field>
-                                            <FieldLabel>Height *</FieldLabel>
-                                            <FieldContent>
-                                                <Input
-                                                    type="number"
-                                                    step="0.1"
-                                                    min="30"
-                                                    max="300"
-                                                    placeholder="170.0"
-                                                    value={formData.height}
-                                                    onChange={(e) => handleInputChange('height', e.target.value)}
-                                                    className={errors.height ? 'border-red-500' : ''}
-                                                />
-                                                {errors.height && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.height}</p>
-                                                )}
-                                            </FieldContent>
-                                        </Field>
-
-                                        <Field>
-                                            <FieldLabel>Heart Rate *</FieldLabel>
-                                            <FieldContent>
-                                                <Input
-                                                    type="number"
-                                                    min="30"
-                                                    max="250"
-                                                    placeholder="72"
-                                                    value={formData.heartRate}
-                                                    onChange={(e) => handleInputChange('heartRate', e.target.value)}
-                                                    className={errors.heartRate ? 'border-red-500' : ''}
-                                                />
-                                                {errors.heartRate && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.heartRate}</p>
-                                                )}
-                                            </FieldContent>
-                                        </Field>
-
-                                        <Field>
-                                            <FieldLabel>Respiratory Rate *</FieldLabel>
-                                            <FieldContent>
-                                                <Input
-                                                    type="number"
-                                                    min="5"
-                                                    max="60"
-                                                    placeholder="16"
-                                                    value={formData.respiratoryRate}
-                                                    onChange={(e) => handleInputChange('respiratoryRate', e.target.value)}
-                                                    className={errors.respiratoryRate ? 'border-red-500' : ''}
-                                                />
-                                                {errors.respiratoryRate && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.respiratoryRate}</p>
-                                                )}
-                                            </FieldContent>
-                                        </Field>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
+                            <DialogHeader><DialogTitle>Add Vitals</DialogTitle></DialogHeader>
+                            <VitalsFormFields data={formData} onInputChange={handleInputChange} />
                             <DialogFooter className="gap-2">
-                                <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleSubmit}>
-                                    Add
-                                </Button>
+                                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+                                <Button onClick={handleSubmit}>Add</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -293,55 +267,96 @@ const Vitals = () => {
 
             {/* Vitals Records */}
             <div className="space-y-4">
-                {/* September 3, 2025 Record */}
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-semibold text-gray-900 text-lg">September 3, 2025</h3>
-                        <div className="flex items-center gap-2">
-                            <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-                                <Edit className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-                                <Archive className="w-4 h-4 text-gray-600" />
-                            </button>
+                {vitalsRecords.length > 0 ? (
+                    vitalsRecords.map(vitals => (
+                        <div 
+                            key={vitals.id}
+                            className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
+                            onClick={() => handleOpenViewModal(vitals)}
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="font-semibold text-gray-900 text-lg">{formatDate(vitals.dateTaken)}</h3>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                                        onClick={(e) => handleOpenEditModal(e, vitals)}
+                                        title="Edit Vitals"
+                                    >
+                                        <Edit className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                    <button 
+                                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                                        onClick={(e) => handleOpenArchiveModal(e, vitals)}
+                                        title="Archive Vitals"
+                                    >
+                                        <Archive className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">Blood Pressure</p><p className="font-medium text-gray-900">{vitals.bloodPressure}</p></div>
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">Weight</p><p className="font-medium text-gray-900">{vitals.weight}kg</p></div>
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">Height</p><p className="font-medium text-gray-900">{vitals.height}cm</p></div>
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">BMI</p><p className="font-medium text-gray-900">{vitals.bmi}</p></div>
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">Heart Rate</p><p className="font-medium text-gray-900">{vitals.heartRate} bpm</p></div>
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">Temperature</p><p className="font-medium text-gray-900">{vitals.temperature} °C</p></div>
+                                <div className="text-center"><p className="text-xs text-gray-500 mb-1">Resp. Rate</p><p className="font-medium text-gray-900">{vitals.respiratoryRate}</p></div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    {/* Vital Signs Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Blood Pressure</p>
-                            <p className="font-medium text-gray-900">120/80</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Weight</p>
-                            <p className="font-medium text-gray-900">65kg</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Height</p>
-                            <p className="font-medium text-gray-900">170cm</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">BMI</p>
-                            <p className="font-medium text-gray-900">22.5</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Heart Rate</p>
-                            <p className="font-medium text-gray-900">72 bpm</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Temperature</p>
-                            <p className="font-medium text-gray-900">36.8 °C</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Respiratory Rate</p>
-                            <p className="font-medium text-gray-900">16</p>
-                        </div>
-                    </div>
-                </div>
+                    ))
+                ) : (
+                    <p className="text-gray-500 text-center">No vitals records found. Add a new record to get started.</p>
+                )}
             </div>
+
+            {/* --- VIEW/EDIT MODAL --- */}
+            <Dialog open={isViewEditModalOpen} onOpenChange={setIsViewEditModalOpen}>
+                <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{isEditing ? 'Edit Vitals' : 'View Vitals'}</DialogTitle>
+                    </DialogHeader>
+                    
+                    {selectedVital && (
+                        isEditing ? (
+                            <VitalsFormFields data={selectedVital} onInputChange={handleInputChange} />
+                        ) : (
+                            <VitalsRecordView vitals={selectedVital} />
+                        )
+                    )}
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setIsViewEditModalOpen(false)}>
+                            {isEditing ? 'Cancel' : 'Close'}
+                        </Button>
+                        {isEditing && (
+                            <Button onClick={handleSubmit}>
+                                Save Changes
+                            </Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* --- ARCHIVE CONFIRMATION MODAL --- */}
+            <Dialog open={isArchiveModalOpen} onOpenChange={setIsArchiveModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-red-500" />
+                            Archive Vitals Record
+                        </DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to archive the vitals record from {formatDate(selectedVital?.dateTaken)}?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setIsArchiveModalOpen(false)}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleArchive}>Archive</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
 
-export default Vitals; 
+export default Vitals;
