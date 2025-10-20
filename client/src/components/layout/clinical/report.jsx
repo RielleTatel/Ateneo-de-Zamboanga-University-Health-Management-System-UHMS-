@@ -290,11 +290,13 @@ const Report = () => {
     );
 
     return (
-        <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
+        <div className="bg-white rounded-[23px] border-2  ">
             {/* Component header */}
             <div className="flex justify-between items-center gap-2 mb-6">
                 <p className="text-xl font-bold">Doctor Report</p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4"> 
+
+                    {/* --- Drop down button --- */}
                     <Select defaultValue="recent">
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Most Recent" />

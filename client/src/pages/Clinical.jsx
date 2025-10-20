@@ -4,13 +4,11 @@ import Navigation from "@/components/layout/navigation";
 import ProfileHeader from "@/components/layout/profileHeader";
 import Vitals from "@/components/layout/clinical/vitals";
 import Lab from "@/components/layout/clinical/lab";
-import Visits from "@/components/layout/clinical/visits";
-import Referral from "@/components/layout/clinical/referral";
-import Report from "@/components/layout/clinical/report";
+import Encounters from "@/components/layout/clinical/encounters";
 
 
 const Clinical = () => {
-    const [activeTab, setActiveTab] = useState('vitals');
+    const [activeTab, setActiveTab] = useState('encounters');
 
     return (
             <div className="bg-background-primary w-screen min-h-screen flex flex-row">
@@ -36,13 +34,17 @@ const Clinical = () => {
                                     <span className="text-text-primary font-medium"> CLINICAL RECORDS </span>
                                 </div>
                             </div>
+
+
+                        {/* User Profile Container */}
+                        <ProfileHeader/>
     
-                            <ProfileHeader/>
-    
-                            {/* Clinical Navigation */}
+                        {/* Clinical Navigation e.g., Vitals, Lab Results, Clinical Encounters */}
                         <div className="flex flex-row justify-center bg-background-primary rounded-[23px] p-1 border-outline border-2 mb-4">
+
+                        {/* VITALS COMPONENT */}
                             <div 
-                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                className={`rounded-full py-2 w-1/3 text-center cursor-pointer transition-colors ${
                                     activeTab === 'vitals' 
                                         ? 'bg-outline' 
                                         : 'hover:bg-gray-100'
@@ -56,9 +58,11 @@ const Clinical = () => {
                                 }`}> 
                                     Vitals 
                                 </p>
-                            </div> 
+                            </div>  
+
+                            {/* LAB RESULTS COMPONENT */}
                             <div 
-                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                className={`rounded-full py-2 w-1/3 text-center cursor-pointer transition-colors ${
                                     activeTab === 'lab' 
                                         ? 'bg-outline' 
                                         : 'hover:bg-gray-100'
@@ -72,64 +76,35 @@ const Clinical = () => {
                                 }`}> 
                                     Lab Results 
                                 </p>
-                            </div> 
+                            </div>  
+
                             <div 
-                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
+                                className={`rounded-full py-2 w-1/3 text-center cursor-pointer transition-colors ${
                                     activeTab === 'visits' 
                                         ? 'bg-outline' 
                                         : 'hover:bg-gray-100'
                                 }`}
-                                onClick={() => setActiveTab('visits')}
+                                onClick={() => setActiveTab('encounters')}
                             > 
                                 <p className={`${
-                                    activeTab === 'visits' 
+                                    activeTab === 'encounters' 
                                         ? 'text-text-primary font-medium' 
                                         : 'text-text-primary'
                                 }`}> 
-                                    Clinic Visits 
+                                    Clinical Encounters
                                 </p>
                             </div> 
-                            <div 
-                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
-                                    activeTab === 'referrals' 
-                                        ? 'bg-outline' 
-                                        : 'hover:bg-gray-100'
-                                }`}
-                                onClick={() => setActiveTab('referrals')}
-                            > 
-                                <p className={`${
-                                    activeTab === 'referrals' 
-                                        ? 'text-text-primary font-medium' 
-                                        : 'text-text-primary'
-                                }`}> 
-                                    Referrals 
-                                </p>
-                            </div> 
-                            <div 
-                                className={`rounded-full py-2 w-1/5 text-center cursor-pointer transition-colors ${
-                                    activeTab === 'report' 
-                                        ? 'bg-outline' 
-                                        : 'hover:bg-gray-100'
-                                }`}
-                                onClick={() => setActiveTab('report')}
-                            > 
-                                <p className={`${
-                                    activeTab === 'report' 
-                                        ? 'text-text-primary font-medium' 
-                                        : 'text-text-primary'
-                                }`}> 
-                                    Doctor's Report 
-                                </p>
-                            </div> 
+
+ 
 
                         </div> 
 
-                        {/* Conditional Rendering based on active tab */}
+                        {/* Conditional Rendering based on active tab */} 
+
                         {activeTab === 'vitals' && <Vitals />}
                         {activeTab === 'lab' && <Lab />}
-                        {activeTab === 'visits' && <Visits />}
-                        {activeTab === 'referrals' && <Referral />}
-                        {activeTab === 'report' && <Report />}
+
+                        {activeTab == 'encounters' && <Encounters />}
                     </div>
                 </div>
             </div>
