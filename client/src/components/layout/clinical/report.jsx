@@ -185,7 +185,7 @@ const Report = () => {
                 {/* Date and Medical Clearance Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field>
-                        <FieldLabel>Date *</FieldLabel>
+                        <FieldLabel>Date * </FieldLabel>
                         <FieldContent>
                             <div className="relative">
                                 <Input
@@ -318,8 +318,11 @@ const Report = () => {
                         <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Add Report</DialogTitle>
-                            </DialogHeader>
-                            <ReportFormFields data={formData} onInputChange={handleInputChange} />
+                            </DialogHeader> 
+
+                            {/* --- INSERT THE REPORT FORM --- */}
+                            <ReportFormFields data={formData} onInputChange={handleInputChange} /> 
+
                             <DialogFooter className="gap-2">
                                 <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
                                 <Button onClick={handleSubmit}>Add</Button>
