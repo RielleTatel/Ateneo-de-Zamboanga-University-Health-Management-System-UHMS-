@@ -271,7 +271,7 @@ const Report = () => {
     const ReportView = ({ report }) => (
         <Card>
             <CardHeader>
-                <CardTitle>Report Details</CardTitle>
+                <CardTitle> Report Details </CardTitle>
                 <CardDescription>Medical report from {formatDate(report.date)}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -378,8 +378,9 @@ const Report = () => {
             {/* --- VIEW/EDIT MODAL --- */}
             <Dialog open={isViewEditModalOpen} onOpenChange={setIsViewEditModalOpen}>
                 <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
+
                     <DialogHeader>
-                        <DialogTitle>{isEditing ? 'Edit Report' : 'View Report'}</DialogTitle>
+                        <DialogTitle> {isEditing ? 'Edit Report' : 'View Report'} </DialogTitle>
                     </DialogHeader>
                     
                     {selectedReport && (
