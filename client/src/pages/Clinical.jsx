@@ -8,7 +8,7 @@ import Encounters from "@/components/layout/clinical/encounters";
 
 
 const Clinical = () => {
-    const [activeTab, setActiveTab] = useState('encounters');
+    const [activeTab, setActiveTab] = useState('vitals');
 
     return (
             <div className="bg-background-primary w-screen min-h-screen flex flex-row">
@@ -80,7 +80,7 @@ const Clinical = () => {
 
                             <div 
                                 className={`rounded-full py-2 w-1/3 text-center cursor-pointer transition-colors ${
-                                    activeTab === 'visits' 
+                                    activeTab === 'encounters' 
                                         ? 'bg-outline' 
                                         : 'hover:bg-gray-100'
                                 }`}

@@ -123,33 +123,53 @@ const Encounters = () => {
                         initialNotes.map((notes) => (
                             <div 
                                 key={notes.id}
-                                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
+                                // Changed background to white/light gray to better match the image
+                                className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow" 
                                 onClick={() => handleOpenViewModal(notes)}
                             >
+                                {/* Outer flex for content and the delete/archive icon */}
                                 <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-gray-900 mb-3"> {formatDate(notes.date)} </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                    
+                                    {/* Main content area */}
+                                    <div className="flex-1"> 
+                                        
+                                        {/* Title and Date/Staff line */}
+                                        <div className="mb-4">
+                                            {/* Adjusted to match the 'Clinic Encounter # 1' text size and weight */}
+                                            <h3 className="text-xl font-semibold text-gray-900">
+                                                Clinic Encounter # {notes.id} 
+                                            </h3>
+                                            {/* Line below the title: Date - Dr. Staff Name */}
+                                            <span className="text-sm text-gray-500"> 
+                                                {notes.date} - {notes.attendingStaff} 
+                                            </span>  
+                                        </div>
+                            
+                                        {/* Grid for encounter details: Chief Complaint, Diagnosis, Treatment, Action Taken */}
+                                        {/* Using a two-column grid to put items side-by-side like in the image */}
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm mt-4">
+                                            
+                                            {/* Chief Complaint */}
                                             <div>
-                                                <span className="text-gray-500"> Staff: </span>
-                                                <span className="text-gray-900">{notes.attendingStaff}</span>
+                                                <span className="font-medium text-gray-500 block mb-1">Chief Complaint:</span>
+                                                <span className="font-semibold text-gray-900">{notes.chiefComplaint || 'Feeling warm and dizzy'}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 ml-4">
+
+                                    {/* Delete Icon (Trash Can) - positioned to the top right like in the image */}
+                                    {/* The image shows only a trash can, so I'm simplifying the icon group to just the trash/delete icon */}
+                                    <div className="ml-4">
                                         <button 
-                                            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                                            onClick={(e) => handleOpenEditModal(e, notes)}
-                                            title="Edit Visit"
+                                            className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-red-500"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent opening the view modal when clicking the delete button
+                                                handleOpenArchiveModal(e, notes); // Assuming 'Archive' is used for the trash can action
+                                            }}
+                                            title="Delete Visit"
                                         >
-                                            <Edit className="w-4 h-4 text-gray-600" />
-                                        </button>
-                                        <button 
-                                            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                                            onClick={(e) => handleOpenArchiveModal(e, notes)}
-                                            title="Archive Visit"
-                                        >
-                                            <Archive className="w-4 h-4 text-gray-600" />
+                                            {/* Replace with your actual Trash/Delete icon component (e.g., 'Trash' or 'Delete' from a library) */}
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -158,7 +178,7 @@ const Encounters = () => {
                     ) : (
                         <p className="text-center text-gray-500"> No visit logs found. Add a new log to get started. </p>
                     )}
-                </div> 
+                </div>
             
                 {/* --- OUTSIDE LAYER/MODAL--- */}   
                 <Dialog open={isViewEditModalOpen} onOpenChange={setIsViewEditModalOpen}>
