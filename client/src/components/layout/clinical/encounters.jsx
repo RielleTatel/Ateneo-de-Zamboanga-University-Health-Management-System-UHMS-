@@ -116,7 +116,8 @@ const Encounters = () => {
                 </div>      
 
             {/* --- SECOND lAYER --- */}  
-            </div> 
+            </div>  
+        
                 {/* --- CONTAINER --- */}  
                 <div className="space-y-4">
                     {initialNotes.length > 0 ? (
@@ -124,7 +125,7 @@ const Encounters = () => {
                             <div 
                                 key={notes.id}
                                 // Changed background to white/light gray to better match the image
-                                className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow" 
+                                className="bg-container rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow" 
                                 onClick={() => handleOpenViewModal(notes)}
                             >
                                 {/* Outer flex for content and the delete/archive icon */}
@@ -136,7 +137,7 @@ const Encounters = () => {
                                         {/* Title and Date/Staff line */}
                                         <div className="mb-4">
                                             {/* Adjusted to match the 'Clinic Encounter # 1' text size and weight */}
-                                            <h3 className="text-xl font-semibold text-gray-900">
+                                            <h3 className="text-xl font-semibold text-gray-900 mb-1">
                                                 Clinic Encounter # {notes.id} 
                                             </h3>
                                             {/* Line below the title: Date - Dr. Staff Name */}
@@ -209,8 +210,8 @@ const Encounters = () => {
                                         <div className="flex items-start gap-3">
                                             <Stethoscope className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
                                             <div>
-                                                <p className="text-sm text-gray-500">Chief Complaint</p>
-                                                <p className="font-semibold text-gray-900">{selectedReport.chiefComplaint}</p>
+                                                <p className="text-sm text-gray-900 font-bold"> Chief Complaint</p>
+                                                <p className="text-gray-900">{selectedReport.chiefComplaint}</p>
                                             </div>
                                         </div>
 
@@ -218,7 +219,7 @@ const Encounters = () => {
                                             <ShieldAlert className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-1" />
                                             <div>
                                                 <p className="text-sm text-gray-500">Risk Factors</p>
-                                                <p className="font-semibold text-gray-900">{selectedReport.riskFactors}</p>
+                                                <p className="text-gray-900">{selectedReport.riskFactors}</p>
                                             </div>
                                         </div>
 
@@ -226,7 +227,7 @@ const Encounters = () => {
                                             <FileText className="w-5 h-5 text-gray-600 flex-shrink-0 mt-1" />
                                             <div>
                                                 <p className="text-sm text-gray-500">History</p>
-                                                <p className="font-semibold text-gray-900 whitespace-pre-wrap">{selectedReport.History}</p>
+                                                <p className="text-gray-900 whitespace-pre-wrap">{selectedReport.History}</p>
                                             </div>
                                         </div>
 
@@ -234,7 +235,7 @@ const Encounters = () => {
                                             <Activity className="w-5 h-5 text-green-600 flex-shrink-0 mt-1" />
                                             <div>
                                                 <p className="text-sm text-gray-500">Treatment</p>
-                                                <p className="font-semibold text-gray-900 whitespace-pre-wrap">{selectedReport.Treatment}</p>
+                                                <p className="text-gray-900 whitespace-pre-wrap">{selectedReport.Treatment}</p>
                                             </div>
                                         </div>
                                         

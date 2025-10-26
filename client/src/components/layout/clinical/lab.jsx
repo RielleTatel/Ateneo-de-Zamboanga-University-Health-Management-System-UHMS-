@@ -132,7 +132,7 @@ const Lab = () => {
                 </div>
             );
             if (value.type === 'file') return renderFile(value.name);
-            if (value.type === 'files') return <div className="space-y-1">{value.files.map(renderFile)}</div>;
+            if (value.type === 'files') return <div className="space-y-1"> {value.files.map(renderFile)} </div>;
         }
         return value || "-";
     };
@@ -167,8 +167,10 @@ const Lab = () => {
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
+
             {/* --- Component Header --- */}
             <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
+
                 <p className="text-xl font-bold">Laboratory Test Results</p>
                 <div className="flex gap-2 flex-wrap">
                      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
@@ -196,11 +198,13 @@ const Lab = () => {
                         </DialogContent>
                     </Dialog>
                     <Button variant="outline" className="flex items-center gap-2"><Download className="w-4 h-4" />Export</Button>
-                </div>
+                </div> 
+
             </div>
 
             {/* --- Lab Results Table --- */}
             <div className="overflow-x-auto">
+
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-gray-800 hover:bg-gray-800">
@@ -208,23 +212,30 @@ const Lab = () => {
                             {dates.map((date) => (
                                 <TableHead key={date} className="text-white font-semibold text-center min-w-32 group relative">
                                     {date}
-                                    <Button variant="ghost" size="sm" onClick={() => confirmDeleteColumn(date)} className="h-6 w-6 p-0 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-4 w-4 text-red-400" /></Button>
+                                    <Button variant="ghost" size="sm" onClick={() => confirmDeleteColumn(date)} className="h-6 w-6 p-0 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"> <X className="h-4 w-4 text-red-400" /> </Button>
                                 </TableHead>
                             ))}
                             <TableHead className="text-white font-semibold text-center min-w-24">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
+                    
                     <TableBody>
                         {labData.map((row, rowIndex) => (
                             <TableRow key={row.id || rowIndex} className="hover:bg-gray-50">
+
+                                {/* Editable Row? */}
                                 <TableCell className="font-medium">
+
                                     <div className="font-semibold">
                                         <EditableCell value={row.test} rowIndex={rowIndex} columnId="test" />
                                     </div>
+
                                     <div className="text-xs text-gray-500">
                                          <EditableCell value={row.unit} rowIndex={rowIndex} columnId="unit" />
                                     </div>
                                 </TableCell>
+
+                            {/* 1st Row ??? */}
                                 {dates.map((date) => (
                                     <TableCell key={date} className="text-center">
                                         {typeof row[date] === 'object' ? (
@@ -233,13 +244,16 @@ const Lab = () => {
                                             <EditableCell value={row[date]} rowIndex={rowIndex} columnId={date} />
                                         )}
                                     </TableCell>
-                                ))}
+                                ))} 
+
+                            {/* 2nd Row ??? */}
                                 <TableCell className="text-center">
                                     <div className="flex items-center justify-center gap-2">
-                                        <Button variant="ghost" size="sm" onClick={() => handleDeleteRow(rowIndex)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700"><Trash2 className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="sm" onClick={() => handleDeleteRow(rowIndex)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700"> <Trash2 className="h-4 w-4" /> </Button>
                                     </div>
                                 </TableCell>
                             </TableRow>
+
                         ))}
                     </TableBody>
                 </Table>
@@ -248,8 +262,8 @@ const Lab = () => {
             {/* Delete Column Confirmation Modal */}
             <Dialog open={isDeleteColumnModalOpen} onOpenChange={setIsDeleteColumnModalOpen}>
                 <DialogContent className="sm:max-w-md">
-                    <DialogHeader><DialogTitle>Delete Column</DialogTitle></DialogHeader>
-                    <p>Are you sure you want to delete the entire column for <strong>{columnToDelete}</strong>? This action cannot be undone.</p>
+                    <DialogHeader> <DialogTitle>Delete Column</DialogTitle></DialogHeader>
+                    <p> Are you sure you want to delete the entire column for <strong>{columnToDelete}</strong>? This action cannot be undone.</p>
                     <DialogFooter><Button variant="outline" onClick={() => setIsDeleteColumnModalOpen(false)}>Cancel</Button><Button variant="destructive" onClick={handleDeleteColumn}>Delete</Button></DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -61,6 +61,8 @@
     --color-others-secondary: #E6E7EA; 
     --color-outline:#E5E5E5; 
     --color-heavy: #E6E7EA; 
+
+    --color-container: #F9FAFB; 
     
     /* text sizes */
     --font-size-xs: 0.75rem;
