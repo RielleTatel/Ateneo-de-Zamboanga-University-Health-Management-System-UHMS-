@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Profile from "./pages/Profile.jsx";
 import Records from "./pages/Records.jsx";
 import Clinical from "./pages/Clinical.jsx";
+import Consult from "./pages/Consult.jsx";
 
 import './App.css'
 
@@ -19,6 +20,7 @@ const App = () => {
           <Route path="/records" element={<Records />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/Clinical" element={<Clinical />} />
+          <Route path="/Consult" element={<Consult />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

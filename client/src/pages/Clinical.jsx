@@ -35,7 +35,6 @@ const Clinical = () => {
                                 </div>
                             </div>
 
-
                         {/* User Profile Container */}
                         <ProfileHeader/>
     
@@ -100,11 +99,10 @@ const Clinical = () => {
                         </div> 
 
                         {/* Conditional Rendering based on active tab */} 
-
                         {activeTab === 'vitals' && <Vitals />}
                         {activeTab === 'lab' && <Lab />}
-
                         {activeTab == 'encounters' && <Encounters />}
+
                     </div>
                 </div>
             </div>

@@ -16,12 +16,13 @@ import { Table,
     TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Edit, Archive, Calendar, AlertTriangle, Download, FileText, X, Trash2 } from "lucide-react";
+import { Edit, Archive, Calendar, AlertTriangle, Download, FileText, X, Trash2, Plus } from "lucide-react";
 
 // Mock data for initial vitals
 
 const vitals = () => { 
 
+    
     const initialDates = ["10/15/2025", "9/3/2025", "8/3/2025"];
     const [dates, setDates] = useState(initialDates);  
 
@@ -84,9 +85,8 @@ const vitals = () => {
         }
     ];
 
-
+    const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false); 
     const [editingCell, setEditingCell] = useState(null); 
-
     const [vitalsData, setVitalsData] = useState(initialVitals);
 
     const handleCellUpdate = (rowIndex, columnId, value) => {
@@ -141,7 +141,6 @@ const vitals = () => {
                     onKeyDown={(e) => { if (e.key === 'Enter') setEditingCell(null); }} // Save on Enter
                     autoFocus
                     className="h-8"
-
                 />
             ); 
         }
@@ -159,14 +158,18 @@ const vitals = () => {
     return (
         <div className="bg-white rounded-[23px] border-2 border-container p-6"> 
 
-            {/* --- CONTAINER --- */} 
+            {/* --- Component Header --- */} 
             <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
-
-                <p className="text-xl font-bold"> Vitals  </p> 
-
+                <p className="text-xl font-bold"> Vitals  </p>  
                 <div className="flex gap-2 flex-wrap"> 
-                    <Button variant="outline" className="flex items-center gap-2"> <Download className="w-4 h-4" />Export</Button>
-                </div>
+                    <Dialog> 
+                        <DialogTrigger asChild> 
+                            <Button variant="modify" className="flex items-center gap-2"> <Plus className="w-4 h-4"/> Add Column  </Button>
+                        </DialogTrigger> 
+                    </Dialog> 
+
+                    <Button variant="outline" className="flex items-center gap-2"> <Download className="w-4 h-4" /> Export </Button>
+                </div> 
             </div> 
 
             {/* --- Vitals Table --- */} 

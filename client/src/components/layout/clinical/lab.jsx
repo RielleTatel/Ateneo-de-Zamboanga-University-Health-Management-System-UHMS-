@@ -172,23 +172,60 @@ const Lab = () => {
             <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
 
                 <p className="text-xl font-bold">Laboratory Test Results</p>
+
                 <div className="flex gap-2 flex-wrap">
+
+                        {/* --- POP-UP MODAL --- */} 
                      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                        <DialogTrigger asChild><Button variant="modify" className="flex items-center gap-2"><Plus className="w-4 h-4" /> Add Row</Button></DialogTrigger>
+                        <DialogTrigger asChild> 
+                            <Button variant="modify" className="flex items-center gap-2"> <Plus className="w-4 h-4" /> Add Row </Button> 
+                        </DialogTrigger> 
+
                         <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
-                            <DialogHeader><DialogTitle>Add New Lab Test</DialogTitle></DialogHeader>
-                            <Card><CardContent className="p-4 sm:p-6 space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <Field><FieldLabel>Test Name *</FieldLabel><FieldContent><Input placeholder="e.g., Weight, Blood Pressure" value={newRowData.test} onChange={(e) => handleInputChange('test', e.target.value)} className={errors.test ? 'border-red-500' : ''} />{errors.test && <p className="text-red-500 text-sm mt-1">{errors.test}</p>}</FieldContent></Field>
-                                    <Field><FieldLabel>Unit *</FieldLabel><FieldContent><Input placeholder="e.g., kg, mmHg, mg/dL" value={newRowData.unit} onChange={(e) => handleInputChange('unit', e.target.value)} className={errors.unit ? 'border-red-500' : ''} />{errors.unit && <p className="text-red-500 text-sm mt-1">{errors.unit}</p>}</FieldContent></Field>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {dates.map((date) => (<Field key={date}><FieldLabel>{date}</FieldLabel><FieldContent><Input placeholder="Value or '-'" value={newRowData[date]} onChange={(e) => handleInputChange(date, e.target.value)} /></FieldContent></Field>))}
-                                </div>
-                            </CardContent></Card>
+
+                            <DialogHeader> <DialogTitle> Add New Lab Test </DialogTitle> </DialogHeader>
+
+                            <Card> 
+                                <CardContent className="p-4 sm:p-6 space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <Field> 
+                                            <FieldLabel> Test Name * </FieldLabel> 
+                                                <FieldContent> 
+                                                    <Input 
+                                                        placeholder="e.g., Weight, Blood Pressure" 
+                                                        value={newRowData.test} 
+                                                        onChange={(e) => handleInputChange('test', e.target.value)} 
+                                                        className={errors.test ? 'border-red-500' : ''} /> 
+
+                                                        {errors.test && <p className="text-red-500 text-sm mt-1">{errors.test}</p>} 
+                                                </FieldContent>
+                                        </Field>
+
+                                        <Field> 
+                                            <FieldLabel> Unit * </FieldLabel>                                    
+                                            <FieldContent> 
+                                                <Input placeholder="e.g., kg, mmHg, mg/dL" 
+                                                value={newRowData.unit} 
+                                                onChange={(e) => handleInputChange('unit', e.target.value)} 
+                                                className={errors.unit ? 'border-red-500' : ''} /> 
+
+                                                {errors.unit && <p className="text-red-500 text-sm mt-1"> {errors.unit} </p>}                                     
+                                            </FieldContent>
+                                        </Field>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {dates.map((date) => (<Field key={date}><FieldLabel>{date}</FieldLabel><FieldContent><Input placeholder="Value or '-'" value={newRowData[date]} onChange={(e) => handleInputChange(date, e.target.value)} /></FieldContent></Field>))}
+                                    </div>
+                                </CardContent> 
+
+                            </Card>
+                            
                             <DialogFooter className="gap-2"><Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button><Button onClick={handleAddRow}>Add Test</Button></DialogFooter>
                         </DialogContent>
                     </Dialog>
+
+                    {/* --- ADD COLUMN --- */}
                     <Dialog open={isAddColumnModalOpen} onOpenChange={setIsAddColumnModalOpen}>
                         <DialogTrigger asChild><Button variant="modify" className="flex items-center gap-2"><Plus className="w-4 h-4" /> Add Column</Button></DialogTrigger>
                         <DialogContent className="sm:max-w-md">
@@ -197,9 +234,9 @@ const Lab = () => {
                             <DialogFooter><Button variant="outline" onClick={() => setIsAddColumnModalOpen(false)}>Cancel</Button><Button onClick={handleAddColumn}>Add Column</Button></DialogFooter>
                         </DialogContent>
                     </Dialog>
+
                     <Button variant="outline" className="flex items-center gap-2"><Download className="w-4 h-4" />Export</Button>
                 </div> 
-
             </div>
 
             {/* --- Lab Results Table --- */}
@@ -223,7 +260,7 @@ const Lab = () => {
                         {labData.map((row, rowIndex) => (
                             <TableRow key={row.id || rowIndex} className="hover:bg-gray-50">
 
-                                {/* Editable Row? */}
+                            {/* Editable Row? */}
                                 <TableCell className="font-medium">
 
                                     <div className="font-semibold">
@@ -262,7 +299,7 @@ const Lab = () => {
             {/* Delete Column Confirmation Modal */}
             <Dialog open={isDeleteColumnModalOpen} onOpenChange={setIsDeleteColumnModalOpen}>
                 <DialogContent className="sm:max-w-md">
-                    <DialogHeader> <DialogTitle>Delete Column</DialogTitle></DialogHeader>
+                    <DialogHeader> <DialogTitle> Delete Column</DialogTitle></DialogHeader>
                     <p> Are you sure you want to delete the entire column for <strong>{columnToDelete}</strong>? This action cannot be undone.</p>
                     <DialogFooter><Button variant="outline" onClick={() => setIsDeleteColumnModalOpen(false)}>Cancel</Button><Button variant="destructive" onClick={handleDeleteColumn}>Delete</Button></DialogFooter>
                 </DialogContent>
