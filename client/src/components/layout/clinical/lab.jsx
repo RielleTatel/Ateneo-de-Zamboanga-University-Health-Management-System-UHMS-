@@ -171,7 +171,7 @@ const Lab = () => {
             {/* --- Component Header --- */}
             <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
 
-                <p className="text-xl font-bold">Laboratory Test Results</p>
+                <p className="text-xl font-bold"> Laboratory Test Results</p>
 
                 <div className="flex gap-2 flex-wrap">
 

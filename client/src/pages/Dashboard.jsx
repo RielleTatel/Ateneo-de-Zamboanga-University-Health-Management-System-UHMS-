@@ -33,10 +33,11 @@ const Dashboard = () => {
 
     return (
         <div className="bg-background-primary w-screen min-h-screen flex flex-row">
+
             <Navigation/>  
 
             {/* Main Content */}
-            <div className="flex-1 flex-col p-4"> 
+            <div className="flex-1 flex-col"> 
                 <div className="flex-1 flex-col p-4"> 
                     <div className="min-w-full p-3"> 
                         <p className="text-[20px]"> <b> Dashboard </b> </p>
@@ -44,8 +45,9 @@ const Dashboard = () => {
 
                     <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7"> 
                         {/* Welcome Section */}
-                        <div className="mb-8">
-                            <h1 className="text-[36px] font-bold mb-2">Dashboard Overview</h1>
+
+                        <div className="mb-8 flex flex-col gap-y-2">
+                            <h1 className="text-[36px] font-bold">Dashboard Overview </h1>
                             <p className="text-[15px] text-gray-600">Welcome back, John Doe</p>
                         </div>
 

@@ -21,7 +21,7 @@ const Navigation = () => {
   };
 
   return (
-    <div className="bg-background-secondary w-[260px] h-screen border-outline border-2 flex flex-col items-center p-2">
+    <div className="bg-background-secondary w-[260px] min-h-screen border-outline border-2 flex flex-col items-center p-2">
       {/* Logo */}
       <div className="flex flex-row items-center justify-center w-full mb-2">
         <div className="w-[64px] h-[63px] mr-2">
