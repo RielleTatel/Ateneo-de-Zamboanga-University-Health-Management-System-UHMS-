@@ -28,8 +28,11 @@ const Consult = () => {
                 </div> 
 
                 <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  
-                    <ProfileHeader/> 
-                    <div className="flex flex-col gap-y-3"> 
+                    <ProfileHeader/>  
+                    <div className="text-center"> 
+                        <h1> <b> Consultation Actions </b> </h1>
+                    </div>
+                    <div className="flex flex-col gap-y-6"> 
                         <ConsultationNotes/>
                         <VitalsField/>
                         <LabFields/>

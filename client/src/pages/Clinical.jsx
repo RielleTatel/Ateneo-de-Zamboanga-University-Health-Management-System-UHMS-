@@ -23,7 +23,7 @@ const Clinical = () => {
                     </div> 
     
                         {/* Second container */}
-                        <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7 "> 
+                    <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7 "> 
     
                             {/* Tab Navigation */}
                             <div className="flex gap-4 mb-8">

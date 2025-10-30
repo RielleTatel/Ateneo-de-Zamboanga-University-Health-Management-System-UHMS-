@@ -10,7 +10,8 @@ const Navigation = () => {
   const pathToTab = {
     "/dashboard": "overview",
     "/records": "records",
-    "/consult": "consult",
+    "/consult": "consult", 
+    "/createProfile": "/create",
   };
 
   const [activeTab, setActiveTab] = useState(pathToTab[location.pathname] || "overview");
@@ -95,8 +96,30 @@ const Navigation = () => {
             }`}
           >
             Consult
-          </p>
+          </p> 
+        </div> 
+
+        {/* Create Profile */}
+        <div
+          className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
+            activeTab === "createProfile" ? "bg-attention-blue" : "bg-container"
+          }`}
+          onClick={() => handleNavClick("createProfile", "/create")}
+        >
+          <NotebookPen
+            className={`ml-10 w-6 h-6 transition-colors ${
+              activeTab === "createProfile" ? "text-white" : "text-text-primary"
+            }`}
+          />
+          <p
+            className={`font-semibold transition-colors hidden md:block ${
+              activeTab === "createProfile" ? "text-white" : "text-text-primary"
+            }`}
+          >
+            Create
+          </p> 
         </div>
+
       </div>
     </div>
   );

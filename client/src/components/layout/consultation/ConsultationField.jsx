@@ -290,7 +290,9 @@ export const ConsultationNotes = () => {
     const [prescription, setPrescription] = useState("");
     const [history, setHistory] = useState(""); 
     const [additionalNotes, setAdditionalNotes] = useState("");  
+    
     const [medicalClearance, setMedicalClearance] = useState("");
+
     const [chronicRiskFactors, setChronicRiskFactors] = useState([]);
     const [openRiskFactors, setOpenRiskFactors] = useState(false);
 
@@ -317,7 +319,7 @@ export const ConsultationNotes = () => {
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6 space-y-6">
-            <p className="text-md font-bold text-[#353535]"> Checkup Form- </p> 
+            <p className="text-lg font-bold text-[#353535]"> Checkup Form- </p> 
 
             <div className="flex flex-row gap-x-5"> 
                 <p className="text-[#353535]"> <b> Date: </b> <span> October 24, 2025 </span> </p>
@@ -330,7 +332,7 @@ export const ConsultationNotes = () => {
                     <Textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        className="min-h-[100px] resize-none rounded-[17px]"
+                        className="min-h-[100px] resize-none rounded-[17px] "
                     />
                 </div>
 
@@ -353,7 +355,7 @@ export const ConsultationNotes = () => {
                 </div>   
 
                 {/* ADDED NEW DROPDOWN SECTION HERE */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6 p-4 rounded-xl border border-gray-200"> 
+                <div className="flex flex-col md:flex-row gap-4 mb-6"> 
                     
                     {/* DROPDOWN SELECTION 1 */}
                     <div className="flex flex-col flex-1"> 
@@ -386,7 +388,7 @@ export const ConsultationNotes = () => {
                                     >
                                         <div className="flex gap-1 flex-wrap">
                                             {chronicRiskFactors.length === 0 ? (
-                                                <span className="text-muted-foreground">Select risk factors</span>
+                                                <span className="text-muted-foreground"> Select risk factors</span>
                                             ) : (
                                                 chronicRiskFactors.map((factor) => {
                                                     const option = riskFactorOptions.find(opt => opt.value === factor);
