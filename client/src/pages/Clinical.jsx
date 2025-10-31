@@ -18,6 +18,7 @@ const Clinical = () => {
     
                 {/* 2nd part of the screen */}
                 <div className="flex-1 flex-col p-4"> 
+                    
                     <div className=" min-w-ful p-3"> 
                         <p className="text-[20px]"> <b>  Profile  </b> </p>
                     </div> 

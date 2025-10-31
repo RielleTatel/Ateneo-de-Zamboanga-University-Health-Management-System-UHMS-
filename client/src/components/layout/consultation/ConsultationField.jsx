@@ -354,98 +354,7 @@ export const ConsultationNotes = () => {
                     />
                 </div>   
 
-                {/* ADDED NEW DROPDOWN SECTION HERE */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6"> 
-                    
-                    {/* DROPDOWN SELECTION 1 */}
-                    <div className="flex flex-col flex-1"> 
-                        <div>
-                            <label className="block text-md font-semibold mb-1 text-gray-700"> Medical Clearance </label>
-                            <Select value={medicalClearance} onValueChange={setMedicalClearance}>
-                                <SelectTrigger className="rounded-[10px]">
-                                    <SelectValue placeholder="Select clearance status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="normal">Normal</SelectItem>
-                                    <SelectItem value="at-risk">At Risk</SelectItem>
-                                    <SelectItem value="critical">Critical</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* DROPDOWN SELECTION 2 - Multi-select */}
-                    <div className="flex flex-col flex-1">
-                        <div>
-                            <label className="block text-md font-semibold mb-1 text-gray-700"> Chronic Risk Factors </label>
-                            <Popover open={openRiskFactors} onOpenChange={setOpenRiskFactors}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={openRiskFactors}
-                                        className="w-full justify-between rounded-[10px] h-auto min-h-[40px] py-2"
-                                    >
-                                        <div className="flex gap-1 flex-wrap">
-                                            {chronicRiskFactors.length === 0 ? (
-                                                <span className="text-muted-foreground"> Select risk factors</span>
-                                            ) : (
-                                                chronicRiskFactors.map((factor) => {
-                                                    const option = riskFactorOptions.find(opt => opt.value === factor);
-                                                    return (
-                                                        <span
-                                                            key={factor}
-                                                            className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm"
-                                                        >
-                                                            {option?.label}
-                                                            <XIcon
-                                                                className="h-3 w-3 cursor-pointer hover:text-red-600"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    removeRiskFactor(factor);
-                                                                }}
-                                                            />
-                                                        </span>
-                                                    );
-                                                })
-                                            )}
-                                        </div>
-                                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Search risk factors..." />
-                                        <CommandList>
-                                            <CommandEmpty>No risk factor found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {riskFactorOptions.map((option) => (
-                                                    <CommandItem
-                                                        key={option.value}
-                                                        value={option.value}
-                                                        onSelect={() => toggleRiskFactor(option.value)}
-                                                    >
-                                                        <div className="flex items-center gap-2 w-full">
-                                                            <div className={cn(
-                                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                                chronicRiskFactors.includes(option.value)
-                                                                    ? "bg-primary text-primary-foreground"
-                                                                    : "opacity-50 [&_svg]:invisible"
-                                                            )}>
-                                                                <CheckIcon className="h-4 w-4" />
-                                                            </div>
-                                                            <span>{option.label}</span>
-                                                        </div>
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <div>
                     <label className="block text-md font-semibold mb-2 text-[#353535]"> Additional Notes </label>
@@ -454,7 +363,9 @@ export const ConsultationNotes = () => {
                         onChange={(e) => setAdditionalNotes(e.target.value)}
                         className="min-h-[100px] resize-none rounded-[17px]"
                     />
-                </div> 
+                </div>  
+
+                
 
             </div>
         </div>
