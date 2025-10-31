@@ -78,48 +78,6 @@ const Navigation = () => {
           </p>
         </div>
 
-        {/* Consult */}
-        <div
-          className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
-            activeTab === "consult" ? "bg-attention-blue" : "bg-container"
-          }`}
-          onClick={() => handleNavClick("consult", "/consult")}
-        >
-          <NotebookPen
-            className={`ml-10 w-6 h-6 transition-colors ${
-              activeTab === "consult" ? "text-white" : "text-text-primary"
-            }`}
-          />
-          <p
-            className={`font-semibold transition-colors hidden md:block ${
-              activeTab === "consult" ? "text-white" : "text-text-primary"
-            }`}
-          >
-            Consult
-          </p> 
-        </div> 
-
-        {/* Create Profile */}
-        <div
-          className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
-            activeTab === "createProfile" ? "bg-attention-blue" : "bg-container"
-          }`}
-          onClick={() => handleNavClick("createProfile", "/create")}
-        >
-          <NotebookPen
-            className={`ml-10 w-6 h-6 transition-colors ${
-              activeTab === "createProfile" ? "text-white" : "text-text-primary"
-            }`}
-          />
-          <p
-            className={`font-semibold transition-colors hidden md:block ${
-              activeTab === "createProfile" ? "text-white" : "text-text-primary"
-            }`}
-          >
-            Create
-          </p> 
-        </div>
-
       </div>
     </div>
   );
