@@ -32,7 +32,7 @@ const Records = () => {
             id: 1,
             name: "Juan Dela Cruz",
             position: "Student",
-            department: "BS Computer Science",
+            department: "College of Science, Information, Technology and Engineering",
             email: "juan.delacruz@adzu.edu.ph"
         },
         {
@@ -46,7 +46,7 @@ const Records = () => {
             id: 3,
             name: "Pedro Reyes",
             position: "Student",
-            department: "BS Business Administration",
+            department: "School of Management and Accounting",
             email: "pedro.reyes@adzu.edu.ph"
         },
         {
@@ -60,28 +60,28 @@ const Records = () => {
             id: 5,
             name: "Carlos Mendoza",
             position: "Student",
-            department: "BS Nursing",
+            department: "School of Liberal Arts",
             email: "carlos.mendoza@adzu.edu.ph"
         },
         {
             id: 6,
             name: "Sofia Rodriguez",
             position: "Student",
-            department: "BS Psychology",
+            department: "School of liberal Arts",
             email: "sofia.rodriguez@adzu.edu.ph"
         },
         {
             id: 7,
             name: "Roberto Aquino",
             position: "Staff",
-            department: "IT Department",
+            department: "College of Science, Information, Technology and Engineering",
             email: "roberto.aquino@adzu.edu.ph"
         },
         {
             id: 8,
             name: "Isabella Cruz",
             position: "Student",
-            department: "BS Civil Engineering",
+            department: "College of Science, Information, Technology and Engineering",
             email: "isabella.cruz@adzu.edu.ph"
         }
     ];
@@ -135,7 +135,7 @@ const Records = () => {
         <div className="bg-background-primary w-screen h-screen flex flex-row">
             <Navigation/>  
 
-            {/* Second container */}
+            {/* 2nd half of the screen  */}
             <div className="flex-1 flex-col p-4"> 
 
                 <div className=" min-w-ful p-3"> 
@@ -162,20 +162,20 @@ const Records = () => {
                     </div> 
 
                     {/* Search and Filter Section */}
-                    <div className="flex flex-row gap-4 mb-6 p-4 rounded-md bg-white">
+                    <div className="flex flex-row gap-4 mb-6 p-4 rounded-[16px] bg-background-secondary border-outline border-2">
                         {/* Search Input */}
                         <div className="flex-1 relative ">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-700 " />
                             <input 
                                 type="text" 
                                 placeholder="Search with ID, name, or email"
-                                className="w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 bg-outline text-gray-700 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 bg-background-secondary  text-gray-700 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                         
                         {/* Filter Dropdown */}
                         <Select className="bg-outline">
-                            <SelectTrigger className="w-[180px] h-12 bg-outline text-gray-700">
+                            <SelectTrigger className="w-[180px] h-12 bg-background-secondary  text-gray-700">
                                 <SelectValue placeholder="Filter by" />
                             </SelectTrigger>
                             <SelectContent>
@@ -188,7 +188,7 @@ const Records = () => {
                         
                         {/* Sort Dropdown */}
                         <Select className="bg-outline">
-                            <SelectTrigger className="w-[180px] h-12 bg-outline text-gray-700">
+                            <SelectTrigger className="w-[180px] h-12 text-gray-700">
                                 <SelectValue placeholder="Alphabetical" />
                             </SelectTrigger>
                             <SelectContent>
@@ -203,27 +203,27 @@ const Records = () => {
                     </div>
 
                     {/* Student Records Table */}
-                    <div className="bg-white rounded-lg overflow-hidden">
+                    <div className="bg-white rounded-lg overflow-hidden border-outline border-2">
                         <Table>
-                            <TableHeader>
-                                <TableRow className="bg-gray-800 hover:bg-gray-800">
-                                    <TableHead className="text-white font-semibold">Name</TableHead>
-                                    <TableHead className="text-white font-semibold">Position</TableHead>
-                                    <TableHead className="text-white font-semibold">Department</TableHead>
-                                    <TableHead className="text-white font-semibold text-center">Check-Up</TableHead>
-                                    <TableHead className="text-white font-semibold text-center">Actions</TableHead>
+                            <TableHeader className="border-outline">
+                                <TableRow className="bg-background-secondary border-outline">
+                                    <TableHead className="text-black font-semibold">Name</TableHead>
+                                    <TableHead className="text-black font-semibold">Position</TableHead>
+                                    <TableHead className="text-black font-semibold">Department</TableHead>
+                                    <TableHead className="text-black font-semibold text-center">Check-Up</TableHead>
+                                    <TableHead className="text-black font-semibold text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {recordsData.map((record) => (
-                                    <TableRow key={record.id} className="hover:bg-gray-50">
-                                        <TableCell className="font-medium">
+                                    <TableRow key={record.id} className="border-outline">
+                                        <TableCell className="font-medium  border-outline">
                                             <div>
                                                 <div className="font-semibold">{record.name}</div>
                                                 <div className="text-xs text-gray-500">{record.email}</div>
                                             </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="border-outline">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                 record.position === 'Student' 
                                                     ? 'bg-blue-100 text-blue-800' 

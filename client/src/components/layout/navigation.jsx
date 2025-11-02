@@ -10,7 +10,7 @@ const Navigation = () => {
   const pathToTab = {
     "/dashboard": "overview",
     "/records": "records",
-    "/consult": "consult", 
+    "/Consult": "Consult", 
     "/createProfile": "/create",
   };
 

@@ -89,7 +89,6 @@ const Consult = () => {
                         <h1 className="text-2xl font-bold"> Consultation Actions </h1>
                         {recordName && (
                             <p className="text-gray-600 mt-2">
-                                Patient: <span className="font-semibold">{recordName}</span> • 
                                 {recordPosition} • {recordDepartment}
                             </p>
                         )}
