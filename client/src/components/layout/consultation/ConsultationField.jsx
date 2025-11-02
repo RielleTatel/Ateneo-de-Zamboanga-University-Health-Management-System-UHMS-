@@ -323,7 +323,7 @@ export const ConsultationNotes = () => {
 
             <div className="flex flex-row gap-x-5"> 
                 <p className="text-[#353535]"> <b> Date: </b> <span> October 24, 2025 </span> </p>
-                <p className="text-[#353535]"> <b> Attending staff: </b> <span> Dr. Rania Tawasil </span> </p>
+                <p className="text-[#353535]"> <b> Attending staff: </b> <span> Dr. Resly Kadiri </span> </p>
             </div>
 
             <div className="space-y-4">
