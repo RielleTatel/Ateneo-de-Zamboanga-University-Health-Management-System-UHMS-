@@ -117,7 +117,7 @@ const Records = () => {
     const handleStartCheckup = (record) => {
         const selectedOptions = selectedCheckups[record.id] || [];
         if (selectedOptions.length > 0) {
-            navigate('/create', { 
+            navigate('/Consult', { 
                 state: { 
                     recordId: record.id,
                     recordName: record.name,
