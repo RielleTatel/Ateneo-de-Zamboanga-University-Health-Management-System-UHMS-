@@ -6,7 +6,7 @@ import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Edit, Archive, Stethoscope, FileText, Activity, ShieldAlert } from "lucide-react";  
+import { Edit, Archive, Stethoscope, FileText, Activity, ShieldAlert, HeartPlus } from "lucide-react";  
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -135,11 +135,14 @@ const Encounters = () => {
                                     <div className="flex-1"> 
                                         
                                         {/* Title and Date/Staff line */}
-                                        <div className="mb-4">
+                                        <div className="mb-4 ">
                                             {/* Adjusted to match the 'Clinic Encounter # 1' text size and weight */}
-                                            <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                                                Clinic Encounter # {notes.id} 
-                                            </h3>
+                                            <div className="flex flex-row gap-x-4"> 
+                                                <span> <HeartPlus/> </span> 
+                                                <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                                                    Clinic Encounter # {notes.id} 
+                                                </h3> 
+                                            </div>
                                             {/* Line below the title: Date - Dr. Staff Name */}
                                             <span className="text-sm text-gray-500"> 
                                                 {notes.date} - {notes.attendingStaff} 
