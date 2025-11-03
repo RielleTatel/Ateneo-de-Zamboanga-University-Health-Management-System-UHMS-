@@ -79,26 +79,7 @@ const Navigation = () => {
           </p>
         </div> 
 
-        {/* Records */}
-        <div
-          className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
-            activeTab === "records" ? "bg-attention-blue" : "bg-container"
-          }`}
-          onClick={() => handleNavClick("profile", "/profile")}
-        >
-          <Users2
-            className={`ml-10 w-6 h-6 transition-colors ${
-              activeTab === "profile" ? "text-white" : "text-text-primary"
-            }`}
-          />
-          <p
-            className={`font-semibold transition-colors hidden md:block ${
-              activeTab === "profile" ? "text-white" : "text-text-primary"
-            }`}
-          >
-            Records
-          </p>
-        </div>
+
 
       </div>
     </div>
