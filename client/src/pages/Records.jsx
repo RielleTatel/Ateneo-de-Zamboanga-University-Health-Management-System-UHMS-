@@ -210,8 +210,8 @@ const Records = () => {
                                     <TableHead className="text-black font-semibold">Name</TableHead>
                                     <TableHead className="text-black font-semibold">Position</TableHead>
                                     <TableHead className="text-black font-semibold">Department</TableHead>
-                                    <TableHead className="text-black font-semibold text-center">Check-Up</TableHead>
-                                    <TableHead className="text-black font-semibold text-center">Actions</TableHead>
+                                    <TableHead className="text-black font-semibold text-center"> Actions </TableHead>
+                                    <TableHead className="text-black font-semibold text-center"> Check-Up </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -236,7 +236,18 @@ const Records = () => {
                                             {record.department}
                                         </TableCell>
                                         <TableCell className="text-center">
-                                            <Popover 
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleViewProfile(record.id)}
+                                            className="flex items-center gap-2 mx-auto text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            >
+                                            <Eye className="w-4 h-4" />
+                                            View Profile
+                                        </Button>
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                        <Popover 
                                                 open={openPopovers[record.id]} 
                                                 onOpenChange={(open) => setOpenPopovers(prev => ({ ...prev, [record.id]: open }))}
                                             >
@@ -322,17 +333,6 @@ const Records = () => {
                                                 </PopoverContent>
                                             </Popover>
                                         </TableCell>
-                                        <TableCell className="text-center">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleViewProfile(record.id)}
-                                                className="flex items-center gap-2 mx-auto text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                                View Profile
-                                            </Button>
-                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -346,3 +346,5 @@ const Records = () => {
 }
 
 export default Records;
+
+
