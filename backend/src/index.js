@@ -28,7 +28,7 @@ app.get('/api/users', async (req, res) => {
 
 app.get('/api/ping', (req, res) => {
   console.log(' Backend received /api/ping');
-  res.json({ message: 'Pong from backend' });
+  res.json({ message: 'Gab from backend' });
 });
 
 const PORT = process.env.PORT || 3001;
