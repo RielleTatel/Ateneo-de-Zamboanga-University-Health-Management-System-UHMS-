@@ -7,6 +7,7 @@ import Clinical from "./pages/Clinical.jsx";
 import Consult from "./pages/Consult.jsx";
 import CreateProfile from "./pages/CreateProfile.jsx"; 
 import Login from "./pages/Login.jsx";
+import Admin from "./pages/Admin.jsx";
 
 import './App.css'
 
@@ -25,6 +26,7 @@ const App = () => {
           <Route path="/Consult" element={<Consult />} />
           <Route path="/create" element={<CreateProfile />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

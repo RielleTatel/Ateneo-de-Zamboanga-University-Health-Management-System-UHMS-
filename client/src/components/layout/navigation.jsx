@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users2, NotebookPen } from "lucide-react";
+import { LayoutDashboard, Users2, NotebookPen, Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -13,6 +13,7 @@ const Navigation = () => {
     "/Consult": "Consult", 
     "/createProfile": "/create",
     "/profile": "/profile",
+    "/admin": "admin",
   };
 
   const [activeTab, setActiveTab] = useState(pathToTab[location.pathname] || "overview");
@@ -79,7 +80,26 @@ const Navigation = () => {
           </p>
         </div> 
 
-
+        {/* Admin */}
+        <div
+          className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
+            activeTab === "admin" ? "bg-attention-blue" : "bg-container"
+          }`}
+          onClick={() => handleNavClick("admin", "/admin")}
+        >
+          <Shield
+            className={`ml-10 w-6 h-6 transition-colors ${
+              activeTab === "admin" ? "text-white" : "text-text-primary"
+            }`}
+          />
+          <p
+            className={`font-semibold transition-colors hidden md:block ${
+              activeTab === "admin" ? "text-white" : "text-text-primary"
+            }`}
+          >
+            Admin
+          </p>
+        </div>
 
       </div>
     </div>
