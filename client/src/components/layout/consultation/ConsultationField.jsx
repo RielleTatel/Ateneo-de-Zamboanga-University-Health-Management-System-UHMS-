@@ -318,8 +318,7 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                 name: "",
                 quantity: "",
                 frequency: "",
-                schedule: "",
-                tabsPerSchedule: ""
+                schedules: [] // Array of schedule objects
             }
         ]);
     };
@@ -332,6 +331,50 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
     
     const removePrescription = (id) => {
         setPrescriptions((prev) => prev.filter((p) => p.id !== id));
+    };
+
+    const addSchedule = (prescriptionId) => {
+        setPrescriptions((prev) =>
+            prev.map((p) =>
+                p.id === prescriptionId
+                    ? {
+                          ...p,
+                          schedules: [
+                              ...p.schedules,
+                              { id: Date.now(), time: "", tabsPerSchedule: "" }
+                          ]
+                      }
+                    : p
+            )
+        );
+    };
+
+    const updateSchedule = (prescriptionId, scheduleId, field, value) => {
+        setPrescriptions((prev) =>
+            prev.map((p) =>
+                p.id === prescriptionId
+                    ? {
+                          ...p,
+                          schedules: p.schedules.map((s) =>
+                              s.id === scheduleId ? { ...s, [field]: value } : s
+                          )
+                      }
+                    : p
+            )
+        );
+    };
+
+    const removeSchedule = (prescriptionId, scheduleId) => {
+        setPrescriptions((prev) =>
+            prev.map((p) =>
+                p.id === prescriptionId
+                    ? {
+                          ...p,
+                          schedules: p.schedules.filter((s) => s.id !== scheduleId)
+                      }
+                    : p
+            )
+        );
     };
     
  
@@ -551,57 +594,112 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                             {/* Frequency */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700">
-                                                    Frequency Instructions
+                                                    General Instructions
                                                 </label>
                                                 <Input
                                                     value={p.frequency}
                                                     onChange={(e) =>
                                                         updatePrescription(p.id, "frequency", e.target.value)
                                                     }
-                                                    placeholder="Ex: Take 1 tab every 8 hours"
+                                                    placeholder="Ex: Take with food, avoid alcohol"
                                                     className="rounded-lg"
                                                 />
                                             </div>
 
-                                            {/* Schedule Dropdown + Number of Tabs */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {/* Schedule */}
-                                                <div>
+                                            {/* Schedules Section */}
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center">
                                                     <label className="block text-sm font-medium text-gray-700">
-                                                        Schedule
+                                                        Dosage Schedule
                                                     </label>
-                                                    <Select
-                                                        value={p.schedule}
-                                                        onValueChange={(v) =>
-                                                            updatePrescription(p.id, "schedule", v)
-                                                        }
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => addSchedule(p.id)}
+                                                        className="flex items-center gap-1 text-xs"
                                                     >
-                                                        <SelectTrigger className="rounded-lg">
-                                                            <SelectValue placeholder="Select schedule" />
-                                                        </SelectTrigger>
-
-                                                        <SelectContent>
-                                                            <SelectItem value="breakfast">Breakfast</SelectItem>
-                                                            <SelectItem value="lunch">Lunch</SelectItem>
-                                                            <SelectItem value="dinner">Dinner</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
+                                                        <Plus className="w-3 h-3" />
+                                                        Add Schedule
+                                                    </Button>
                                                 </div>
 
-                                                {/* Tablets per Schedule */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">
-                                                        Tablets per Schedule
-                                                    </label>
-                                                    <Input
-                                                        value={p.tabsPerSchedule}
-                                                        onChange={(e) =>
-                                                            updatePrescription(p.id, "tabsPerSchedule", e.target.value)
-                                                        }
-                                                        placeholder="Ex: 1 tab"
-                                                        className="rounded-lg"
-                                                    />
-                                                </div>
+                                                {p.schedules.length === 0 ? (
+                                                    <div className="text-sm text-gray-500 italic border border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                                        No schedules added. Click "Add Schedule" to specify when to take this medication.
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {p.schedules.map((schedule, scheduleIndex) => (
+                                                            <div
+                                                                key={schedule.id}
+                                                                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                                                            >
+                                                                {/* Time/Meal Selection */}
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                                        Time/Meal
+                                                                    </label>
+                                                                    <Select
+                                                                        value={schedule.time}
+                                                                        onValueChange={(v) =>
+                                                                            updateSchedule(p.id, schedule.id, "time", v)
+                                                                        }
+                                                                    >
+                                                                        <SelectTrigger className="rounded-lg h-9">
+                                                                            <SelectValue placeholder="Select time" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="before-breakfast">Before Breakfast</SelectItem>
+                                                                            <SelectItem value="breakfast">Breakfast</SelectItem>
+                                                                            <SelectItem value="after-breakfast">After Breakfast</SelectItem>
+                                                                            <SelectItem value="before-lunch">Before Lunch</SelectItem>
+                                                                            <SelectItem value="lunch">Lunch</SelectItem>
+                                                                            <SelectItem value="after-lunch">After Lunch</SelectItem>
+                                                                            <SelectItem value="before-dinner">Before Dinner</SelectItem>
+                                                                            <SelectItem value="dinner">Dinner</SelectItem>
+                                                                            <SelectItem value="after-dinner">After Dinner</SelectItem>
+                                                                            <SelectItem value="bedtime">Bedtime</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+
+                                                                {/* Tablets per Schedule */}
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                                        Dosage
+                                                                    </label>
+                                                                    <Input
+                                                                        value={schedule.tabsPerSchedule}
+                                                                        onChange={(e) =>
+                                                                            updateSchedule(
+                                                                                p.id,
+                                                                                schedule.id,
+                                                                                "tabsPerSchedule",
+                                                                                e.target.value
+                                                                            )
+                                                                        }
+                                                                        placeholder="Ex: 1 tablet"
+                                                                        className="rounded-lg h-9"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Remove Schedule Button */}
+                                                                <div className="flex items-end">
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => removeSchedule(p.id, schedule.id)}
+                                                                        className="h-9 w-9 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
