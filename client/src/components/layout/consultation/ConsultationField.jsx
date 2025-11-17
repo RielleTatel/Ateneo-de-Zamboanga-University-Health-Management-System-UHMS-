@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Plus, Trash2, CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
+import { Plus, Trash2, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // --- Vitals Field Component for Consultation ---
@@ -285,7 +285,12 @@ export const LabFields = () => {
 };
 
 // --- Consultation Notes Component ---
-export const ConsultationNotes = () => {
+export const ConsultationNotes = () => { 
+
+    // --- Prescription State ---
+const [prescriptions, setPrescriptions] = useState([]);
+const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
+
     const [notes, setNotes] = useState("");
     const [prescription, setPrescription] = useState("");
     const [history, setHistory] = useState(""); 
@@ -302,8 +307,34 @@ export const ConsultationNotes = () => {
         { value: "drinking", label: "Drinking" },
         { value: "hypertension", label: "Hypertension" },
         { value: "diabetes", label: "Diabetes" },
-    ];
+    ]; 
 
+    const handleAddPrescription = () => {
+        setShowPrescriptionFields(true);
+        setPrescriptions([
+            ...prescriptions,
+            {
+                id: Date.now(),
+                name: "",
+                quantity: "",
+                frequency: "",
+                schedule: "",
+                tabsPerSchedule: ""
+            }
+        ]);
+    };
+    
+    const updatePrescription = (id, field, value) => {
+        setPrescriptions((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+        );
+    };
+    
+    const removePrescription = (id) => {
+        setPrescriptions((prev) => prev.filter((p) => p.id !== id));
+    };
+    
+ 
     const toggleRiskFactor = (value) => {
         setChronicRiskFactors((prev) =>
             prev.includes(value)
@@ -343,123 +374,242 @@ export const ConsultationNotes = () => {
                         onChange={(e) => setHistory(e.target.value)}
                         className="min-h-[100px] resize-none rounded-[17px]"
                     />
-                </div>
-
-                <div>
-                    <label className="block text-md font-semibold mb-2 text-[#353535]"> Prescription </label>
-                    <Textarea
-                        value={prescription}
-                        onChange={(e) => setPrescription(e.target.value)}
-                        className="min-h-[100px] resize-none rounded-[17px]"
-                    />
-                </div>   
+                </div> 
                 
-{/* ADDED NEW DROPDOWN SECTION HERE */}
-<div className="flex flex-col md:flex-row gap-4 mb-6"> 
-                    
-                    {/* DROPDOWN SELECTION 1 */}
-                    <div className="flex flex-col flex-1"> 
-                        <div>
-                            <label className="block text-md font-semibold mb-1 text-gray-700"> Medical Clearance </label>
-                            <Select value={medicalClearance} onValueChange={setMedicalClearance}>
-                                <SelectTrigger className="rounded-[10px]">
-                                    <SelectValue placeholder="Select clearance status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="normal">Normal</SelectItem>
-                                    <SelectItem value="at-risk">At Risk</SelectItem>
-                                    <SelectItem value="critical">Critical</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
+            {/* ADDED NEW DROPDOWN SECTION HERE */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6"> 
+                                {/* DROPDOWN SELECTION 1 */}
+                                <div className="flex flex-col flex-1"> 
+                                    <div>
+                                        <label className="block text-md font-semibold mb-1 text-gray-700"> Medical Clearance </label>
+                                        <Select value={medicalClearance} onValueChange={setMedicalClearance}>
+                                            <SelectTrigger className="rounded-[10px]">
+                                                <SelectValue placeholder="Select clearance status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="normal">Normal</SelectItem>
+                                                <SelectItem value="at-risk">At Risk</SelectItem>
+                                                <SelectItem value="critical">Critical</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
 
-                    {/* DROPDOWN SELECTION 2 - Multi-select */}
-                    <div className="flex flex-col flex-1">
-                        <div>
-                            <label className="block text-md font-semibold mb-1 text-gray-700"> Chronic Risk Factors </label>
-                            <Popover open={openRiskFactors} onOpenChange={setOpenRiskFactors}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={openRiskFactors}
-                                        className="w-full justify-between rounded-[10px] h-auto min-h-[40px] py-2"
-                                    >
-                                        <div className="flex gap-1 flex-wrap">
-                                            {chronicRiskFactors.length === 0 ? (
-                                                <span className="text-muted-foreground"> Select risk factors</span>
-                                            ) : (
-                                                chronicRiskFactors.map((factor) => {
-                                                    const option = riskFactorOptions.find(opt => opt.value === factor);
-                                                    return (
-                                                        <span
-                                                            key={factor}
-                                                            className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm"
-                                                        >
-                                                            {option?.label}
-                                                            <XIcon
-                                                                className="h-3 w-3 cursor-pointer hover:text-red-600"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    removeRiskFactor(factor);
-                                                                }}
-                                                            />
-                                                        </span>
-                                                    );
-                                                })
-                                            )}
-                                        </div>
-                                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Search risk factors..." />
-                                        <CommandList>
-                                            <CommandEmpty>No risk factor found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {riskFactorOptions.map((option) => (
-                                                    <CommandItem
-                                                        key={option.value}
-                                                        value={option.value}
-                                                        onSelect={() => toggleRiskFactor(option.value)}
+                                {/* DROPDOWN SELECTION 2 - Multi-select */}
+                                <div className="flex flex-col flex-1">
+                                    <div>
+                                        <label className="block text-md font-semibold mb-1 text-gray-700"> Chronic Risk Factors </label>
+                                        <Popover open={openRiskFactors} onOpenChange={setOpenRiskFactors}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={openRiskFactors}
+                                                    className="w-full justify-between rounded-[10px] h-auto min-h-[40px] py-2"
+                                                >
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        {chronicRiskFactors.length === 0 ? (
+                                                            <span className="text-muted-foreground"> Select risk factors</span>
+                                                        ) : (
+                                                            chronicRiskFactors.map((factor) => {
+                                                                const option = riskFactorOptions.find(opt => opt.value === factor);
+                                                                return (
+                                                                    <span
+                                                                        key={factor}
+                                                                        className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm"
+                                                                    >
+                                                                        {option?.label}
+                                                                        <XIcon
+                                                                            className="h-3 w-3 cursor-pointer hover:text-red-600"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                removeRiskFactor(factor);
+                                                                            }}
+                                                                        />
+                                                                    </span>
+                                                                );
+                                                            })
+                                                        )}
+                                                    </div>
+                                                    <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+
+                                            <PopoverContent className="w-full p-0" align="start">
+                                                <Command>
+                                                    <CommandInput placeholder="Search risk factors..." />
+                                                    <CommandList>
+                                                        <CommandEmpty> No risk factor found. </CommandEmpty>
+                                                        <CommandGroup>
+                                                            {riskFactorOptions.map((option) => (
+                                                                <CommandItem
+                                                                    key={option.value}
+                                                                    value={option.value}
+                                                                    onSelect={() => toggleRiskFactor(option.value)}
+                                                                >
+                                                                    <div className="flex items-center gap-2 w-full">
+                                                                        <div className={cn(
+                                                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                                            chronicRiskFactors.includes(option.value)
+                                                                                ? "bg-primary text-primary-foreground"
+                                                                                : "opacity-50 [&_svg]:invisible"
+                                                                        )}>
+                                                                            <CheckIcon className="h-4 w-4" />
+                                                                        </div>
+                                                                        <span>{option.label}</span>
+                                                                    </div>
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                </div>
+                            </div>
+                            
+
+                            <div>
+                                <label className="block text-md font-semibold mb-2 text-[#353535]"> Additional Notes </label>
+                                <Textarea
+                                    value={additionalNotes}
+                                    onChange={(e) => setAdditionalNotes(e.target.value)}
+                                    className="min-h-[100px] resize-none rounded-[17px]"
+                                />
+                            </div>   
+
+
+                        {/* --- PRESCRIPTION SECTION --- */}
+                        <div className="flex flex-col gap-y-4 mt-6 ">
+                            <div className="flex justify-between items-center">
+                                <label className="block text-md font-semibold mb-2 text-[#353535]">
+                                    Prescription
+                                </label>
+
+                                <Button 
+                                    className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                                    onClick={handleAddPrescription}
+                                >
+                                    <UserPlus className="w-5 h-5" />
+                                    Add Prescription
+                                </Button>
+                            </div>
+
+                            {/* Only show fields if at least one prescription exists */}
+                            {showPrescriptionFields && prescriptions.length > 0 && (
+                                <div className="space-y-6 ">
+                                    {prescriptions.map((p, index) => (
+                                        <div 
+                                            key={p.id} 
+                                            className="border-1 border-outline rounded-xl p-4 shadow-sm space-y-4"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <p className="font-semibold text-gray-700">
+                                                    Medication {index + 1}
+                                                </p>
+
+                                                <Button
+                                                    variant="ghost"
+                                                    className="text-red-500 hover:text-red-700"
+                                                    onClick={() => removePrescription(p.id)}
+                                                >
+                                                    <XIcon className="w-5 h-5" />
+                                                </Button>
+                                            </div>
+
+                                            {/* Name */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Medication Name
+                                                </label>
+                                                <Input
+                                                    value={p.name}
+                                                    onChange={(e) =>
+                                                        updatePrescription(p.id, "name", e.target.value)
+                                                    }
+                                                    placeholder="Ex: Amoxicillin"
+                                                    className="rounded-lg"
+                                                />
+                                            </div>
+
+                                            {/* Quantity */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Quantity
+                                                </label>
+                                                <Input
+                                                    value={p.quantity}
+                                                    onChange={(e) =>
+                                                        updatePrescription(p.id, "quantity", e.target.value)
+                                                    }
+                                                    placeholder="Ex: 10 tablets"
+                                                    className="rounded-lg"
+                                                />
+                                            </div>
+
+                                            {/* Frequency */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Frequency Instructions
+                                                </label>
+                                                <Input
+                                                    value={p.frequency}
+                                                    onChange={(e) =>
+                                                        updatePrescription(p.id, "frequency", e.target.value)
+                                                    }
+                                                    placeholder="Ex: Take 1 tab every 8 hours"
+                                                    className="rounded-lg"
+                                                />
+                                            </div>
+
+                                            {/* Schedule Dropdown + Number of Tabs */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* Schedule */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Schedule
+                                                    </label>
+                                                    <Select
+                                                        value={p.schedule}
+                                                        onValueChange={(v) =>
+                                                            updatePrescription(p.id, "schedule", v)
+                                                        }
                                                     >
-                                                        <div className="flex items-center gap-2 w-full">
-                                                            <div className={cn(
-                                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                                chronicRiskFactors.includes(option.value)
-                                                                    ? "bg-primary text-primary-foreground"
-                                                                    : "opacity-50 [&_svg]:invisible"
-                                                            )}>
-                                                                <CheckIcon className="h-4 w-4" />
-                                                            </div>
-                                                            <span>{option.label}</span>
-                                                        </div>
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
+                                                        <SelectTrigger className="rounded-lg">
+                                                            <SelectValue placeholder="Select schedule" />
+                                                        </SelectTrigger>
+
+                                                        <SelectContent>
+                                                            <SelectItem value="breakfast">Breakfast</SelectItem>
+                                                            <SelectItem value="lunch">Lunch</SelectItem>
+                                                            <SelectItem value="dinner">Dinner</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                {/* Tablets per Schedule */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Tablets per Schedule
+                                                    </label>
+                                                    <Input
+                                                        value={p.tabsPerSchedule}
+                                                        onChange={(e) =>
+                                                            updatePrescription(p.id, "tabsPerSchedule", e.target.value)
+                                                        }
+                                                        placeholder="Ex: 1 tab"
+                                                        className="rounded-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         </div>
                     </div>
-                </div>
-                
-
-                <div>
-                    <label className="block text-md font-semibold mb-2 text-[#353535]"> Additional Notes </label>
-                    <Textarea
-                        value={additionalNotes}
-                        onChange={(e) => setAdditionalNotes(e.target.value)}
-                        className="min-h-[100px] resize-none rounded-[17px]"
-                    />
-                </div>  
-
-                
-
-            </div>
-        </div>
-    );
-};
+                );
+            };

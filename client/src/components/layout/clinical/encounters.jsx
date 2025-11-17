@@ -186,82 +186,108 @@ const Encounters = () => {
             
                 {/* --- OUTSIDE LAYER/MODAL--- */}   
                 <Dialog open={isViewEditModalOpen} onOpenChange={setIsViewEditModalOpen}>
-                    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-                        {selectedReport ? (
-                            <>
-                                {/* 1. A proper DialogHeader for the modal itself */}
-                                <DialogHeader>
-                                    <DialogTitle>Encounter Details</DialogTitle>
-                                    <DialogDescription>
-                                        A detailed summary of the patient encounter.
-                                    </DialogDescription>
-                                </DialogHeader>
+                        <DialogContent 
+            className="
+                sm:max-w-3xl      /* wider modal */
+                w-full
+                h-[90vh]          /* fixed taller height */
+                overflow-y-auto
+                py-8 px-6         /* more padding */
+                text-[17px]       /* globally larger text */
+            "
+        >
+            {selectedReport ? (
+                <>
+                    {/* Modal Header */}
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold">
+                            Encounter Details
+                        </DialogTitle>
 
-                                {/* 2. Use a Card to structure the content cleanly */}
-                                <Card className="border-none shadow-none">
-                                    <CardHeader className="px-1 pt-2">
-                                        {/* 3. CardHeader for the report's main info */}
-                                        <CardTitle>Visit on {selectedReport.date}</CardTitle>
-                                        <CardDescription>
-                                            Attending Staff: {selectedReport.attendingStaff}
-                                        </CardDescription>
-                                    </CardHeader>
+                        <DialogDescription className="text-base text-gray-600">
+                            A detailed summary of the patient encounter.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                                    <CardContent className="px-1 pt-4 space-y-6">
-                                        {/* 4. Use vertical stacks (not flex-between) for clarity */}
-                                        
-                                        <div className="flex items-start gap-3">
-                                            <Stethoscope className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
-                                            <div>
-                                                <p className="text-sm text-gray-900 font-bold"> Chief Complaint</p>
-                                                <p className="text-gray-900">{selectedReport.chiefComplaint}</p>
-                                            </div>
-                                        </div>
+                    {/* Date and Attending Staff */}
+                    <div className="mt-4 mb-6">
+                        <p className="text-lg font-semibold text-gray-800">
+                            Visit on {selectedReport.date}
+                        </p>
+                        <p className="text-gray-600">
+                            Attending Staff: <span className="font-medium">{selectedReport.attendingStaff}</span>
+                        </p>
+                    </div>
 
-                                        <div className="flex items-start gap-3">
-                                            <ShieldAlert className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-1" />
-                                            <div>
-                                                <p className="text-sm text-gray-500">Risk Factors</p>
-                                                <p className="text-gray-900">{selectedReport.riskFactors}</p>
-                                            </div>
-                                        </div>
+                    {/* Main Unified Container */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-8">
 
-                                        <div className="flex items-start gap-3">
-                                            <FileText className="w-5 h-5 text-gray-600 flex-shrink-0 mt-1" />
-                                            <div>
-                                                <p className="text-sm text-gray-500">History</p>
-                                                <p className="text-gray-900 whitespace-pre-wrap">{selectedReport.History}</p>
-                                            </div>
-                                        </div>
+                        {/* Chief Complaint */}
+                        <section>
+                            <p className="text-lg font-bold text-gray-700">Chief Complaint</p>
+                            <p className="mt-1 text-gray-900 leading-relaxed">
+                                {selectedReport.chiefComplaint}
+                            </p>
+                        </section>
 
-                                        <div className="flex items-start gap-3">
-                                            <Activity className="w-5 h-5 text-green-600 flex-shrink-0 mt-1" />
-                                            <div>
-                                                <p className="text-sm text-gray-500">Treatment</p>
-                                                <p className="text-gray-900 whitespace-pre-wrap">{selectedReport.Treatment}</p>
-                                            </div>
-                                        </div>
-                                        
-                                    </CardContent>
-                                </Card>
+                        {/* Risk Factors */}
+                        <section>
+                            <p className="text-lg font-bold text-gray-700">Risk Factors</p>
+                            <p className="mt-1 text-gray-900 leading-relaxed">
+                                {selectedReport.riskFactors}
+                            </p>
+                        </section>
 
-                                {/* 5. A proper DialogFooter */}
-                                <DialogFooter>
-                                    <Button variant="outline" onClick={() => setIsViewEditModalOpen(false)}>
-                                        Close
-                                    </Button>
-                                </DialogFooter>
-                            </>
-                        ) : (
-                            // 6. A fallback in case selectedReport is null
-                            <DialogHeader>
-                                <DialogTitle>Error</DialogTitle>
-                                <DialogDescription>
-                                    There is no data found. Please close and try again.
-                                </DialogDescription>
-                            </DialogHeader>
-                        )}
-                    </DialogContent>
+                        {/* History */}
+                        <section>
+                            <p className="text-lg font-bold text-gray-700">History</p>
+                            <p className="mt-1 text-gray-900 whitespace-pre-wrap leading-relaxed">
+                                {selectedReport.History}
+                            </p>
+                        </section>
+
+                        {/* Treatment */}
+                        <section>
+                            <p className="text-lg font-bold text-gray-700">Treatment</p>
+                            <p className="mt-1 text-gray-900 whitespace-pre-wrap leading-relaxed">
+                                {selectedReport.Treatment}
+                            </p>
+                        </section>
+
+                        {/* Prescription - bullet list */}
+                        <section>
+                            <p className="text-lg font-bold text-gray-700">Prescription</p>
+                            <ul className="list-disc pl-6 mt-1 text-gray-900 space-y-1">
+                                {selectedReport.Prescription.split('.').map((item, index) => 
+                                    item.trim() && <li key={index}>{item.trim()}</li>
+                                )}
+                            </ul>
+                        </section>
+
+                    </div>
+
+                    {/* Footer */}
+                    <DialogFooter className="mt-6">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setIsViewEditModalOpen(false)}
+                            className="text-base px-6 py-2"
+                        >
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </>
+            ) : (
+                <DialogHeader>
+                    <DialogTitle>Error</DialogTitle>
+                    <DialogDescription>
+                        No data found. Please close and try again.
+                    </DialogDescription>
+                </DialogHeader>
+            )}
+        </DialogContent>
+
+
                 </Dialog>
 
             </div> 

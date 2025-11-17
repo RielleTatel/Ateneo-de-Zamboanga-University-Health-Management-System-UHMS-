@@ -48,40 +48,40 @@ const Overview = () => {
                                 </div>
                             </div>
 
-{/* Health Summary */}
-<div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">Health Summary</h2>
-                
-                <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                        <span className="text-gray-600">Medical Clearance:</span>
-                        {/* Use conditional coloring based on status:
-                            - text-green-600 for "Fit"
-                            - text-yellow-600 for "At Risk" / "Conditional"
-                            - text-red-600 for "Unfit"
-                        */}
-                        <span className="font-bold text-green-600">Fit</span>
-                    </div>
-                    <div className="flex justify-between items-start">
-                        <span className="text-gray-600">Diagnosis:</span>
-                        <span className="text-gray-800 text-right font-medium">Asthma - Mild</span>
-                    </div>
+                        {/* Health Summary */}
+                        <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
+                                <h2 className="text-xl font-bold text-gray-800 mb-6">Health Summary</h2>
+                                
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-gray-600">Medical Clearance:</span>
+                                        {/* Use conditional coloring based on status:
+                                            - text-green-600 for "Fit"
+                                            - text-yellow-600 for "At Risk" / "Conditional"
+                                            - text-red-600 for "Unfit"
+                                        */}
+                                        <span className="font-bold text-green-600">Fit</span>
+                                    </div>
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-gray-600"> Chronic Risk Factors: </span>
+                                        <span className="text-gray-800 text-right font-medium"> Asthma - Mild</span>
+                                    </div>
 
-                    <div className="flex justify-between items-start">
-                        <span className="text-gray-600">Prescribed Medication:</span>
-                        <span className="text-gray-800 text-right">Fluticasone inhaler</span>
-                    </div>
-                    <div className="flex justify-between items-start">
-                        <span className="text-gray-600">Latest Check-up:</span>
-                        <span className="text-gray-800">September 3, 2025</span>
-                    </div>
-                    <div className="flex justify-between items-start">
-                        <span className="text-gray-600">Next Follow-up:</span>
-                        <span className="text-gray-800">March 3, 2026</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-gray-600"> Prescribed Medication: </span>
+                                        <span className="text-gray-800 text-right">Fluticasone inhaler (date: October 24, 2025) </span>
+                                    </div>
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-gray-600">Latest Check-up:</span>
+                                        <span className="text-gray-800">September 3, 2025</span>
+                                    </div>
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-gray-600">Next Follow-up:</span>
+                                        <span className="text-gray-800">March 3, 2026</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
     )
 
 }

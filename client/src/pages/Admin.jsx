@@ -91,14 +91,6 @@ const Admin = () => {
                         </p>
                     </div>
 
-                    {/* Stats Summary */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-white rounded-lg border-outline border-2 p-4">
-                            <p className="text-sm text-gray-600 mb-1">Total Users</p>
-                            <p className="text-2xl font-bold text-blue-600">{users.length}</p>
-                        </div>
-                    </div>
-
                     {/* Search and Filter Section */}
                     <div className="flex flex-row gap-4 mb-6 p-4 rounded-[16px] bg-background-secondary border-outline border-2">
                         {/* Search Input */}
@@ -112,19 +104,7 @@ const Admin = () => {
                                 className="w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 bg-background-secondary text-gray-700 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
-                        
-                        {/* Filter Dropdown */}
-                        <Select value={filterPosition} onValueChange={setFilterPosition}>
-                            <SelectTrigger className="w-[180px] h-12 bg-background-secondary text-gray-700">
-                                <SelectValue placeholder="Filter by position" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Users</SelectItem>
-                                <SelectItem value="student">Students Only</SelectItem>
-                                <SelectItem value="staff">Staff Only</SelectItem>
-                                <SelectItem value="admin">Admin Only</SelectItem>
-                            </SelectContent>
-                        </Select>
+
                     </div>
 
                     {/* Users Table */}

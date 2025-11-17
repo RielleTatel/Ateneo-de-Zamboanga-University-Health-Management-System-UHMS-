@@ -259,10 +259,10 @@ const Records = () => {
                                                         aria-expanded={openPopovers[record.id]}
                                                         className="w-[160px] justify-center h-auto min-h-[36px]"
                                                     >
-                                                        <div className="flex gap-1 flex-wrap items-center justify-center ">
+                                                        <div className="flex gap-1 flex-wrap items-center justify-center p-2">
                                                             {(selectedCheckups[record.id] || []).length === 0 ? (
                                                                 <>
-                                                                    <FileText className="w-4 h-4 mr-1" />
+                                                                    <FileText className="w-10 h-4 mr-1" />
                                                                     <span> check-up </span>
                                                                 </>
                                                             ) : (
@@ -286,7 +286,6 @@ const Records = () => {
                                                                 })
                                                             )}
                                                         </div>
-                                                        <ChevronsUpDownIcon className="h-4 w-4 shrink-0 opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-[280px] p-0" align="center">
