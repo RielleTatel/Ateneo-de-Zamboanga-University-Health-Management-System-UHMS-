@@ -22,6 +22,7 @@ const Navigation = () => {
     "/Consult": "Consult", 
     "/createProfile": "/create",
     "/profile": "/profile",
+    "/Clinical": "/profile",
     "/admin": "admin",
     "/help": "help",
   };

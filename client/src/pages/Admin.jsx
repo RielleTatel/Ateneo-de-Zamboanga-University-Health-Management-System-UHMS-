@@ -178,7 +178,7 @@ const Admin = () => {
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="mb-6 p-3 flex items-center flex-row bg-background-secondary">
-                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/2 p-2">
+                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/2 py-2.5">
                                 <Clock className="w-4 h-4" />
                                 Pending Registrations
                                 {pendingRegistrations.length > 0 && (
@@ -187,7 +187,7 @@ const Admin = () => {
                                     </span>
                                 )}
                             </TabsTrigger>
-                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/2 p-2">
+                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/2 py-2.5">
                                 <Users className="w-4 h-4" />
                                 Manage Users
                             </TabsTrigger>

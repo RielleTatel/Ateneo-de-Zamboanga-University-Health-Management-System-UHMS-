@@ -38,22 +38,22 @@ const Profile = () => {
 
                         {/* Profile Navigation */}
                         <div className="flex justify-center bg-background-primary rounded-[23px] p-1 border-outline border-2 mb-4">
-                            <div 
-                                className={`rounded-full py-2 w-6/12 text-center cursor-pointer transition-colors ${
-                                    activeTab === 'overview' 
-                                        ? 'bg-outline' 
-                                        : 'hover:bg-gray-100'
-                                }`}
-                                onClick={() => setActiveTab('overview')}
-                            >
-                                <span className={`${
-                                    activeTab === 'overview' 
-                                        ? 'text-text-primary font-medium' 
-                                        : 'text-text-primary'
-                                }`}> 
-                                    Profile overview 
-                                </span>
-                            </div>
+                        <div 
+                            className={`rounded-full py-2 w-6/12 text-center cursor-pointer transition-colors ${
+                                activeTab === 'overview' 
+                                    ? 'bg-outline' 
+                                    : 'hover:bg-gray-100'
+                            }`}
+                            onClick={() => setActiveTab('overview')}
+                        >
+                            <span className={`${
+                                activeTab === 'overview' 
+                                    ? 'text-text-primary font-medium' 
+                                    : 'text-text-primary'
+                            }`}> 
+                                Profile overview 
+                            </span>
+                        </div>
                             <div 
                                 className={`rounded-full py-2 w-6/12 text-center cursor-pointer transition-colors ${
                                     activeTab === 'immunization' 

@@ -6,7 +6,8 @@ import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { HeartPlus } from "lucide-react";  
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { HeartPlus, Eye, Trash2 } from "lucide-react";  
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -115,69 +116,79 @@ const Encounters = () => {
             {/* --- SECOND lAYER --- */}  
             </div>  
         
-                {/* --- CONTAINER --- */}  
-                <div className="space-y-4">
+                {/* --- TABLE CONTAINER --- */}  
+                <div className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm">
                     {initialNotes.length > 0 ? (
-                        initialNotes.map((notes) => (
-                            <div 
-                                key={notes.id}
-                                // Changed background to white/light gray to better match the image
-                                className="bg-container rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow" 
-                                onClick={() => handleOpenViewModal(notes)}
-                            >
-                                {/* Outer flex for content and the delete/archive icon */}
-                                <div className="flex justify-between items-start">
-                                    
-                                    {/* Main content area */}
-                                    <div className="flex-1"> 
-                                        
-                                        {/* Title and Date/Staff line */}
-                                        <div className="mb-4 ">
-                                            {/* Adjusted to match the 'Clinic Encounter # 1' text size and weight */}
-                                            <div className="flex flex-row gap-x-4"> 
-                                                <span> <HeartPlus/> </span> 
-                                                <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                                                    Clinic Encounter # {notes.id} 
-                                                </h3> 
-                                            </div>
-                                            {/* Line below the title: Date - Dr. Staff Name */}
-                                            <span className="text-sm text-gray-500"> 
-                                                {notes.date} - {notes.attendingStaff} 
-                                            </span>  
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-gray-50 hover:bg-gray-50 border-outline">
+                                    <TableHead className="w-[100px] font-semibold text-gray-700">
+                                        <div className="flex items-center gap-2">
+                                            <HeartPlus className="w-4 h-4" />
+                                            Encounter
                                         </div>
-                            
-                                        {/* Grid for encounter details: Chief Complaint, Diagnosis, Treatment, Action Taken */}
-                                        {/* Using a two-column grid to put items side-by-side like in the image */}
-                                        <div className="grid grid-cols-2 gap-y-4 text-sm mt-4">
-                                            
-                                            {/* Chief Complaint */}
-                                            <div>
-                                                <span className="font-medium text-gray-500 block mb-1">Chief Complaint:</span>
-                                                <span className="font-semibold text-gray-900">{notes.chiefComplaint || 'Feeling warm and dizzy'}</span>
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-gray-700">Date</TableHead>
+                                    <TableHead className="font-semibold text-gray-700">Attending Staff</TableHead>
+                                    <TableHead className="font-semibold text-gray-700">Chief Complaint</TableHead>
+                                    <TableHead className="w-[120px] text-center font-semibold text-gray-700">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {initialNotes.map((notes) => (
+                                    <TableRow 
+                                        key={notes.id}
+                                        className="cursor-pointer hover:bg-blue-50/50 transition-colors border-outline"
+                                        onClick={() => handleOpenViewModal(notes)}
+                                    >
+                                        <TableCell className="font-medium text-gray-900">
+                                            #{notes.id}
+                                        </TableCell>
+                                        <TableCell className="text-gray-700">
+                                            {formatDate(notes.date)}
+                                        </TableCell>
+                                        <TableCell className="text-gray-700">
+                                            {notes.attendingStaff}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600 max-w-md">
+                                            <div className="truncate" title={notes.chiefComplaint}>
+                                                {notes.chiefComplaint || 'N/A'}
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Delete Icon (Trash Can) - positioned to the top right like in the image */}
-                                    {/* The image shows only a trash can, so I'm simplifying the icon group to just the trash/delete icon */}
-                                    <div className="ml-4">
-                                        <button 
-                                            className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-red-500"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent opening the view modal when clicking the delete button
-                                                handleOpenArchiveModal(e, notes); // Assuming 'Archive' is used for the trash can action
-                                            }}
-                                            title="Delete Visit"
-                                        >
-                                            {/* Replace with your actual Trash/Delete icon component (e.g., 'Trash' or 'Delete' from a library) */}
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenViewModal(notes);
+                                                    }}
+                                                    className="p-2 hover:bg-blue-100 rounded-lg transition-colors text-blue-600 hover:text-blue-700"
+                                                    title="View Details"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenArchiveModal(e, notes);
+                                                    }}
+                                                    className="p-2 hover:bg-red-100 rounded-lg transition-colors text-gray-400 hover:text-red-600"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     ) : (
-                        <p className="text-center text-gray-500"> No visit logs found. Add a new log to get started. </p>
+                        <div className="p-12 text-center">
+                            <HeartPlus className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                            <p className="text-gray-500 font-medium">No encounter records found</p>
+                            <p className="text-sm text-gray-400 mt-1">Add a new encounter to get started</p>
+                        </div>
                     )}
                 </div>
             
