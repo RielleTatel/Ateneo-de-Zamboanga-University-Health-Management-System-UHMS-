@@ -178,7 +178,7 @@ const Admin = () => {
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="mb-6 p-3 flex items-center flex-row bg-background-secondary">
-                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/3 p-2">
+                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/2 p-2">
                                 <Clock className="w-4 h-4" />
                                 Pending Registrations
                                 {pendingRegistrations.length > 0 && (
@@ -187,11 +187,7 @@ const Admin = () => {
                                     </span>
                                 )}
                             </TabsTrigger>
-                            <TabsTrigger value="create" className="flex items-center gap-2 w-1/3 p-2">
-                                <UserPlus className="w-4 h-4" />
-                                Create Account
-                            </TabsTrigger>
-                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/3 p-2">
+                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/2 p-2">
                                 <Users className="w-4 h-4" />
                                 Manage Users
                             </TabsTrigger>
@@ -231,14 +227,6 @@ const Admin = () => {
                                                         <div>
                                                             <div className="font-semibold text-base">{registration.name}</div>
                                                             <div className="text-xs text-gray-500">{registration.email}</div>
-                                                            <div className="text-xs text-gray-400 mt-1">
-                                                                {registration.department}
-                                                            </div>
-                                                            {registration.reason && (
-                                                                <div className="text-xs text-gray-500 mt-1 italic">
-                                                                    Reason: {registration.reason}
-                                                                </div>
-                                                            )}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="border-outline">
@@ -292,128 +280,6 @@ const Admin = () => {
                             </div>
                         </TabsContent>
 
-                        {/* Create Account Tab */}
-                        <TabsContent value="create" className="flex flex-col items-center">
-                            <div className="mb-6">
-                                <p className="text-[15px]">  
-                                    <span className="text-[28px] mb-1"> <b> Create New Account </b> </span> 
-                                    <br/> 
-                                    Manually create a new user account in the system
-                                </p>
-                            </div>
-
-                            <div className="bg-white rounded-lg border-outline border-2 p-8 max-w-2xl">
-                                <form onSubmit={handleCreateAccount} className="space-y-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name" className="text-base font-semibold">
-                                            Full Name <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            placeholder="Enter full name"
-                                            value={newAccount.name}
-                                            onChange={(e) => setNewAccount({...newAccount, name: e.target.value})}
-                                            className="h-12"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-base font-semibold">
-                                            Email Address <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="email@adzu.edu.ph"
-                                            value={newAccount.email}
-                                            onChange={(e) => setNewAccount({...newAccount, email: e.target.value})}
-                                            className="h-12"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="position" className="text-base font-semibold">
-                                            Position <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Select 
-                                            value={newAccount.position} 
-                                            onValueChange={(value) => setNewAccount({...newAccount, position: value})}
-                                        >
-                                            <SelectTrigger className="h-12">
-                                                <SelectValue placeholder="Select position" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Admin">Admin</SelectItem>
-                                                <SelectItem value="Doctor">Doctor</SelectItem>
-                                                <SelectItem value="Nurse">Nurse</SelectItem>
-                                                <SelectItem value="Staff">Staff</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="department" className="text-base font-semibold">
-                                            Department <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="department"
-                                            type="text"
-                                            placeholder="Enter department"
-                                            value={newAccount.department}
-                                            onChange={(e) => setNewAccount({...newAccount, department: e.target.value})}
-                                            className="h-12"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password" className="text-base font-semibold">
-                                            Initial Password <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            placeholder="Enter initial password"
-                                            value={newAccount.password}
-                                            onChange={(e) => setNewAccount({...newAccount, password: e.target.value})}
-                                            className="h-12"
-                                            required
-                                        />
-                                        <p className="text-xs text-gray-500">
-                                            User will be prompted to change password on first login
-                                        </p>
-                                    </div>
-
-                                    <div className="flex gap-3 pt-4">
-                                        <Button 
-                                            type="submit" 
-                                            className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                                        >
-                                            <UserPlus className="w-5 h-5 mr-2" />
-                                            Create Account
-                                        </Button>
-                                        <Button 
-                                            type="button" 
-                                            variant="outline"
-                                            onClick={() => setNewAccount({
-                                                name: "",
-                                                email: "",
-                                                position: "",
-                                                department: "",
-                                                password: ""
-                                            })}
-                                            className="h-12 px-6"
-                                        >
-                                            Clear
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
-                        </TabsContent>
-
                         {/* Manage Users Tab */}
                         <TabsContent value="manage">
                             <div className="mb-6">
@@ -463,9 +329,6 @@ const Admin = () => {
                                                         <div>
                                                             <div className="font-semibold text-base">{user.name}</div>
                                                             <div className="text-xs text-gray-500">{user.email}</div>
-                                                            <div className="text-xs text-gray-400 mt-1">
-                                                                {user.department}
-                                                            </div>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="border-outline">
