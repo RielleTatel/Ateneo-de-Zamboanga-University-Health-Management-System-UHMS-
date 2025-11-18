@@ -1,17 +1,8 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Navigation from "../components/layout/navigation.jsx";
 import { Search, Trash2, AlertTriangle, UserPlus, CheckCircle, XCircle, Users, UserCheck, Clock } from "lucide-react";
-import { 
-    Select, 
-    SelectContent, 
-    SelectItem, 
-    SelectTrigger, 
-    SelectValue 
-} from "@/components/ui/select.jsx";
 import {
     Dialog,
     DialogContent,
@@ -174,11 +165,11 @@ const Admin = () => {
                     <p className="text-sm text-gray-600 mt-1"> Total control of user accounts and system access </p>
                 </div>  
 
-                <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  
+                <div className="mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="mb-6 p-3 flex items-center flex-row bg-background-secondary">
-                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/2 py-2.5">
+                        <TabsList className="mb-6 p-3 flex items-center flex-row gap-x-4 bg-background-primary">
+                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/2 py-2.5 rounded-xl">
                                 <Clock className="w-4 h-4" />
                                 Pending Registrations
                                 {pendingRegistrations.length > 0 && (
@@ -187,7 +178,7 @@ const Admin = () => {
                                     </span>
                                 )}
                             </TabsTrigger>
-                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/2 py-2.5">
+                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/2 py-3 rounded-xl">
                                 <Users className="w-4 h-4" />
                                 Manage Users
                             </TabsTrigger>
