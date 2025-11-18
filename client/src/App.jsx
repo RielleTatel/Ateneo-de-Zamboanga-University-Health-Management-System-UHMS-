@@ -8,6 +8,7 @@ import Consult from "./pages/Consult.jsx";
 import CreateProfile from "./pages/CreateProfile.jsx"; 
 import Login from "./pages/Login.jsx";
 import Admin from "./pages/Admin.jsx";
+import Help from "./pages/Help.jsx";
 
 import './App.css'
 
@@ -27,6 +28,7 @@ const App = () => {
           <Route path="/create" element={<CreateProfile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/help" element={<Help />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

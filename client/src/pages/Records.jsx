@@ -271,7 +271,7 @@ const Records = () => {
                                                                     return (
                                                                         <span
                                                                             key={checkupValue}
-                                                                            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800  rounded-md text-xs font-medium"
+                                                                            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800  rounded-md text-xs font-medium p-1"
                                                                         >
                                                                             {option?.label}
                                                                             <XIcon

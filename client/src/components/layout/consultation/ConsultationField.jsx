@@ -156,7 +156,7 @@ export const LabFields = () => {
         { id: 1, test: "Complete Blood Count (CBC)", unit: "g/dL", value: "" },
         { id: 2, test: "Blood Glucose", unit: "mg/dL", value: "" },
         { id: 3, test: "Cholesterol", unit: "mg/dL", value: "" },
-        { id: 4, test: "Urinalysis", unit: "N/A", value: "" }
+        { id: 4, test: "Urinalysis", unit: "N/A", value: "" },  
     ];
 
     const [labData, setLabData] = useState(initialLabData);
