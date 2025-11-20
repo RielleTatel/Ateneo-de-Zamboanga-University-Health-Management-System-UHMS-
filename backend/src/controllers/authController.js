@@ -106,6 +106,7 @@ const AuthController = {
       // Create user profile in database (pending approval)
       const { data: userData, error: dbError } = await UserModel.insertUser(
         authData.user.id,
+        email,
         full_name,
         role
       );
@@ -163,30 +164,37 @@ const AuthController = {
   async getMe(req, res) {
     try {
       console.log("[getMe] Fetching user data for:", req.user.id);
+      console.log("[getMe] Request user object:", req.user);
 
       const userData = await UserModel.findById(req.user.id);
 
+      console.log("[getMe] User data retrieved:", userData);
+
       if (!userData) {
+        console.log("[getMe] User not found in database, user exists in auth but not in users table");
         return res.status(404).json({ 
           error: "User not found",
-          message: "User profile not found" 
+          message: "User profile not found in database. Please contact admin." 
         });
       }
 
+      console.log("[getMe] Returning user data");
       res.json({
         user: {
           id: userData.uuid,
-          email: userData.email,
+          email: userData.email || req.user.email,
           full_name: userData.full_name,
           role: userData.role,
           status: userData.status
         }
       });
     } catch (err) {
-      console.error("[getMe] Error:", err);
+      console.error("[getMe] Unexpected error:", err);
+      console.error("[getMe] Error stack:", err.stack);
       res.status(500).json({ 
         error: "Server error",
-        message: err.message 
+        message: err.message,
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
       });
     }
   }

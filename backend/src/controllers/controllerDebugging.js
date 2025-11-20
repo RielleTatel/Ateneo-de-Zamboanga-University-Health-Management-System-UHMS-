@@ -1,4 +1,5 @@
 import UserModel from "../models/userModel.js"; 
+import supabase from "../config/supabaseClient.js";
 
 const Debugging = { 
 
@@ -47,6 +48,59 @@ const Debugging = {
               success: false, 
               error: err.message,
               hint: "Check your Supabase credentials and RLS policies. You may need to use the service_role key instead of the anon key."
+            });
+        }
+    },
+
+    async checkUserStatus (req, res) {
+        try {
+            const { userId } = req.params;
+            console.log("[checkUserStatus] Checking status for user:", userId);
+
+            // Check if user exists in database
+            const dbUser = await UserModel.findById(userId);
+            
+            // Check if user exists in auth
+            const { data: { user: authUser }, error: authError } = await supabase.auth.admin.getUserById(userId);
+
+            const status = {
+                userId: userId,
+                existsInAuth: !authError && !!authUser,
+                existsInDatabase: !!dbUser,
+                authDetails: authUser ? {
+                    email: authUser.email,
+                    created_at: authUser.created_at,
+                    user_metadata: authUser.user_metadata
+                } : null,
+                databaseDetails: dbUser ? {
+                    email: dbUser.email,
+                    full_name: dbUser.full_name,
+                    role: dbUser.role,
+                    status: dbUser.status
+                } : null,
+                synced: !authError && !!authUser && !!dbUser,
+                issues: []
+            };
+
+            if (status.existsInAuth && !status.existsInDatabase) {
+                status.issues.push('User exists in Auth but not in database. Run syncAuthUsers script to fix.');
+            }
+
+            if (!status.existsInAuth && status.existsInDatabase) {
+                status.issues.push('User exists in database but not in Auth. This should not happen.');
+            }
+
+            if (!status.existsInAuth && !status.existsInDatabase) {
+                status.issues.push('User does not exist in Auth or database.');
+            }
+
+            res.json(status);
+
+        } catch (err) {
+            console.error("[checkUserStatus] ❌ Error:", err.message);
+            res.status(500).json({ 
+              success: false, 
+              error: err.message
             });
         }
     }

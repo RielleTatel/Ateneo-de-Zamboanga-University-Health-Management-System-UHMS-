@@ -2,13 +2,14 @@ import supabase from "../config/supabaseClient.js";
 
 const UserModel = { 
 
-  async insertUser(uuid, full_name, role) {
-    console.log("[insertUser] Inserting user:", { uuid, full_name, role });
+  async insertUser(uuid, email, full_name, role) {
+    console.log("[insertUser] Inserting user:", { uuid, email, full_name, role });
     
     const {data, error } = await supabase 
       .from('users')
       .insert([{
-        uuid, 
+        uuid,
+        email,
         full_name, 
         role, 
         status: false, 
@@ -64,10 +65,19 @@ const UserModel = {
         hint: error.hint,
         code: error.code
       });
-      return null;
+      
+      // If error is "not found" (PGRST116), return null instead of throwing
+      if (error.code === 'PGRST116') {
+        console.log("[findById] User not found in database");
+        return null;
+      }
+      
+      // For other errors, throw so the caller can handle them
+      throw new Error(`Database error: ${error.message}`);
     }
     
     console.log("[findById] User found:", data ? 'Yes' : 'No');
+    console.log("[findById] User data:", data);
     return data;
   },
 
@@ -90,6 +100,11 @@ const UserModel = {
 
     console.log(`[getUsers] ✅ Fetched ${data.length} users`);
     return data;
+  },
+
+  async getAllUsers() {
+    console.log("[getAllUsers] Fetching all users");
+    return await this.getUsers({});
   },
 
   async updateUserStatus(uuid, status) {
