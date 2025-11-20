@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import supabase from './config/supabaseClient.js';
+import userRoutes from './routes/userRoutes.js';
+import  debuggingRoutes from './routes/debuggingRoutes.js'; 
 
 dotenv.config();
 const app = express();
@@ -19,17 +20,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-
-app.get('/api/users', async (req, res) => {
-  const { data, error } = await supabase.from('users').select('*');
-  if (error) return res.status(400).json({ error });
-  res.json(data);
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
 });
 
-app.get('/api/ping', (req, res) => {
-  console.log(' Backend received /api/ping');
-  res.json({ message: 'Gab from backend' });
-});
+// Register routes
+app.use('/api/debugging', debuggingRoutes); 
+
+// User Routers
+app.use('/api/users', userRoutes);
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

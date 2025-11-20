@@ -1,17 +1,50 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
-const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+const Login = () => { 
+    
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");   
+    const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSignIn = (e) => {
+    const handleLogin  =  async (e) => {
         e.preventDefault();
-        // Handle sign in logic here
-        console.log('Sign in with:', { email, password });
+
+        console.log('Sign in with:', { email, password }); 
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            const { data } = await axios.post(
+                "http://localhost:3001/api/users/login",
+                { email, password }, 
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                }
+            ); 
+
+            // Save JWT token to localStorage
+            localStorage.setItem("token", data.token); 
+
+            // Redirect or update UI
+            window.location.href = "/dashboard";
+
+        } catch (err) {
+            // Axios wraps the error differently
+            if (err.response && err.response.data) {
+                setError(err.response.data.message || "Login failed");
+            } else {
+                setError("Something went wrong. Try again.");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -43,10 +76,15 @@ const Login = () => {
             <div className="flex flex-col mb-8"> 
                 <h2 className="text-[32px] font-bold mb-2">Sign In</h2>
                 <p className="text-[16px] text-gray-600">You must sign in first to be able to access content</p>
+                {error && (
+                    <p className="mt-4 text-sm text-red-500">
+                        {error}
+                    </p>
+                )}
             </div> 
 
             {/* Form */}
-            <form onSubmit={handleSignIn} className="flex flex-col gap-y-6">
+            <form onSubmit={handleLogin} className="flex flex-col gap-y-6">
                 
                 {/* Email Field */}
                 <div className="flex flex-col gap-y-2"> 
@@ -84,9 +122,10 @@ const Login = () => {
                     <div className="flex items-center justify-center"> 
                         <Button 
                             type="submit"
-                            className="w-full h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-[16px] mt-4"
+                            disabled={isSubmitting}
+                            className="w-full h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-[16px] mt-4 disabled:opacity-60"
                         >
-                            Sign In
+                            {isSubmitting ? "Signing In..." : "Sign In"}
                         </Button>
                     </div>
 
