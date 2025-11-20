@@ -1,0 +1,16 @@
+{
+  "name": "uhms-monorepo",
+  "version": "1.0.0",
+  "description": "Ateneo de Zamboanga University Health Management System",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:client": "cd client && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

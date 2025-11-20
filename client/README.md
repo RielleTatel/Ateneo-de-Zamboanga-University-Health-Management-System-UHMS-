@@ -149,4 +149,66 @@ Tab sync (cross-tab auth state sync)
 ┌─────────────────────────┐
 │   Retry Original        │
 │   Request with New Token│
-└─────────────────────────┘ 
+└─────────────────────────┘  
+
+User navigates to /dashboard
+   ↓
+ProtectedRoute renders
+   ↓
+Check: loading? ──YES──→ Show loading spinner
+   ↓ NO
+Check: isAuthenticated? ──NO──→ Redirect to /login
+   ↓ YES
+Check: user.status === true? ──NO──→ Show "pending approval"
+   ↓ YES
+Check: requiredRole? ──NO──→ Render children
+   ↓ YES
+Check: user.role === requiredRole? ──NO──→ Show "access denied"
+   ↓ YES
+Render protected component  
+
+// Frontend
+const response = await axiosInstance.get("/users/pending");
+
+// What happens:
+1. Request interceptor runs:
+   ↓
+   Get session from Supabase
+   ↓
+   Add header: Authorization: Bearer <access_token>
+   ↓
+2. Send to backend: GET /api/users/pending
+   ↓
+3. Backend middleware chain:
+   ↓
+   verifyToken → Validate token with Supabase
+   ↓
+   requireRole("admin") → Check user role
+   ↓
+4. Controller executes:
+   ↓
+   UserController.getPendingUsers()
+   ↓
+5. Return response:
+   ↓
+   { users: [...] }  
+
+User clicks logout
+   ↓
+AuthContext.logout()
+   ↓
+supabase.auth.signOut()
+   ↓
+Supabase clears localStorage
+   ↓
+Triggers: onAuthStateChange → SIGNED_OUT
+   ↓
+AuthContext sets:
+   - user = null
+   - session = null
+   ↓
+isAuthenticated = false
+   ↓
+ProtectedRoute detects no auth
+   ↓
+Redirect to /login 
