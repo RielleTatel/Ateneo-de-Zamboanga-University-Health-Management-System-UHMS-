@@ -11,32 +11,38 @@ dotenv.config();
 const app = express();
 
 // CORS configuration - allow Vercel frontend and localhost
-const getAllowedOrigins = () => {
-  const origins = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ];
-  
-  // Add Vercel deployment URL if available
-  if (process.env.VERCEL_URL) {
-    origins.push(`https://${process.env.VERCEL_URL}`);
-  }
-  
-  // Add custom frontend URL if set
-  if (process.env.FRONTEND_URL) {
-    origins.push(process.env.FRONTEND_URL);
-  }
-  
-  // Add production frontend URL from environment variable
-  if (process.env.NEXT_PUBLIC_FRONTEND_URL) {
-    origins.push(process.env.NEXT_PUBLIC_FRONTEND_URL);
-  }
-  
-  return origins;
-};
-
 const corsOptions = {
-  origin: getAllowedOrigins(),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+    ];
+    
+    // Add Vercel deployment URL if available
+    if (process.env.VERCEL_URL) {
+      allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
+    }
+    
+    // Add custom frontend URL if set
+    if (process.env.FRONTEND_URL) {
+      allowedOrigins.push(process.env.FRONTEND_URL);
+    }
+    
+    // Allow any *.vercel.app domain (for preview deployments)
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

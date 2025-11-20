@@ -57,10 +57,26 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  // Get API base URL (same logic as axiosInstance)
+  const getApiBaseURL = () => {
+    if (import.meta.env.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    
+    // In production (Vercel), use relative URL
+    if (import.meta.env.PROD || window.location.hostname !== 'localhost') {
+      return '/api';
+    }
+    
+    // Development: use localhost
+    return "http://localhost:3001/api";
+  };
+
   // Fetch user profile from backend
   const fetchUserProfile = async (userId, accessToken) => {
     try {
-      const response = await fetch("http://localhost:3001/api/auth/me", {
+      const apiUrl = getApiBaseURL();
+      const response = await fetch(`${apiUrl}/auth/me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
@@ -118,7 +134,8 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       // Create user profile in backend
-      const response = await fetch("http://localhost:3001/api/auth/register", {
+      const apiUrl = getApiBaseURL();
+      const response = await fetch(`${apiUrl}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

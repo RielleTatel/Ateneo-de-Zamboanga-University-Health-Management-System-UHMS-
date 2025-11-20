@@ -1,9 +1,25 @@
 import axios from "axios";
 import { supabase } from "../context/AuthContext";
 
+// Determine API base URL based on environment
+const getApiBaseURL = () => {
+  // Check for environment variable first (set in Vercel)
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In production (Vercel), use relative URL to same domain
+  if (import.meta.env.PROD || window.location.hostname !== 'localhost') {
+    return '/api';
+  }
+  
+  // Development: use localhost
+  return "http://localhost:3001/api";
+};
+
 // Create axios instance
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3001/api",
+  baseURL: getApiBaseURL(),
   headers: {
     "Content-Type": "application/json"
   }
