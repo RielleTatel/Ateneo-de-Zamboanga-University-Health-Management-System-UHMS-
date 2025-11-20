@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import  debuggingRoutes from './routes/debuggingRoutes.js'; 
+import debuggingRoutes from './routes/debuggingRoutes.js'; 
 
 dotenv.config();
 const app = express();
@@ -28,8 +29,7 @@ app.use((req, res, next) => {
 
 // Register routes
 app.use('/api/debugging', debuggingRoutes); 
-
-// User Routers
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
 

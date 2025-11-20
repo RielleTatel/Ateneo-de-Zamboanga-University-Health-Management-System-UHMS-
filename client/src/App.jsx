@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"; 
+import { AuthProvider } from "./context/AuthContext.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Profile from "./pages/Profile.jsx";
 import Records from "./pages/Records.jsx";
@@ -15,22 +17,94 @@ import './App.css'
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/records" element={<Records />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/Clinical" element={<Clinical />} />
-        <Route path="/Consult" element={<Consult />} />
-        <Route path="/create" element={<CreateProfile />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/test-supabase" element={<TestSupabase />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected routes - All authenticated users */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/records" 
+            element={
+              <ProtectedRoute>
+                <Records />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/clinical" 
+            element={
+              <ProtectedRoute>
+                <Clinical />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/consult" 
+            element={
+              <ProtectedRoute>
+                <Consult />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/create" 
+            element={
+              <ProtectedRoute>
+                <CreateProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/help" 
+            element={
+              <ProtectedRoute>
+                <Help />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Admin only routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Admin />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Test route - can be protected or public based on your needs */}
+          <Route 
+            path="/test-supabase" 
+            element={
+              <ProtectedRoute>
+                <TestSupabase />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

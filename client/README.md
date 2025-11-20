@@ -1,12 +1,152 @@
-# React + Vite
+┌─────────────┐
+│   Browser   │
+│  (React)    │
+└──────┬──────┘
+       │
+       │ 1. User enters email/password
+       │    Login.jsx (handleLogin)
+       ▼
+┌─────────────────────────┐
+│   AuthContext.login()   │
+│   (Supabase Client)     │
+└──────┬──────────────────┘
+       │
+       │ 2. Call supabase.auth.signInWithPassword()
+       │    - Sends credentials to Supabase
+       ▼
+┌──────────────────────┐
+│   Supabase Auth      │
+│   (Cloud Service)    │
+└──────┬───────────────┘
+       │
+       │ 3. Validates password hash
+       │    Returns: { session, user }
+       │    - access_token (JWT)
+       │    - refresh_token
+       │    - expires_in (3600s)
+       ▼
+┌─────────────────────────┐
+│   AuthContext           │
+│   (Session Storage)     │
+└──────┬──────────────────┘
+       │
+       │ 4. Store session in localStorage
+       │    (Automatic via Supabase SDK)
+       │    Set user state
+       ▼
+┌─────────────────────────┐
+│   Login.jsx             │
+│   (Verification Check)  │
+└──────┬──────────────────┘
+       │
+       │ 5. Call axiosInstance.get("/auth/me")
+       │    Authorization: Bearer <access_token>
+       ▼
+┌─────────────────────────┐
+│   Express Backend       │
+│   (authMiddleware)      │
+└──────┬──────────────────┘
+       │
+       │ 6. verifyToken middleware:
+       │    - Extract token from header
+       │    - Validate with Supabase
+       │    - Attach user to req.user
+       ▼
+┌─────────────────────────┐
+│   AuthController.getMe  │
+│   (Database Query)      │
+└──────┬──────────────────┘
+       │
+       │ 7. Query user profile:
+       │    - SELECT * FROM users WHERE uuid = ?
+       │    - Get: role, status, full_name
+       ▼
+┌─────────────────────────┐
+│   Response              │
+└──────┬──────────────────┘
+       │
+       │ 8. Return user data:
+       │    { user: { id, email, full_name, role, status } }
+       ▼
+┌─────────────────────────┐
+│   Login.jsx             │
+│   (Role-based Redirect) │
+└──────┬──────────────────┘
+       │
+       │ 9. Check user.status === true
+       │    ├─ If false → Show "pending approval"
+       │    └─ If true → Redirect based on role
+       ▼
+┌─────────────────────────┐
+│   Navigate              │
+│   - Admin → /admin      │
+│   - Others → /dashboard │
+└─────────────────────────┘  
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Data State Management
+1. Supabase Session State
+Location: localStorage (managed by Supabase SDK)
+Stored Data:
+{  access_token: "eyJhbGci...",  // JWT token (1 hour expiry)  refresh_token: "...",          // Used to get new access token  expires_at: 1234567890,        // Unix timestamp  expires_in: 3600,              // Seconds until expiry  token_type: "bearer",  user: {    id: "uuid-here",    email: "user@example.com",    user_metadata: {      full_name: "...",      role: "..."    }  }}
+Persistence: Survives page refresh, browser close/reopen
+2. React Auth Context State
+Location: client/src/context/AuthContext.jsx
+State Variables:
+{  user: {    id: "uuid",    email: "user@example.com",    full_name: "John Doe",    role: "admin",    status: true  },  session: { /* Supabase session object */ },  loading: false,  isAuthenticated: true,  isAdmin: true}
+State Flow:
+App Load   ↓AuthProvider mounts   ↓useEffect runs   ↓supabase.auth.getSession()   ↓Session exists? ──NO──→ User stays logged out   ↓ YESFetch user profile from backend   ↓Set user state   ↓isAuthenticated = true   ↓Protected routes accessible
+3. Auth State Listeners
+Event Listeners:
+supabase.auth.onAuthStateChange((event, session) => {  // Events: SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, etc.    if (event === 'SIGNED_IN') {    fetchUserProfile(session.user.id, session.access_token);  }    if (event === 'SIGNED_OUT') {    setUser(null);  }    if (event === 'TOKEN_REFRESHED') {    // New token automatically stored  }});
+Triggers:
+Login success
+Logout
+Token auto-refresh
+Tab sync (cross-tab auth state sync)
+ 
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+ ┌─────────────────────────┐
+│   Access Token          │
+│   - Expires: 1 hour     │
+│   - Sent with requests  │
+└──────┬──────────────────┘
+       │
+       │ Every API Request
+       ▼
+┌─────────────────────────┐
+│   Axios Interceptor     │
+│   (axiosInstance.js)    │
+└──────┬──────────────────┘
+       │
+       │ Add header:
+       │ Authorization: Bearer <token>
+       ▼
+┌─────────────────────────┐
+│   Express Backend       │
+│   (verifyToken)         │
+└──────┬──────────────────┘
+       │
+       ├─ Valid → Process request
+       │
+       └─ 401 Error → Token expired
+                ↓
+┌─────────────────────────┐
+│   Axios Interceptor     │
+│   (Response Handler)    │
+└──────┬──────────────────┘
+       │
+       │ Detect 401
+       │ Call: supabase.auth.refreshSession()
+       ▼
+┌─────────────────────────┐
+│   Supabase Auth         │
+│   (Token Refresh)       │
+└──────┬──────────────────┘
+       │
+       │ Exchange refresh_token
+       │ for new access_token
+       ▼
+┌─────────────────────────┐
+│   Retry Original        │
+│   Request with New Token│
+└─────────────────────────┘ 

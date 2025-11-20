@@ -48,6 +48,29 @@ const UserModel = {
     return data;
   },
 
+  async findById(uuid) {
+    console.log("[findById] Looking up user ID:", uuid);
+    
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("uuid", uuid)
+      .single();
+
+    if (error) {
+      console.error("[findById] Supabase error:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return null;
+    }
+    
+    console.log("[findById] User found:", data ? 'Yes' : 'No');
+    return data;
+  },
+
   async getUsers(filter = {}) {
     console.log("[getUsers] Fetching users with filter:", filter);
 

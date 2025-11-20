@@ -1,48 +1,72 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../lib/axiosInstance";
 
 const Login = () => { 
+    const navigate = useNavigate();
+    const { login, isAuthenticated, user } = useAuth();
     
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");   
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleLogin  =  async (e) => {
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            // Redirect based on role
+            if (user.role === "admin") {
+                navigate("/admin");
+            } else {
+                navigate("/dashboard");
+            }
+        }
+    }, [isAuthenticated, user, navigate]);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
 
-        console.log('Sign in with:', { email, password }); 
+        console.log('Sign in with:', { email }); 
         setError(null);
         setIsSubmitting(true);
 
         try {
-            const { data } = await axios.post(
-                "http://localhost:3001/api/users/login",
-                { email, password }, 
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    }
-                }
-            ); 
+            // Login with Supabase Auth through AuthContext
+            const result = await login(email, password);
 
-            // Save JWT token to localStorage
-            localStorage.setItem("token", data.token); 
+            if (!result.success) {
+                throw new Error(result.error);
+            }
 
-            // Redirect or update UI
-            window.location.href = "/dashboard";
+            // Check user verification status through backend
+            const response = await axiosInstance.get("/auth/me");
+            const userData = response.data.user;
+
+            if (!userData.status) {
+                setError("Your account is pending admin approval");
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Redirect based on role
+            if (userData.role === "admin") {
+                navigate("/admin");
+            } else {
+                navigate("/dashboard");
+            }
 
         } catch (err) {
-            // Axios wraps the error differently
-            if (err.response && err.response.data) {
-                setError(err.response.data.message || "Login failed");
+            console.error("Login error:", err);
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else if (err.message) {
+                setError(err.message);
             } else {
-                setError("Something went wrong. Try again.");
+                setError("Login failed. Please check your credentials.");
             }
-        } finally {
             setIsSubmitting(false);
         }
     };

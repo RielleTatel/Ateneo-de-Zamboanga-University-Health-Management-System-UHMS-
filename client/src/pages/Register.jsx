@@ -1,10 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../lib/axiosInstance";
 
 const Register = () => { 
+    const navigate = useNavigate();
+    const { register: registerUser } = useAuth();
     
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -13,6 +16,7 @@ const Register = () => {
     const [familyName, setFamilyName] = useState("");
     const [role, setRole] = useState("");
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); 
 
     const full_name = `${firstName} ${middleInitial} ${familyName}`.trim();
@@ -20,44 +24,39 @@ const Register = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
 
-        console.log('Register with:', { email, password, full_name, role }); 
+        console.log('Register with:', { email, full_name, role }); 
         setError(null);
+        setSuccess(false);
         setIsSubmitting(true);
 
         try {
-            const { data } = await axios.post(
-                "http://localhost:3001/api/users/register",
-                { 
-                    email, 
-                    password, 
-                    full_name, 
-                    role 
-                }, 
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    }
-                }
-            ); 
+            // Register with Supabase Auth through backend
+            const response = await axiosInstance.post("/auth/register", { 
+                email, 
+                password, 
+                full_name, 
+                role 
+            });
 
-            // Save JWT token to localStorage if returned
-            if (data.token) {
-                localStorage.setItem("token", data.token);
-            }
+            console.log("Registration successful:", response.data);
+            setSuccess(true);
 
-            // Redirect to login or dashboard
-            window.location.href = "/login";
+            // Redirect to login after 2 seconds
+            setTimeout(() => {
+                navigate("/login");
+            }, 2000);
 
         } catch (err) {
             console.error('Registration error:', err);
-            console.error('Error response data:', err.response?.data);
-            // Axios wraps the error differently
-            if (err.response && err.response.data) {
-                setError(err.response.data.error || err.response.data.message || "Registration failed");
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else if (err.response?.data?.error) {
+                setError(err.response.data.error);
+            } else if (err.message) {
+                setError(err.message);
             } else {
-                setError("Something went wrong. Try again.");
+                setError("Registration failed. Please try again.");
             }
-        } finally {
             setIsSubmitting(false);
         }
     };
@@ -94,6 +93,11 @@ const Register = () => {
                 {error && (
                     <p className="mt-4 text-sm text-red-500">
                         {error}
+                    </p>
+                )}
+                {success && (
+                    <p className="mt-4 text-sm text-green-600 font-medium">
+                        Registration successful! Your account is pending admin approval. Redirecting to login...
                     </p>
                 )}
             </div> 

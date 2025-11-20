@@ -1,18 +1,14 @@
 import express from "express";
 import UserController from "../controllers/userController.js";
+import { verifyToken, requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Authentication routes
-router.post("/login", UserController.login);
-router.post("/register", UserController.register);
-
-// User management routes
-router.get("/pending", UserController.getPendingUsers);
-router.get("/verified", UserController.getVerifiedUsers);
-router.patch("/approve/:uuid", UserController.approveUser);
-router.delete("/reject/:uuid", UserController.rejectUser);
-router.delete("/delete/:uuid", UserController.deleteUser);
-
+// User management routes - Protected (Admin only)
+router.get("/pending", verifyToken, requireRole("admin"), UserController.getPendingUsers);
+router.get("/verified", verifyToken, requireRole("admin"), UserController.getVerifiedUsers);
+router.patch("/approve/:uuid", verifyToken, requireRole("admin"), UserController.approveUser);
+router.delete("/reject/:uuid", verifyToken, requireRole("admin"), UserController.rejectUser);
+router.delete("/delete/:uuid", verifyToken, requireRole("admin"), UserController.deleteUser);
 
 export default router; 

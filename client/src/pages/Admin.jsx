@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,33 +12,32 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"; 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";  
-
-const API_BASE_URL = "http://localhost:3001/api/users";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axiosInstance from "../lib/axiosInstance";
 
 // API functions
 const fetchPendingUsers = async () => {
-    const { data } = await axios.get(`${API_BASE_URL}/pending`);
+    const { data } = await axiosInstance.get("/users/pending");
     return data.users;
 };
 
 const fetchVerifiedUsers = async () => {
-    const { data } = await axios.get(`${API_BASE_URL}/verified`);
+    const { data } = await axiosInstance.get("/users/verified");
     return data.users;
 };
 
 const approveUser = async (uuid) => {
-    const { data } = await axios.patch(`${API_BASE_URL}/approve/${uuid}`);
+    const { data } = await axiosInstance.patch(`/users/approve/${uuid}`);
     return data;
 };
 
 const rejectUser = async (uuid) => {
-    const { data } = await axios.delete(`${API_BASE_URL}/reject/${uuid}`);
+    const { data } = await axiosInstance.delete(`/users/reject/${uuid}`);
     return data;
 };
 
 const deleteUser = async (uuid) => {
-    const { data } = await axios.delete(`${API_BASE_URL}/delete/${uuid}`);
+    const { data } = await axiosInstance.delete(`/users/delete/${uuid}`);
     return data;
 };  
 
