@@ -67,7 +67,43 @@ const UserModel = {
 
     console.log(`[getUsers] ✅ Fetched ${data.length} users`);
     return data;
-  }, 
+  },
+
+  async updateUserStatus(uuid, status) {
+    console.log("[updateUserStatus] Updating user:", { uuid, status });
+    
+    const { data, error } = await supabase
+      .from("users")
+      .update({ status })
+      .eq("uuid", uuid)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[updateUserStatus] Error:", error);
+    } else {
+      console.log("[updateUserStatus] Success:", data);
+    }
+
+    return { data, error };
+  },
+
+  async deleteUser(uuid) {
+    console.log("[deleteUser] Deleting user:", uuid);
+    
+    const { data, error } = await supabase
+      .from("users")
+      .delete()
+      .eq("uuid", uuid);
+
+    if (error) {
+      console.error("[deleteUser] Error:", error);
+    } else {
+      console.log("[deleteUser] Success");
+    }
+
+    return { data, error };
+  }
   
 };
 
