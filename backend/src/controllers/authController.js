@@ -10,6 +10,15 @@ const AuthController = {
   
   async login(req, res) {
     try {
+      // Check if Supabase client is initialized
+      if (!supabase) {
+        console.error("[login] Supabase client not initialized - missing environment variables");
+        return res.status(500).json({ 
+          error: "Configuration error",
+          message: "Server is not properly configured. Please contact the administrator."
+        });
+      }
+
       const { email, password } = req.body;
 
       console.log("[login] Attempting login for:", email);
@@ -79,6 +88,15 @@ const AuthController = {
    */
   async register(req, res) {
     try {
+      // Check if Supabase client is initialized
+      if (!supabase) {
+        console.error("[register] Supabase client not initialized - missing environment variables");
+        return res.status(500).json({ 
+          error: "Configuration error",
+          message: "Server is not properly configured. Please contact the administrator."
+        });
+      }
+
       const { email, password, full_name, role } = req.body;
       
       console.log("[register] Registration attempt:", { email, full_name, role });

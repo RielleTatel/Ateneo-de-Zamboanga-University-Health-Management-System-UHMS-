@@ -6,6 +6,15 @@ import supabase from "../config/supabaseClient.js";
  */
 export const verifyToken = async (req, res, next) => {
   try {
+    // Check if Supabase client is initialized
+    if (!supabase) {
+      console.error("[authMiddleware] Supabase client not initialized - missing environment variables");
+      return res.status(500).json({ 
+        error: "Configuration error",
+        message: "Server is not properly configured. Please contact the administrator."
+      });
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -66,6 +75,15 @@ export const verifyToken = async (req, res, next) => {
 export const requireRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
+      // Check if Supabase client is initialized
+      if (!supabase) {
+        console.error("[authMiddleware] Supabase client not initialized");
+        return res.status(500).json({ 
+          error: "Configuration error",
+          message: "Server is not properly configured. Please contact the administrator."
+        });
+      }
+
       if (!req.user) {
         return res.status(401).json({ 
           error: "Authentication required",
