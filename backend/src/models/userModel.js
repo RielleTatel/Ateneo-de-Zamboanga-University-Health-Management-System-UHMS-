@@ -4,10 +4,7 @@ const UserModel = {
 
   async insertUser(uuid, email, full_name, role) {
     console.log("[insertUser] Inserting user:", { uuid, email, full_name, role });
-    
-    const {data, error } = await supabase 
-      .from('users')
-      .insert([{
+    const { data, error } = await supabase.from('users').insert([{
         uuid,
         email,
         full_name, 
@@ -29,11 +26,7 @@ const UserModel = {
   async findByEmail(email) {
     console.log("[findByEmail] Looking up email:", email);
     
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single();
+    const { data, error } = await supabase.from("users").select("*").eq("email", email).single();
 
     if (error) {
       console.error("[findByEmail] Supabase error:", {
@@ -52,11 +45,7 @@ const UserModel = {
   async findById(uuid) {
     console.log("[findById] Looking up user ID:", uuid);
     
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("uuid", uuid)
-      .single();
+    const { data, error } = await supabase.from("users").select("*").eq("uuid", uuid).single();
 
     if (error) {
       console.error("[findById] Supabase error:", {
@@ -72,7 +61,6 @@ const UserModel = {
         return null;
       }
       
-      // For other errors, throw so the caller can handle them
       throw new Error(`Database error: ${error.message}`);
     }
     

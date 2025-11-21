@@ -6,15 +6,6 @@ dotenv.config();
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
-// Log configuration status (don't crash the function)
-if (!supabaseUrl || !supabaseKey) {
-  console.error('[CRITICAL] Missing Supabase configuration:');
-  console.error('  SUPABASE_URL:', supabaseUrl ? '✓ Set' : '✗ Missing');
-  console.error('  SUPABASE_KEY:', supabaseKey ? '✓ Set' : '✗ Missing');
-  console.error('Please configure these environment variables in Vercel Dashboard.');
-  console.error('See VERCEL_ENV_SETUP.md for instructions.');
-}
-
 let supabase = null;
 
 // Only create client if configuration is available
