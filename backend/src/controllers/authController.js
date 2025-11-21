@@ -2,10 +2,12 @@ import supabase from "../config/supabaseClient.js";
 import UserModel from "../models/userModel.js";
 
 const AuthController = {
+
   /**
    * Sign in with Supabase Auth
    * Supabase handles password verification and returns session tokens
-   */
+   */ 
+  
   async login(req, res) {
     try {
       const { email, password } = req.body;

@@ -17,12 +17,17 @@ export const verifyToken = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
+    console.log("[authMiddleware] Verifying token for request:", req.url);
 
     // Verify the token with Supabase
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      console.log("[authMiddleware] Invalid token:", error?.message);
+      console.error("[authMiddleware] Token verification failed:", {
+        error: error?.message,
+        hasUser: !!user,
+        url: req.url
+      });
       return res.status(401).json({ 
         error: "Invalid token",
         message: error?.message || "Token verification failed" 
@@ -40,10 +45,15 @@ export const verifyToken = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("[authMiddleware] Unexpected error:", err);
+    console.error("[authMiddleware] Unexpected error:", {
+      error: err.message,
+      stack: err.stack,
+      url: req.url
+    });
     return res.status(500).json({ 
       error: "Server error",
-      message: "Failed to authenticate request" 
+      message: "Failed to authenticate request",
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 };

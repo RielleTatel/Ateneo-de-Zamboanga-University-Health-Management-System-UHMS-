@@ -64,7 +64,20 @@ app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const envCheck = {
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_KEY: !!process.env.SUPABASE_KEY,
+    NODE_ENV: process.env.NODE_ENV || 'development'
+  };
+  
+  const allConfigured = envCheck.SUPABASE_URL && envCheck.SUPABASE_KEY;
+  
+  res.json({ 
+    status: allConfigured ? 'ok' : 'warning',
+    timestamp: new Date().toISOString(),
+    environment: envCheck,
+    message: allConfigured ? 'All systems operational' : 'Missing required environment variables'
+  });
 });
 
 // Export the Express app as a serverless function
