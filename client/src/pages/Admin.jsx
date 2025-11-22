@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import Navigation from "../components/layout/navigation.jsx";
 import { Search, Trash2, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, Clock, Loader2 } from "lucide-react";
+import UserNav from "@/components/layout/userNav.jsx";
 import {
     Dialog,
     DialogContent,
@@ -137,9 +138,12 @@ const Admin = () => {
             {/* Main Content */}
             <div className="flex-1 flex-col p-4"> 
 
-                <div className="min-w-full p-3"> 
-                    <p className="text-[20px]"> <b> Admin Dashboard </b> </p>
-                    <p className="text-sm text-gray-600 mt-1"> Total control of user accounts and system access </p>
+                <div className="min-w-full px-3 flex justify-between items-center">
+                    <div>
+                        <p className="text-[20px]"> <b> Admin Dashboard </b> </p>
+                        <p className="text-sm text-gray-600 mt-1"> Total control of user accounts and system access </p>                     
+                    </div>
+                    <UserNav/> 
                 </div>  
 
                 <div className="mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  

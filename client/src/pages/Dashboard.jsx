@@ -3,6 +3,7 @@ import Navigation from "../components/layout/navigation.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { Users, Calendar, FileText, Activity, TrendingUp, AlertCircle } from "lucide-react";
+import UserNav from "../components/layout/userNav.jsx";
 
 const Dashboard = () => {
     
@@ -48,9 +49,11 @@ const Dashboard = () => {
 
             {/* Main Content */}
             <div className="flex-1 flex-col"> 
-                <div className="flex-1 flex-col p-4"> 
-                    <div className="min-w-full p-3"> 
+                <div className="flex-1 flex-col p-4">  
+
+                    <div className="min-w-full px-3 flex justify-between items-center">
                         <p className="text-[20px]"> <b> Dashboard </b> </p>
+                        <UserNav/> 
                     </div> 
 
                     <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7"> 

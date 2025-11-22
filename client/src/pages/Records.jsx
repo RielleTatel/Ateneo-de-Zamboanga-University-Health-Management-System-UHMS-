@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import Navigation from "../components/layout/navigation.jsx";
+import UserNav from "@/components/layout/userNav.jsx";
 import { 
     Select, 
     SelectContent, 
@@ -132,14 +133,15 @@ const Records = () => {
     };
 
     return (
-        <div className="bg-background-primary w-screen h-screen flex flex-row">
+        <div className="bg-background-primary w-screen h-screen flex flex-row"> 
             <Navigation/>  
 
             {/* 2nd half of the screen  */}
             <div className="flex-1 flex-col p-4"> 
 
-                <div className=" min-w-ful p-3"> 
+                <div className="min-w-full px-3 flex justify-between items-center">
                     <p className="text-[20px]"> <b> Records </b> </p>
+                    <UserNav/> 
                 </div>  
 
                 <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  
