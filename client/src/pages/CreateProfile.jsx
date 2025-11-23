@@ -7,7 +7,21 @@ import StaffProfile from "@/components/layout/createProfile/staffProfile";
 import StudentProfile from "@/components/layout/createProfile/studentProfile";
 import EmergencyContact from "@/components/layout/createProfile/emergencyContact";
 
+import { Link, useNavigate } from "react-router-dom";
+import { 
+    Breadcrumb, 
+    BreadcrumbList, 
+    BreadcrumbItem, 
+    BreadcrumbLink, 
+    BreadcrumbPage, 
+    BreadcrumbSeparator 
+} from "@/components/ui/Breadcrumb";
+
+
+
 const CreateProfile = () => {
+    const navigate = useNavigate(); // Allows redirection and history manipulation via code
+    
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         userRole: '',
@@ -51,6 +65,79 @@ const CreateProfile = () => {
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
         }
+    };
+    
+    const renderBreadcrumb = () => {
+        const segments = [
+            // Step 0: External link
+            { label: 'Records', to: '/records', step: 0 }, 
+            // Step 1: Basic info
+            { label: 'Create New Profile', step: 1 },
+        ];
+
+        if (currentStep >= 2) {
+            // Step 2: Details are dynamic based on userRole
+            const roleDetailLabel = formData.userRole === 'Staff' ? 'Staff Details' : 'Student Details';
+            segments.push({ 
+                label: roleDetailLabel, 
+                step: 2
+            });
+        }
+
+        if (currentStep >= 3) {
+            // Step 3: Emergency Contact
+            segments.push({ 
+                label: 'Emergency Contact', 
+                step: 3
+            });
+        }
+
+        const finalSegments = segments.slice(0, currentStep + 1);
+
+        return (
+            <div className="flex items-center gap-2 mb-4">
+                <button
+                    className="text-xl mr-2 hover:text-gray-700 font-bold"
+                    onClick={() => navigate(-1)}> 
+                    ← 
+                </button>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        {finalSegments.map((segment, index) => {
+                            const isLast = index === finalSegments.length - 1;
+                            const isExternalLink = segment.step === 0;
+
+                            return (
+                                <React.Fragment key={segment.label}>
+                                    <BreadcrumbItem>
+                                        {isLast ? (
+                                            // Current step (last item) is non-clickable
+                                            <BreadcrumbPage>{segment.label}</BreadcrumbPage>
+                                        ) : isExternalLink ? (
+                                            // 'Records' is an external route link
+                                            <BreadcrumbLink asChild>
+                                                <Link to={segment.to}>{segment.label}</Link>
+                                            </BreadcrumbLink>
+                                        ) : (
+                                            // Previous steps (1, 2) are internal links (clickable)
+                                            <BreadcrumbLink asChild>
+                                                <a 
+                                                    onClick={() => setCurrentStep(segment.step)} 
+                                                    className="cursor-pointer" // Add pointer to hint clickability
+                                                >
+                                                    {segment.label}
+                                                </a>
+                                            </BreadcrumbLink>
+                                        )}
+                                    </BreadcrumbItem>
+                                    {!isLast && <BreadcrumbSeparator />}
+                                </React.Fragment>
+                            );
+                        })}
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </div>
+        );
     };
 
     const renderStepContent = () => {
@@ -156,7 +243,7 @@ const CreateProfile = () => {
             <div className="flex-1 flex-col p-4">
                 {/* Navigation */}
                 <div className="p-4">
-                    <p> <b> Navigation </b> </p>
+                    {renderBreadcrumb()}
                 </div>
 
                 {/* 1st container container */}
@@ -212,4 +299,4 @@ const CreateProfile = () => {
     );
 };
 
-export default CreateProfile; 
+export default CreateProfile;
