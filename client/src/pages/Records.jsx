@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,79 +13,38 @@ import {
     SelectTrigger, 
     SelectValue 
 } from "@/components/ui/select.jsx";
-import { Search, Eye, FileText, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus } from "lucide-react";
+import { Search, Eye, FileText, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import axiosInstance from "../lib/axiosInstance";
+
+// API function to fetch patients
+const fetchPatients = async () => {
+    const { data } = await axiosInstance.get("/patients");
+    return data.patients;
+};
 
 const Records = () => {
     const navigate = useNavigate();
     const [selectedCheckups, setSelectedCheckups] = useState({});
     const [openPopovers, setOpenPopovers] = useState({});
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Fetch patients from backend
+    const { 
+        data: recordsData = [], 
+        isLoading,
+        error 
+    } = useQuery({
+        queryKey: ["patients"],
+        queryFn: fetchPatients,
+        refetchOnWindowFocus: false
+    });
 
     const checkupOptions = [
         { value: 'vitals', label: 'Vitals' },
         { value: 'lab', label: 'Laboratory Tests' },
         { value: 'consultation', label: 'Consultation Notes' }
-    ];
-
-    // Temporary data for staff and students
-    const recordsData = [
-        {
-            id: 1,
-            name: "Juan Dela Cruz",
-            position: "Student",
-            department: "College of Science, Information, Technology and Engineering",
-            email: "juan.delacruz@adzu.edu.ph"
-        },
-        {
-            id: 2,
-            name: "Maria Santos",
-            position: "Staff",
-            department: "Registrar Office",
-            email: "maria.santos@adzu.edu.ph"
-        },
-        {
-            id: 3,
-            name: "Pedro Reyes",
-            position: "Student",
-            department: "School of Management and Accounting",
-            email: "pedro.reyes@adzu.edu.ph"
-        },
-        {
-            id: 4,
-            name: "Ana Garcia",
-            position: "Staff",
-            department: "Library",
-            email: "ana.garcia@adzu.edu.ph"
-        },
-        {
-            id: 5,
-            name: "Carlos Mendoza",
-            position: "Student",
-            department: "School of Liberal Arts",
-            email: "carlos.mendoza@adzu.edu.ph"
-        },
-        {
-            id: 6,
-            name: "Sofia Rodriguez",
-            position: "Student",
-            department: "School of liberal Arts",
-            email: "sofia.rodriguez@adzu.edu.ph"
-        },
-        {
-            id: 7,
-            name: "Roberto Aquino",
-            position: "Staff",
-            department: "College of Science, Information, Technology and Engineering",
-            email: "roberto.aquino@adzu.edu.ph"
-        },
-        {
-            id: 8,
-            name: "Isabella Cruz",
-            position: "Student",
-            department: "College of Science, Information, Technology and Engineering",
-            email: "isabella.cruz@adzu.edu.ph"
-        }
     ];
 
     const toggleCheckupOption = (recordId, optionValue) => {
@@ -132,6 +92,18 @@ const Records = () => {
         }
     };
 
+    // Filter records based on search query
+    const filteredRecords = recordsData.filter(record => {
+        if (!searchQuery) return true;
+        const searchLower = searchQuery.toLowerCase();
+        return (
+            record.name?.toLowerCase().includes(searchLower) ||
+            record.email?.toLowerCase().includes(searchLower) ||
+            record.uuid?.toLowerCase().includes(searchLower) ||
+            record.id?.toString().includes(searchLower)
+        );
+    });
+
     return (
         <div className="bg-background-primary w-screen h-screen flex flex-row"> 
             <Navigation/>  
@@ -171,6 +143,8 @@ const Records = () => {
                             <input 
                                 type="text" 
                                 placeholder="Search with ID, name, or email"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 bg-background-secondary  text-gray-700 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
@@ -217,7 +191,33 @@ const Records = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {recordsData.map((record) => (
+                                {isLoading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-8">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                                                <span className="text-gray-600">Loading patients...</span>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : error ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-8">
+                                            <div className="text-red-500">
+                                                Error loading patients: {error.message}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : filteredRecords.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-8">
+                                            <div className="text-gray-500">
+                                                {searchQuery ? 'No patients found matching your search.' : 'No patients found.'}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredRecords.map((record) => (
                                     <TableRow key={record.id} className="border-outline">
                                         <TableCell className="font-medium  border-outline">
                                             <div>
@@ -335,7 +335,8 @@ const Records = () => {
                                             </Popover>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </div>

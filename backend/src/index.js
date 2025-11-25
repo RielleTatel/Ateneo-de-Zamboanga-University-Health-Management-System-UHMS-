@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import debuggingRoutes from './routes/debuggingRoutes.js'; 
+import patientRoutes from './routes/patientRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,8 @@ app.use('/api/debugging', debuggingRoutes);
 app.use('/api/auth', authRoutes);
 
 app.use('/api/users', userRoutes);
+
+app.use('/api/patients', patientRoutes);
 
 
 const PORT = process.env.PORT || 3001;

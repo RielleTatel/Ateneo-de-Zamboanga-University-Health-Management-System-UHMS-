@@ -1,5 +1,6 @@
 
 import React, { useState } from "react"; 
+import { useMutation } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import Navigation from "@/components/layout/navigation";
 import StaffProfile from "@/components/layout/createProfile/staffProfile";
 import StudentProfile from "@/components/layout/createProfile/studentProfile";
 import EmergencyContact from "@/components/layout/createProfile/emergencyContact";
+import axiosInstance from "@/lib/axiosInstance";
 
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -17,8 +19,13 @@ import {
     BreadcrumbPage, 
     BreadcrumbSeparator 
 } from "@/components/ui/breadcrumb";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
-
+// API function to add patient
+const addPatient = async (patientData) => {
+    const { data } = await axiosInstance.post("/patients/add", patientData);
+    return data;
+};
 
 const CreateProfile = () => {
     const navigate = useNavigate(); // Allows redirection and history manipulation via code
@@ -53,12 +60,52 @@ const CreateProfile = () => {
         emergencyContactNumber: ''
     });
 
+    // Mutation to add patient
+    const addPatientMutation = useMutation({
+        mutationFn: addPatient,
+        onSuccess: (data) => {
+            console.log('Patient created successfully:', data);
+            // Navigate back to records page after successful submission
+            navigate('/records');
+        },
+        onError: (error) => {
+            console.error('Error creating patient:', error);
+        }
+    });
+
     const handleNext = () => {
         if (currentStep < 3) {
             setCurrentStep(currentStep + 1);
         } else {
-            // Handle form submission
-            console.log('Form submitted:', formData);
+            // Transform formData to match database schema
+            const patientData = {
+                role: formData.userRole,
+                id_number: formData.idNumber,
+                first_name: formData.firstName,
+                middle_name: formData.middleName,
+                last_name: formData.lastName,
+                school_email: formData.schoolEmail,
+                phone_number: formData.phoneNumber,
+                date_of_birth: formData.dateOfBirth,
+                age: formData.age ? parseInt(formData.age) : null,
+                sex: formData.sex,
+                barangay: formData.barangay,
+                street_name: formData.streetName,
+                house_number: formData.houseNumber,
+                department: formData.department,
+                course: formData.course,
+                year: formData.yearLevel,
+                emergency_first_name: formData.emergencyFirstName,
+                emergency_middle_name: formData.emergencyMiddleName,
+                emergency_last_name: formData.emergencyLastName,
+                emergency_relationship: formData.emergencyRelationship,
+                emergency_contact_number: formData.emergencyContactNumber
+            };
+
+            console.log('Submitting patient data:', patientData);
+
+            // Submit to backend
+            addPatientMutation.mutate(patientData);
         }
     };
 
@@ -72,8 +119,8 @@ const CreateProfile = () => {
         const segments = [
             // Step 0: External link
             { label: 'Records', to: '/records', step: 0 }, 
-            // Step 1: Basic info
-            { label: 'Create New Profile', step: 1 },
+            // Step 1: Basic info 
+            { label: 'Create New Profile', step: 1 }, 
         ];
 
         if (currentStep >= 2) {
@@ -259,6 +306,14 @@ const CreateProfile = () => {
                     {/* Second container inside first container */}
                     {renderStepContent()}
 
+                    {/* Error/Success Messages */}
+                    {addPatientMutation.isError && (
+                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                            <AlertCircle className="w-5 h-5" />
+                            <span>Error creating profile: {addPatientMutation.error?.response?.data?.error || addPatientMutation.error?.message || 'Unknown error'}</span>
+                        </div>
+                    )}
+
                     {/* Progress Bar and Navigation Buttons */}
                     <div className="flex justify-between items-center mt-6">
                         {/* Progress Bar - Bottom Left */}
@@ -279,6 +334,7 @@ const CreateProfile = () => {
                                     variant="outline" 
                                     onClick={handleBack}
                                     className="px-6"
+                                    disabled={addPatientMutation.isPending}
                                 >
                                     Back
                                 </Button>
@@ -286,8 +342,16 @@ const CreateProfile = () => {
                             <Button 
                                 onClick={handleNext}
                                 className="px-6 bg-blue-500 hover:bg-blue-600"
+                                disabled={addPatientMutation.isPending}
                             >
-                                {currentStep === 3 ? 'Done' : 'Next'}
+                                {addPatientMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    currentStep === 3 ? 'Done' : 'Next'
+                                )}
                             </Button>
                         </div> 
                         
