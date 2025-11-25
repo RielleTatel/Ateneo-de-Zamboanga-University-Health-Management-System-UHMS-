@@ -29,6 +29,10 @@ const Records = () => {
     const [selectedCheckups, setSelectedCheckups] = useState({});
     const [openPopovers, setOpenPopovers] = useState({});
     const [searchQuery, setSearchQuery] = useState("");
+    const [filterBy, setFilterBy] = useState("all");
+    const [sortBy, setSortBy] = useState("name-asc");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // Fetch patients from backend
     const { 
@@ -92,17 +96,97 @@ const Records = () => {
         }
     };
 
-    // Filter records based on search query
+    // Filter records based on search query and filter selection
     const filteredRecords = recordsData.filter(record => {
-        if (!searchQuery) return true;
-        const searchLower = searchQuery.toLowerCase();
-        return (
-            record.name?.toLowerCase().includes(searchLower) ||
-            record.email?.toLowerCase().includes(searchLower) ||
-            record.uuid?.toLowerCase().includes(searchLower) ||
-            record.id?.toString().includes(searchLower)
-        );
+        // Search filter
+        if (searchQuery) {
+            const searchLower = searchQuery.toLowerCase();
+            const matchesSearch = (
+                record.name?.toLowerCase().includes(searchLower) ||
+                record.email?.toLowerCase().includes(searchLower) ||
+                record.uuid?.toLowerCase().includes(searchLower) ||
+                record.id?.toString().includes(searchLower) ||
+                record.id_number?.toLowerCase().includes(searchLower)
+            );
+            if (!matchesSearch) return false;
+        }
+
+        // Position filter
+        if (filterBy === "students" && record.position?.toLowerCase() !== "student") {
+            return false;
+        }
+        if (filterBy === "staff" && record.position?.toLowerCase() !== "staff") {
+            return false;
+        }
+
+        return true;
     });
+
+    // Sort records
+    const sortedRecords = [...filteredRecords].sort((a, b) => {
+        switch (sortBy) {
+            case "name-asc":
+                return (a.name || "").localeCompare(b.name || "");
+            case "name-desc":
+                return (b.name || "").localeCompare(a.name || "");
+            case "id-asc":
+                return (a.id_number || "").localeCompare(b.id_number || "");
+            case "id-desc":
+                return (b.id_number || "").localeCompare(a.id_number || "");
+            case "date-recent":
+                // Assuming created_at or similar field exists, fallback to id comparison
+                return (b.patient_id || 0) - (a.patient_id || 0);
+            default:
+                return 0;
+        }
+    });
+
+    // Pagination
+    const totalPages = Math.ceil(sortedRecords.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+
+    // Reset to page 1 when filters change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterBy, sortBy]);
+
+    // Generate page numbers for pagination
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+                pages.push('...');
+                pages.push(currentPage - 1);
+                pages.push(currentPage);
+                pages.push(currentPage + 1);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        
+        return pages;
+    };
 
     return (
         <div className="bg-background-primary w-screen h-screen flex flex-row"> 
@@ -150,22 +234,21 @@ const Records = () => {
                         </div>
                         
                         {/* Filter Dropdown */}
-                        <Select className="bg-outline">
-                            <SelectTrigger className="w-[180px] h-12 bg-background-secondary  text-gray-700">
+                        <Select value={filterBy} onValueChange={setFilterBy}>
+                            <SelectTrigger className="w-[180px] h-12 bg-background-secondary text-gray-700">
                                 <SelectValue placeholder="Filter by" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Records</SelectItem>
                                 <SelectItem value="students">Students Only</SelectItem>
                                 <SelectItem value="staff">Staff Only</SelectItem>
-                                <SelectItem value="recent">Recent Visits</SelectItem>
                             </SelectContent>
                         </Select>
                         
                         {/* Sort Dropdown */}
-                        <Select className="bg-outline">
+                        <Select value={sortBy} onValueChange={setSortBy}>
                             <SelectTrigger className="w-[180px] h-12 text-gray-700">
-                                <SelectValue placeholder="Alphabetical" />
+                                <SelectValue placeholder="Sort by" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="name-asc">Name A-Z</SelectItem>
@@ -208,16 +291,16 @@ const Records = () => {
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ) : filteredRecords.length === 0 ? (
+                                ) : paginatedRecords.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center py-8">
                                             <div className="text-gray-500">
-                                                {searchQuery ? 'No patients found matching your search.' : 'No patients found.'}
+                                                {searchQuery || filterBy !== 'all' ? 'No patients found matching your criteria.' : 'No patients found.'}
                                             </div>
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredRecords.map((record) => (
+                                    paginatedRecords.map((record) => (
                                     <TableRow key={record.id} className="border-outline">
                                         <TableCell className="font-medium  border-outline">
                                             <div>
@@ -340,6 +423,60 @@ const Records = () => {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Pagination */}
+                    {!isLoading && !error && sortedRecords.length > 0 && (
+                        <div className="flex items-center justify-between mt-6 px-2">
+                            <div className="text-sm text-gray-600">
+                                Showing {startIndex + 1} to {Math.min(endIndex, sortedRecords.length)} of {sortedRecords.length} records
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3"
+                                >
+                                    Previous
+                                </Button>
+                                
+                                <div className="flex gap-1">
+                                    {getPageNumbers().map((page, index) => (
+                                        page === '...' ? (
+                                            <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500">
+                                                ...
+                                            </span>
+                                        ) : (
+                                            <Button
+                                                key={page}
+                                                variant={currentPage === page ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => setCurrentPage(page)}
+                                                className={`px-3 ${
+                                                    currentPage === page 
+                                                        ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                                                        : ''
+                                                }`}
+                                            >
+                                                {page}
+                                            </Button>
+                                        )
+                                    ))}
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3"
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
 
                 </div> 
             </div>

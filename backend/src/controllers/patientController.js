@@ -24,6 +24,8 @@ const PatientController = {
       const patientsSanitized = patients.map(patient => ({
         id: patient.uuid,
         uuid: patient.uuid,
+        patient_id: patient.patient_id,
+        id_number: patient.id_number,
         name: `${patient.first_name || ''} ${patient.last_name || ''}`.trim(),
         first_name: patient.first_name,
         last_name: patient.last_name,
