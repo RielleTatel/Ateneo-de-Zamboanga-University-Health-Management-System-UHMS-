@@ -13,7 +13,7 @@ import {
     BreadcrumbLink, 
     BreadcrumbPage, 
     BreadcrumbSeparator 
-} from "@/components/ui/Breadcrumb";
+} from "@/components/ui/breadcrumb";
 
 
 const Clinical = () => {
