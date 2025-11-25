@@ -1,7 +1,6 @@
 import UserModel from "../models/userModel.js";
-import supabase from "../config/supabaseClient.js";
 
-const UserController = {  
+const UserController = { 
 
   async getPendingUsers(req, res) { 
 

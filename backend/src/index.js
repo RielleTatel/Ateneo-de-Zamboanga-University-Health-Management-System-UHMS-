@@ -29,6 +29,7 @@ app.use((req, res, next) => {
 app.use('/api/debugging', debuggingRoutes); 
 
 app.use('/api/auth', authRoutes);
+
 app.use('/api/users', userRoutes);
 
 

@@ -16,6 +16,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
