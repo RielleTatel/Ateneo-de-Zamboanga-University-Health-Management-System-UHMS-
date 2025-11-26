@@ -28,24 +28,55 @@ const Register = () => {
         console.log('Register with:', { email, full_name, role }); 
         setError(null);
         setSuccess(false);
+
+        // Frontend validation
+        if (!email || !password || !firstName || !familyName || !role) {
+            setError("All required fields must be filled out");
+            return;
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters long");
+            return;
+        }
+
+        if (!email.includes('@')) {
+            setError("Please enter a valid email address");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            // Register with Supabase Auth through backend
+            // Register through backend API only
+            // Convert role to lowercase to match backend expectations
             const response = await axiosInstance.post("/auth/register", { 
                 email, 
                 password, 
                 full_name, 
-                role 
+                role: role.toLowerCase() 
             });
 
             console.log("Registration successful:", response.data);
             setSuccess(true);
+            setIsSubmitting(false);
 
-            // Redirect to login after 2 seconds
+            // Clear form
+            setEmail("");
+            setPassword("");
+            setFirstName("");
+            setMiddleInitial("");
+            setFamilyName("");
+            setRole("");
+
+            // Redirect to login after 3 seconds
             setTimeout(() => {
-                navigate("/login");
-            }, 2000);
+                navigate("/login", { 
+                    state: { 
+                        message: "Registration successful! Please wait for admin approval before logging in." 
+                    } 
+                });
+            }, 3000);
 
         } catch (err) {
             console.error('Registration error:', err);

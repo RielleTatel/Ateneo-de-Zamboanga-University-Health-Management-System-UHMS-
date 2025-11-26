@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Navigation from "../components/layout/navigation.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
@@ -6,15 +6,7 @@ import { Users, Calendar, FileText, Activity, TrendingUp, AlertCircle } from "lu
 import UserNav from "../components/layout/userNav.jsx";
 
 const Dashboard = () => {
-    
-    useEffect(() => {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-        console.log('🔍 Attempting to connect to backend at:', baseUrl);
-        fetch(`${baseUrl}/api/ping`)
-            .then((r) => r.json())
-            .then((data) => console.log('✅ Frontend received:', data))
-            .catch((err) => console.error('❌ Ping failed:', err));
-    }, []);
+    // Removed unnecessary ping check - backend connection validated through actual API calls
 
     // Sample data for charts
     const monthlyVisitsData = [

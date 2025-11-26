@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Navigation from "../components/layout/navigation.jsx";
-import { Search, Trash2, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, Clock, Loader2 } from "lucide-react";
+import { Search, Trash2, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, Clock, Loader2, KeyRound, Shield } from "lucide-react";
 import UserNav from "@/components/layout/userNav.jsx";
 import {
     Dialog,
@@ -40,6 +40,22 @@ const rejectUser = async (uuid) => {
 const deleteUser = async (uuid) => {
     const { data } = await axiosInstance.delete(`/users/delete/${uuid}`);
     return data;
+};
+
+// Password reset API functions
+const fetchPendingResetRequests = async () => {
+    const { data } = await axiosInstance.get("/auth/password-reset/pending");
+    return data.requests;
+};
+
+const approvePasswordReset = async (requestId) => {
+    const { data } = await axiosInstance.patch(`/auth/password-reset/approve/${requestId}`);
+    return data;
+};
+
+const rejectPasswordReset = async (requestId) => {
+    const { data } = await axiosInstance.patch(`/auth/password-reset/reject/${requestId}`);
+    return data;
 };  
 
 
@@ -75,8 +91,12 @@ const Admin = () => {
     const approveMutation = useMutation({
         mutationFn: approveUser,
         onSuccess: () => {
+            // Refetch both lists immediately after approval
             queryClient.invalidateQueries({ queryKey: ["pendingUsers"] });
             queryClient.invalidateQueries({ queryKey: ["verifiedUsers"] });
+        },
+        onError: (error) => {
+            console.error("Error approving user:", error);
         }
     });
 
@@ -94,6 +114,33 @@ const Admin = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["verifiedUsers"] });
             setDeleteDialog({ open: false, userId: null, userName: "" });
+        }
+    });
+
+    // Fetch password reset requests
+    const { 
+        data: resetRequests = [], 
+        isLoading: isResetLoading,
+        error: resetError 
+    } = useQuery({
+        queryKey: ["resetRequests"],
+        queryFn: fetchPendingResetRequests,
+        refetchOnWindowFocus: false
+    });
+
+    // Approve password reset mutation
+    const approveResetMutation = useMutation({
+        mutationFn: approvePasswordReset,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["resetRequests"] });
+        }
+    });
+
+    // Reject password reset mutation
+    const rejectResetMutation = useMutation({
+        mutationFn: rejectPasswordReset,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["resetRequests"] });
         }
     });
 
@@ -131,6 +178,16 @@ const Admin = () => {
         rejectMutation.mutate(userId);
     };
 
+    // Handle approving password reset
+    const handleApprovePasswordReset = (requestId) => {
+        approveResetMutation.mutate(requestId);
+    };
+
+    // Handle rejecting password reset
+    const handleRejectPasswordReset = (requestId) => {
+        rejectResetMutation.mutate(requestId);
+    };
+
     return (
         <div className="bg-background-primary w-screen min-h-screen flex flex-row">
             <Navigation/>  
@@ -150,7 +207,7 @@ const Admin = () => {
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="mb-6 p-3 flex items-center flex-row gap-x-4 bg-background-primary">
-                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/2 py-2.5 rounded-xl">
+                            <TabsTrigger value="pending" className="flex items-center gap-2 w-1/3 py-2.5 rounded-xl">
                                 <Clock className="w-4 h-4" />
                                 Pending Registrations
                                 {pendingUsers.length > 0 && (
@@ -159,7 +216,16 @@ const Admin = () => {
                                     </span>
                                 )}
                             </TabsTrigger>
-                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/2 py-3 rounded-xl">
+                            <TabsTrigger value="recovery" className="flex items-center gap-2 w-1/3 py-2.5 rounded-xl">
+                                <KeyRound className="w-4 h-4" />
+                                Account Recovery
+                                {resetRequests.length > 0 && (
+                                    <span className="ml-1 bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">
+                                        {resetRequests.length}
+                                    </span>
+                                )}
+                            </TabsTrigger>
+                            <TabsTrigger value="manage" className="flex items-center gap-2 w-1/3 py-3 rounded-xl">
                                 <Users className="w-4 h-4" />
                                 Manage Users
                             </TabsTrigger>
@@ -264,6 +330,123 @@ const Admin = () => {
 
                             <div className="mt-4 text-sm text-gray-600">
                                 {pendingUsers.length} pending registration{pendingUsers.length !== 1 ? 's' : ''}
+                            </div>
+                        </TabsContent>
+
+                        {/* Account Recovery Tab */}
+                        <TabsContent value="recovery">
+                            <div className="mb-6">
+                                <p className="text-[15px]">  
+                                    <span className="text-[28px] mb-1"> <b> Account Recovery Requests </b> </span> 
+                                    <br/> 
+                                    Review and approve password reset requests from users
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-lg overflow-hidden border-outline border-2">
+                                {isResetLoading ? (
+                                    <div className="text-center py-12 text-gray-500">
+                                        <Loader2 className="w-16 h-16 mx-auto mb-4 text-gray-300 animate-spin" />
+                                        <p className="text-lg font-medium">Loading password reset requests...</p>
+                                    </div>
+                                ) : resetError ? (
+                                    <div className="text-center py-12 text-red-500">
+                                        <AlertTriangle className="w-16 h-16 mx-auto mb-4" />
+                                        <p className="text-lg font-medium">Error loading reset requests</p>
+                                        <p className="text-sm">{resetError.message}</p>
+                                    </div>
+                                ) : resetRequests.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-500">
+                                        <Shield className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                                        <p className="text-lg font-medium">No pending password reset requests</p>
+                                        <p className="text-sm">All recovery requests have been processed</p>
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader className="border-outline">
+                                            <TableRow className="bg-background-secondary border-outline">
+                                                <TableHead className="text-black font-semibold">User Details</TableHead>
+                                                <TableHead className="text-black font-semibold">Role</TableHead>
+                                                <TableHead className="text-black font-semibold">Request Date</TableHead>
+                                                <TableHead className="text-black font-semibold text-center">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {resetRequests.map((request) => (
+                                                <TableRow key={request.id} className="border-outline">
+                                                    <TableCell className="font-medium border-outline">
+                                                        <div>
+                                                            <div className="font-semibold text-base flex items-center gap-2">
+                                                                <KeyRound className="w-4 h-4 text-orange-600" />
+                                                                {request.users?.full_name || "Unknown User"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">{request.email}</div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="border-outline">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                                            request.users?.role === 'doctor' 
+                                                                ? 'bg-red-100 text-red-800' 
+                                                                : request.users?.role === 'nurse'
+                                                                ? 'bg-purple-100 text-purple-800'
+                                                                : request.users?.role === 'staff'
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-blue-100 text-blue-800'
+                                                        }`}>
+                                                            {request.users?.role?.charAt(0).toUpperCase() + request.users?.role?.slice(1)}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="border-outline">
+                                                        <div className="text-sm">
+                                                            {new Date(request.created_at).toLocaleDateString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-center border-outline">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleApprovePasswordReset(request.id)}
+                                                                disabled={approveResetMutation.isLoading}
+                                                                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1"
+                                                            >
+                                                                {approveResetMutation.isLoading ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <CheckCircle className="w-4 h-4" />
+                                                                )}
+                                                                Approve
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleRejectPasswordReset(request.id)}
+                                                                disabled={rejectResetMutation.isLoading}
+                                                                className="border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-1"
+                                                            >
+                                                                {rejectResetMutation.isLoading ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <XCircle className="w-4 h-4" />
+                                                                )}
+                                                                Reject
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </div>
+
+                            <div className="mt-4 text-sm text-gray-600">
+                                {resetRequests.length} pending password reset request{resetRequests.length !== 1 ? 's' : ''}
                             </div>
                         </TabsContent>
 

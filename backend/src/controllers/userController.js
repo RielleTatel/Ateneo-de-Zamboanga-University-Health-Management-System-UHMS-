@@ -1,23 +1,26 @@
 import UserModel from "../models/userModel.js";
+import supabase from "../config/supabaseClient.js";
 
 const UserController = { 
 
   async getPendingUsers(req, res) { 
 
       try { 
-        console.log("Getting users..");  
+        console.log("[getPendingUsers] Getting pending users...");  
 
         const pendingUsers = await UserModel.getUsers({status: false}) 
 
+        // Return empty array instead of 404 when no users found
         if (!pendingUsers || pendingUsers.length === 0) {
-          console.log("⚠️ No registered users found table");
-          return res.status(404).json({ 
-            success: false, 
-            message: "No registered users, table might be empty or RLS is blocking access." 
+          console.log("[getPendingUsers] No pending users found");
+          return res.json({ 
+            success: true, 
+            message: "No pending users",
+            users: []  // Return empty array instead of error
           });
         }   
 
-        console.log(` ✅ Found ${pendingUsers.length} user(s) in Supabase`);  
+        console.log(`[getPendingUsers] ✅ Found ${pendingUsers.length} pending user(s)`);  
         
         const pendingUsersSanitized = pendingUsers.map(user => ({
           uuid: user.uuid,
@@ -29,17 +32,17 @@ const UserController = {
 
         res.json({
           success: true,
-          message: `Supabase connection working! Found ${pendingUsers.length} user(s).`,
+          message: `Found ${pendingUsers.length} pending user(s).`,
           users: pendingUsersSanitized
         });
  
       } catch (err) {
-          console.error("[testSupabase] ❌ Error:", err.message);
-          console.error("[testSupabase] Full error:", err);
+          console.error("[getPendingUsers] ❌ Error:", err.message);
+          console.error("[getPendingUsers] Full error:", err);
           res.status(500).json({ 
             success: false, 
             error: err.message,
-            hint: "Check your Supabase credentials and RLS policies. You may need to use the service_role key instead of the anon key."
+            hint: "Check your Supabase credentials and RLS policies."
           });
       }
   },
@@ -47,19 +50,21 @@ const UserController = {
   async getVerifiedUsers (req, res) { 
 
       try { 
-        console.log("Getting users..");  
+        console.log("[getVerifiedUsers] Getting verified users...");  
 
         const verifiedUsers = await UserModel.getUsers({status: true}) 
 
+        // Return empty array instead of 404 when no users found
         if (!verifiedUsers || verifiedUsers.length === 0) {
-          console.log("⚠️ No verified users found table");
-          return res.status(404).json({ 
-            success: false, 
-            message: "No verified users, table might be empty or RLS is blocking access." 
+          console.log("[getVerifiedUsers] No verified users found");
+          return res.json({ 
+            success: true, 
+            message: "No verified users",
+            users: []  // Return empty array instead of error
           });
         }   
 
-        console.log(` ✅ Found ${verifiedUsers.length} user(s) in Supabase`);  
+        console.log(`[getVerifiedUsers] ✅ Found ${verifiedUsers.length} verified user(s)`);  
         
         const verifiedUsersSanitized = verifiedUsers.map(user => ({
           uuid: user.uuid,
@@ -71,17 +76,17 @@ const UserController = {
 
         res.json({
           success: true,
-          message: `Supabase connection working! Found ${verifiedUsers.length} user(s).`,
+          message: `Found ${verifiedUsers.length} verified user(s).`,
           users: verifiedUsersSanitized
         });
 
       } catch (err) {
-          console.error("[testSupabase] ❌ Error:", err.message);
-          console.error("[testSupabase] Full error:", err);
+          console.error("[getVerifiedUsers] ❌ Error:", err.message);
+          console.error("[getVerifiedUsers] Full error:", err);
           res.status(500).json({ 
             success: false, 
             error: err.message,
-            hint: "Check your Supabase credentials and RLS policies. You may need to use the service_role key instead of the anon key."
+            hint: "Check your Supabase credentials and RLS policies."
           });
       }
   },
@@ -91,21 +96,44 @@ const UserController = {
       const { uuid } = req.params;
       console.log("[approveUser] Approving user:", uuid);
 
-      const { data, error } = await UserModel.updateUserStatus(uuid, true);
+      // Step 1: Update user status in custom users table
+      const { data: userData, error: dbError } = await UserModel.updateUserStatus(uuid, true);
 
-      if (error) {
-        console.error("[approveUser] Error:", error);
+      if (dbError) {
+        console.error("[approveUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
-          error: error.message 
+          error: dbError.message 
         });
+      }
+
+      console.log("[approveUser] Database status updated successfully");
+
+      // Step 2: Confirm user in Supabase Auth (CRITICAL FIX)
+      // This removes the "Email not confirmed" error
+      try {
+        const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(
+          uuid,
+          { email_confirm: true }  // Manually confirm the user's email
+        );
+
+        if (authError) {
+          console.error("[approveUser] Supabase Auth error:", authError);
+          // Don't fail the whole operation - status is already updated
+          console.warn("[approveUser] User status updated but email confirmation failed");
+        } else {
+          console.log("[approveUser] User email confirmed in Supabase Auth");
+        }
+      } catch (authErr) {
+        console.error("[approveUser] Failed to confirm user in Supabase Auth:", authErr);
+        // Don't fail - status is updated, user can still login after page refresh
       }
 
       console.log("[approveUser] User approved successfully");
       return res.json({
         success: true,
         message: "User approved successfully",
-        user: data
+        user: userData
       });
     } catch (err) {
       console.error("[approveUser] Unexpected error:", err);
@@ -121,14 +149,29 @@ const UserController = {
       const { uuid } = req.params;
       console.log("[rejectUser] Rejecting user:", uuid);
 
-      const { error } = await UserModel.deleteUser(uuid);
+      // Delete from custom users table
+      const { error: dbError } = await UserModel.deleteUser(uuid);
 
-      if (error) {
-        console.error("[rejectUser] Error:", error);
+      if (dbError) {
+        console.error("[rejectUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
-          error: error.message 
+          error: dbError.message 
         });
+      }
+
+      // Also delete from Supabase Auth
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(uuid);
+        
+        if (authError) {
+          console.error("[rejectUser] Failed to delete from Supabase Auth:", authError);
+          // Don't fail the operation - database record is already deleted
+        } else {
+          console.log("[rejectUser] User deleted from Supabase Auth");
+        }
+      } catch (authErr) {
+        console.error("[rejectUser] Auth deletion error:", authErr);
       }
 
       console.log("[rejectUser] User rejected successfully");
@@ -150,14 +193,28 @@ const UserController = {
       const { uuid } = req.params;
       console.log("[deleteUser] Deleting user:", uuid);
 
-      const { error } = await UserModel.deleteUser(uuid);
+      // Delete from custom users table
+      const { error: dbError } = await UserModel.deleteUser(uuid);
 
-      if (error) {
-        console.error("[deleteUser] Error:", error);
+      if (dbError) {
+        console.error("[deleteUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
-          error: error.message 
+          error: dbError.message 
         });
+      }
+
+      // Also delete from Supabase Auth
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(uuid);
+        
+        if (authError) {
+          console.error("[deleteUser] Failed to delete from Supabase Auth:", authError);
+        } else {
+          console.log("[deleteUser] User deleted from Supabase Auth");
+        }
+      } catch (authErr) {
+        console.error("[deleteUser] Auth deletion error:", authErr);
       }
 
       console.log("[deleteUser] User deleted successfully");

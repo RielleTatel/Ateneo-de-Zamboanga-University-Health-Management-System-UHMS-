@@ -1,43 +1,52 @@
 import { Circle } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const UserNav = () => { 
+  // Get current user from AuthContext
+  const { user } = useAuth();
 
-  const currentUser = {
-    name: "Dr. Maria Santos",
-    email: "maria.santos@adzu.edu.ph",
-    position: "Doctor",
+  // Fallback to default user if not authenticated (shouldn't happen in protected routes)
+  const currentUser = user ? {
+    name: user.full_name || "User",
+    email: user.email || "user@adzu.edu.ph",
+    position: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User",
     status: "online" 
-  };  
+  } : {
+    name: "Loading...",
+    email: "...",
+    position: "User",
+    status: "online" 
+  };
 
-    // Get position badge color
-    const getPositionColor = (position) => {
-        switch (position.toLowerCase()) {
-          case 'admin':
-            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-          case 'doctor':
-            return 'bg-red-100 text-red-800 border-red-200';
-          case 'nurse':
-            return 'bg-purple-100 text-purple-800 border-purple-200';
-          case 'staff':
-            return 'bg-green-100 text-green-800 border-green-200';
-          default:
-            return 'bg-blue-100 text-blue-800 border-blue-200';
-        }
-      };
-    
-      // Get status color
-      const getStatusColor = (status) => {
-        switch (status.toLowerCase()) {
-          case 'online':
-            return 'bg-green-500';
-          case 'away':
-            return 'bg-yellow-500';
-          case 'busy':
-            return 'bg-red-500';
-          default:
-            return 'bg-gray-500';
-        }
-      };
+  // Get position badge color
+  const getPositionColor = (position) => {
+    switch (position.toLowerCase()) {
+      case 'admin':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'doctor':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'nurse':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'staff':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
+  };
+
+  // Get status color
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'online':
+        return 'bg-green-500';
+      case 'away':
+        return 'bg-yellow-500';
+      case 'busy':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
 
 
     return (

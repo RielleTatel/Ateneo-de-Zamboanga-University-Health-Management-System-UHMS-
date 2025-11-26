@@ -1,5 +1,5 @@
 import axios from "axios";
-import { supabase } from "../context/AuthContext";
+import { supabase } from "./supabaseClient";  // Use centralized Supabase client
 
 // Determine API base URL based on environment
 const getApiBaseURL = () => {

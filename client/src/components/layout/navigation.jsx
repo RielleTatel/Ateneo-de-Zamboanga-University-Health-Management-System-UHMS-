@@ -1,6 +1,7 @@
 import { LayoutDashboard, Users2, NotebookPen, Shield, HelpCircle, LogOut, User, Circle } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";  // Import AuthContext
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import { Button } from "../ui/button";
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();  // Get logout function from AuthContext
 
   // Derive active tab from URL
   const pathToTab = {
@@ -29,6 +31,7 @@ const Navigation = () => {
 
   const [activeTab, setActiveTab] = useState(pathToTab[location.pathname] || "overview");
   const [logoutDialog, setLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
 
   const handleNavClick = (tab, path) => {
@@ -40,12 +43,31 @@ const Navigation = () => {
     setLogoutDialog(true);
   };
 
-  const handleConfirmLogout = () => {
-    // Clear any stored user data/tokens
-    localStorage.clear();
-    sessionStorage.clear();
-    setLogoutDialog(false);
-    navigate("/"); // Redirect to login page
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    
+    try {
+      // Call logout from AuthContext - this signs out from Supabase
+      await logout();
+      
+      // Clear any remaining local storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      setLogoutDialog(false);
+      
+      // Navigate to login page
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if logout fails, clear storage and redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      setLogoutDialog(false);
+      navigate("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleCancelLogout = () => {
@@ -195,14 +217,19 @@ const Navigation = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={handleCancelLogout}>
+            <Button 
+              variant="outline" 
+              onClick={handleCancelLogout}
+              disabled={isLoggingOut}
+            >
               Cancel
             </Button>
             <Button 
               onClick={handleConfirmLogout}
+              disabled={isLoggingOut}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Logout
+              {isLoggingOut ? "Logging out..." : "Logout"}
             </Button>
           </DialogFooter>
         </DialogContent>
