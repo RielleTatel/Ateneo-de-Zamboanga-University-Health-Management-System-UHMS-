@@ -10,5 +10,6 @@ router.get("/verified", verifyToken, requireRole("admin"), UserController.getVer
 router.patch("/approve/:uuid", verifyToken, requireRole("admin"), UserController.approveUser);
 router.delete("/reject/:uuid", verifyToken, requireRole("admin"), UserController.rejectUser);
 router.delete("/delete/:uuid", verifyToken, requireRole("admin"), UserController.deleteUser);
+router.post("/transfer-admin", verifyToken, requireRole("admin"), UserController.transferAdminRole);
 
 export default router; 

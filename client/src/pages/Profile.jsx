@@ -128,7 +128,7 @@ const Profile = () => {
 
                 {/* Conditional Rendering based on active tab */}
                 {activeTab === 'overview' && <Overview recordId={recordId} />}
-                {activeTab === 'immunization' && <Immunization recordId={recordId} />} 
+                {activeTab === 'immunization' && <Immunization patientUuid={recordId} />} 
 
                 </div>
             </div>

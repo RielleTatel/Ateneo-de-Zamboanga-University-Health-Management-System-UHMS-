@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { 
   Users, Calendar, FileText, Activity, TrendingUp, AlertCircle, 
-  Heart, Droplet, Scale, Mail, Shield
+  Heart, Droplet, Scale, Mail, Shield, ChevronLeft, ChevronRight
 } from "lucide-react";
 import UserNav from "../components/layout/userNav.jsx";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,10 @@ const Dashboard = () => {
     atRiskCohort: [],
     departmentRiskMix: []
   });
+
+  // Pagination state for At-Risk Cohort table
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Fetch all data
   const { data: consultations = [], isLoading: loadingConsultations } = useQuery({
@@ -867,56 +871,120 @@ const Dashboard = () => {
                         <p>No at-risk patients found. All patients are within healthy ranges.</p>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="font-semibold">Patient Name</TableHead>
-                              <TableHead className="font-semibold">Status</TableHead>
-                              <TableHead className="font-semibold">Risk Factors</TableHead>
-                              <TableHead className="font-semibold">Last Checkup</TableHead>
-                              <TableHead className="font-semibold text-center">Action</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {processedData.atRiskCohort.map((patient, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="font-medium">
-                                  {patient.name}
-                                </TableCell>
-                                <TableCell>
-                                  <span
-                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                      patient.status === 'Critical'
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-orange-100 text-orange-700'
-                                    }`}
-                                  >
-                                    {patient.status}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-sm max-w-xs truncate">
-                                  {patient.chronicFactor}
-                                </TableCell>
-                                <TableCell className="text-sm">
-                                  {formatDate(patient.lastCheckup)}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-2"
-                                    style={{ borderColor: '#0033A0', color: '#0033A0' }}
-                                  >
-                                    <Mail className="h-4 w-4 mr-1" />
-                                    Notify
-                                  </Button>
-                                </TableCell>
+                      <>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="font-semibold">Patient Name</TableHead>
+                                <TableHead className="font-semibold">Status</TableHead>
+                                <TableHead className="font-semibold">Risk Factors</TableHead>
+                                <TableHead className="font-semibold">Last Checkup</TableHead>
+                                <TableHead className="font-semibold text-center">Action</TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
+                            </TableHeader>
+                            <TableBody>
+                              {processedData.atRiskCohort
+                                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                .map((patient, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell className="font-medium">
+                                      {patient.name}
+                                    </TableCell>
+                                    <TableCell>
+                                      <span
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                          patient.status === 'Critical'
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-orange-100 text-orange-700'
+                                        }`}
+                                      >
+                                        {patient.status}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-sm max-w-xs truncate">
+                                      {patient.chronicFactor}
+                                    </TableCell>
+                                    <TableCell className="text-sm">
+                                      {formatDate(patient.lastCheckup)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-2"
+                                        style={{ borderColor: '#0033A0', color: '#0033A0' }}
+                                      >
+                                        <Mail className="h-4 w-4 mr-1" />
+                                        Notify
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {processedData.atRiskCohort.length > itemsPerPage && (
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                            <div className="text-sm text-gray-600">
+                              Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
+                              {Math.min(currentPage * itemsPerPage, processedData.atRiskCohort.length)} of{' '}
+                              {processedData.atRiskCohort.length} patients
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              {/* Previous Button */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="h-8 px-3"
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+
+                              {/* Page Numbers */}
+                              <div className="flex items-center gap-1">
+                                {Array.from(
+                                  { length: Math.ceil(processedData.atRiskCohort.length / itemsPerPage) },
+                                  (_, i) => i + 1
+                                ).map((pageNum) => (
+                                  <Button
+                                    key={pageNum}
+                                    variant={currentPage === pageNum ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className={`h-8 w-8 p-0 ${
+                                      currentPage === pageNum 
+                                        ? 'text-white' 
+                                        : ''
+                                    }`}
+                                    style={currentPage === pageNum ? { backgroundColor: '#0033A0' } : {}}
+                                  >
+                                    {pageNum}
+                                  </Button>
+                                ))}
+                              </div>
+
+                              {/* Next Button */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => 
+                                  Math.min(Math.ceil(processedData.atRiskCohort.length / itemsPerPage), prev + 1)
+                                )}
+                                disabled={currentPage === Math.ceil(processedData.atRiskCohort.length / itemsPerPage)}
+                                className="h-8 px-3"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </CardContent>
                 </Card>

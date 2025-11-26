@@ -9,18 +9,57 @@ const fetchPatientById = async (uuid) => {
     return data.patient;
 };
 
+// API function to fetch consultations by patient UUID
+const fetchConsultationsByUUID = async (uuid) => {
+    const { data } = await axiosInstance.get(`/consultations/user/${uuid}`);
+    return data.consultations || [];
+};
+
+// API function to fetch prescriptions by consultation ID
+const fetchPrescriptionsByConsultation = async (consultationId) => {
+    const { data } = await axiosInstance.get(`/consultations/${consultationId}/prescriptions`);
+    return data.prescriptions || [];
+};
+
 const Overview = ({ recordId }) => {
     // Fetch patient data
     const { 
         data: patient, 
-        isLoading,
-        error 
+        isLoading: isLoadingPatient,
+        error: patientError 
     } = useQuery({
         queryKey: ["patient", recordId],
         queryFn: () => fetchPatientById(recordId),
         enabled: !!recordId,
         refetchOnWindowFocus: false
     });
+
+    // Fetch consultations for this patient
+    const { 
+        data: consultations = [], 
+        isLoading: isLoadingConsultations 
+    } = useQuery({
+        queryKey: ["consultations", recordId],
+        queryFn: () => fetchConsultationsByUUID(recordId),
+        enabled: !!recordId,
+        refetchOnWindowFocus: false
+    });
+
+    // Get the most recent consultation
+    const latestConsultation = consultations.length > 0 ? consultations[0] : null;
+
+    // Fetch prescriptions for the latest consultation
+    const { 
+        data: prescriptions = [] 
+    } = useQuery({
+        queryKey: ["prescriptions", latestConsultation?.consultation_id],
+        queryFn: () => fetchPrescriptionsByConsultation(latestConsultation.consultation_id),
+        enabled: !!latestConsultation?.consultation_id,
+        refetchOnWindowFocus: false
+    });
+
+    const isLoading = isLoadingPatient || isLoadingConsultations;
+    const error = patientError;
 
     if (isLoading) {
         return (
@@ -68,6 +107,39 @@ const Overview = ({ recordId }) => {
     };
 
     const emergencyName = `${patient.emergency_first_name || ''} ${patient.emergency_middle_name ? patient.emergency_middle_name + ' ' : ''}${patient.emergency_last_name || ''}`.trim() || 'N/A';
+
+    // Helper function to determine medical clearance status and color
+    const getMedicalClearanceInfo = () => {
+        if (!latestConsultation) return { status: 'N/A', color: 'text-gray-500' };
+        
+        const clearance = latestConsultation.medical_clearance;
+        
+        // Match the database schema values: 'Normal', 'At Risk', 'Critical'
+        if (clearance === 'Normal') {
+            return { status: 'Normal', color: 'text-green-600' };
+        } else if (clearance === 'Critical') {
+            return { status: 'Critical', color: 'text-red-600' };
+        } else if (clearance === 'At Risk') {
+            return { status: 'At Risk', color: 'text-yellow-600' };
+        }
+        
+        return { status: clearance || 'N/A', color: 'text-gray-500' };
+    };
+
+    const medicalClearance = getMedicalClearanceInfo();
+
+    // Get chronic risk factors from latest consultation
+    // chronic_risk_factor is an array in the database
+    const chronicFactors = latestConsultation?.chronic_risk_factor 
+        ? (Array.isArray(latestConsultation.chronic_risk_factor) 
+            ? latestConsultation.chronic_risk_factor.join(', ') 
+            : latestConsultation.chronic_risk_factor)
+        : 'None';
+    
+    // Get prescribed medications from prescriptions
+    const medicationsList = prescriptions.length > 0 
+        ? prescriptions.map(p => p.medication_name).join(', ') 
+        : 'None';
 
     return (
                         <div className="grid grid-cols-2 gap-6">
@@ -123,25 +195,32 @@ const Overview = ({ recordId }) => {
                                 <div className="space-y-4"> 
                                     <div className="flex justify-between items-start">
                                         <span className="text-gray-600">Latest Check-up:</span>
-                                        <span className="text-gray-800">September 3, 2025</span>
+                                        <span className="text-gray-800">
+                                            {latestConsultation 
+                                                ? formatDate(latestConsultation.date_of_check) 
+                                                : 'No consultations yet'}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-start"> 
                                         <span className="text-gray-600">Medical Clearance:</span>
-                                        {/* Use conditional coloring based on status:
-                                            - text-green-600 for "Fit"
-                                            - text-yellow-600 for "At Risk" / "Conditional"
-                                            - text-red-600 for "Unfit"
-                                        */}
-                                        <span className="font-bold text-green-600">Fit</span>
+                                        <span className={`font-bold ${medicalClearance.color}`}>
+                                            {medicalClearance.status}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-start">
-                                        <span className="text-gray-600"> Chronic Risk Factors: </span>
-                                        <span className="text-gray-800 text-right font-medium bg-blue-400 rounded-lg px-2 p-1"> Asthma </span>
+                                        <span className="text-gray-600">Chronic Risk Factors:</span>
+                                        <span className={`text-gray-800 text-right font-medium rounded-lg px-2 p-1 ${
+                                            chronicFactors !== 'None' ? 'bg-blue-400' : ''
+                                        }`}>
+                                            {chronicFactors}
+                                        </span>
                                     </div>
 
                                     <div className="flex justify-between items-start">
-                                        <span className="text-gray-600"> Prescribed Medication: </span>
-                                        <span className="text-gray-800 text-right"> Fluticasone inhaler </span>
+                                        <span className="text-gray-600">Prescribed Medication:</span>
+                                        <span className="text-gray-800 text-right max-w-[60%]">
+                                            {medicationsList}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

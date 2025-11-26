@@ -114,6 +114,25 @@ const UserModel = {
     return { data, error };
   },
 
+  async updateUserRole(uuid, role) {
+    console.log("[updateUserRole] Updating user role:", { uuid, role });
+
+    const { data, error } = await supabase
+      .from("users")
+      .update({ role })
+      .eq("uuid", uuid)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[updateUserRole] Error:", error);
+    } else {
+      console.log("[updateUserRole] Success:", data);
+    }
+
+    return { data, error };
+  },
+
   async deleteUser(uuid) {
     console.log("[deleteUser] Deleting user:", uuid);
     

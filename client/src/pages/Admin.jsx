@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog"; 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axiosInstance from "../lib/axiosInstance";
+import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext.jsx"; 
 
 // API functions
 const fetchPendingUsers = async () => {
@@ -42,6 +44,12 @@ const deleteUser = async (uuid) => {
     return data;
 };
 
+// Transfer admin role
+const transferAdminRole = async (targetUuid) => {
+  const { data } = await axiosInstance.post("/users/transfer-admin", { targetUuid });
+  return data;
+};
+
 // Password reset API functions
 const fetchPendingResetRequests = async () => {
     const { data } = await axiosInstance.get("/auth/password-reset/pending");
@@ -63,7 +71,12 @@ const Admin = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [deleteDialog, setDeleteDialog] = useState({ open: false, userId: null, userName: "" });
     const [activeTab, setActiveTab] = useState("pending");
+    const [transferTarget, setTransferTarget] = useState("");
+    const [transferMessage, setTransferMessage] = useState("");
+    const [resetMessage, setResetMessage] = useState("");
+    const [isResettingPassword, setIsResettingPassword] = useState(false);
     const queryClient = useQueryClient();
+    const { user } = useAuth();
 
     // Fetch pending users
     const { 
@@ -114,6 +127,20 @@ const Admin = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["verifiedUsers"] });
             setDeleteDialog({ open: false, userId: null, userName: "" });
+        }
+    });
+
+    // Transfer admin role mutation
+    const transferAdminMutation = useMutation({
+        mutationFn: transferAdminRole,
+        onSuccess: () => {
+            setTransferMessage("Admin role transferred successfully. You will lose admin permissions after your next login.");
+            // Refresh verified users so the new admin appears with updated role
+            queryClient.invalidateQueries({ queryKey: ["verifiedUsers"] });
+        },
+        onError: (error) => {
+            console.error("Error transferring admin role:", error);
+            setTransferMessage(error?.response?.data?.message || "Failed to transfer admin role.");
         }
     });
 
@@ -188,6 +215,47 @@ const Admin = () => {
         rejectResetMutation.mutate(requestId);
     };
 
+    const handleTransferAdmin = () => {
+        if (!transferTarget) return;
+        const confirmed = window.confirm(
+            "Are you sure you want to transfer the Admin role to this user? You will lose admin permissions after the transfer."
+        );
+        if (!confirmed) return;
+        setTransferMessage("");
+        transferAdminMutation.mutate(transferTarget);
+    };
+
+    const handleAdminPasswordReset = async () => {
+        try {
+            setIsResettingPassword(true);
+            setResetMessage("");
+
+            if (!user?.email) {
+                setResetMessage("No admin email found on your profile.");
+                return;
+            }
+
+            const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+                redirectTo: `${window.location.origin}/login`
+            });
+
+            if (error) {
+                console.error("Error sending reset email:", error);
+                setResetMessage(error.message || "Failed to send password reset email.");
+                return;
+            }
+
+            setResetMessage(
+                "Password reset email sent to your registered admin inbox. Because only you can access that email, this acts as a two-factor verification step."
+            );
+        } catch (err) {
+            console.error("Unexpected error sending reset email:", err);
+            setResetMessage("Unexpected error sending password reset email.");
+        } finally {
+            setIsResettingPassword(false);
+        }
+    };
+
     return (
         <div className="bg-background-primary w-screen min-h-screen flex flex-row">
             <Navigation/>  
@@ -204,6 +272,8 @@ const Admin = () => {
                 </div>  
 
                 <div className="mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  
+
+
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="mb-6 p-3 flex items-center flex-row gap-x-4 bg-background-primary">
@@ -236,8 +306,6 @@ const Admin = () => {
                             <div className="mb-6">
                                 <p className="text-[15px]">  
                                     <span className="text-[28px] mb-1"> <b> Pending Registration Requests </b> </span> 
-                                    <br/> 
-                                    Review and approve or reject account registration requests
                                 </p>
                             </div>
 
@@ -338,8 +406,6 @@ const Admin = () => {
                             <div className="mb-6">
                                 <p className="text-[15px]">  
                                     <span className="text-[28px] mb-1"> <b> Account Recovery Requests </b> </span> 
-                                    <br/> 
-                                    Review and approve password reset requests from users
                                 </p>
                             </div>
 
@@ -559,10 +625,14 @@ const Admin = () => {
                                 Showing {filteredUsers.length} of {verifiedUsers.length} users
                             </div>
                         </TabsContent>
-                    </Tabs>
+                    </Tabs> 
+
+
 
                 </div> 
-            </div>
+            </div> 
+
+            
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && handleCancelDelete()}>

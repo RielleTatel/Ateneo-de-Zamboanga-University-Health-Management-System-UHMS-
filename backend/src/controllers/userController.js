@@ -229,6 +229,82 @@ const UserController = {
         error: err.message 
       });
     }
+  },
+
+  // Transfer admin role from current authenticated admin to another verified user
+  async transferAdminRole(req, res) {
+    try {
+      const currentAdminUuid = req.user.id;
+      const { targetUuid } = req.body;
+
+      console.log("[transferAdminRole] Request to transfer admin role from", currentAdminUuid, "to", targetUuid);
+
+      if (!targetUuid) {
+        return res.status(400).json({
+          success: false,
+          message: "Target user ID (targetUuid) is required"
+        });
+      }
+
+      if (targetUuid === currentAdminUuid) {
+        return res.status(400).json({
+          success: false,
+          message: "You are already the admin. Select a different user to transfer the role."
+        });
+      }
+
+      // Ensure target user exists and is verified
+      const targetUser = await UserModel.findById(targetUuid);
+      if (!targetUser) {
+        return res.status(404).json({
+          success: false,
+          message: "Target user not found"
+        });
+      }
+
+      if (!targetUser.status) {
+        return res.status(400).json({
+          success: false,
+          message: "Target user must be verified before receiving admin role"
+        });
+      }
+
+      // Update roles: promote target to admin, demote current admin to staff
+      const { error: promoteError } = await UserModel.updateUserRole(targetUuid, "admin");
+      if (promoteError) {
+        console.error("[transferAdminRole] Error promoting target user:", promoteError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to promote target user to admin"
+        });
+      }
+
+      const { error: demoteError } = await UserModel.updateUserRole(currentAdminUuid, "staff");
+      if (demoteError) {
+        console.error("[transferAdminRole] Error demoting current admin:", demoteError);
+        // We already changed the target to admin; report partial success
+        return res.status(500).json({
+          success: false,
+          message: "Admin role transferred, but failed to update your own role. Please contact support."
+        });
+      }
+
+      console.log("[transferAdminRole] Admin role transferred successfully");
+      return res.json({
+        success: true,
+        message: "Admin role transferred successfully. You will lose admin permissions after your next login.",
+        data: {
+          from: currentAdminUuid,
+          to: targetUuid
+        }
+      });
+    } catch (err) {
+      console.error("[transferAdminRole] Unexpected error:", err);
+      return res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
   }
 };
 

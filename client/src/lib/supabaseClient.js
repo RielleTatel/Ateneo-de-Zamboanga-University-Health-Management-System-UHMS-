@@ -22,7 +22,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,  // Allow sessions to persist for logged-in users
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,  // Enable handling password reset tokens from URL
     storage: window.localStorage,
     storageKey: 'supabase.auth.token'
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ const blankForm = {
     complianceStatus: 'up-to-date'
 };
 
-const Immunization = () => {
+const Immunization = ({ patientUuid }) => {
     const [immunizations, setImmunizations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [apiError, setApiError] = useState("");
@@ -50,10 +50,15 @@ const Immunization = () => {
     // Load immunizations on mount
     useEffect(() => {
         const fetchImmunizations = async () => {
+            if (!patientUuid) {
+                setLoading(false);
+                return;
+            }
+            
             setLoading(true);
             setApiError("");
             try {
-                const res = await axiosInstance.get("/immunizations");
+                const res = await axiosInstance.get(`/immunizations/patient/${patientUuid}`);
                 const records = res.data?.immunizations || [];
                 setImmunizations(records.map(mapFromBackend));
             } catch (error) {
@@ -69,7 +74,7 @@ const Immunization = () => {
         };
 
         fetchImmunizations();
-    }, []);
+    }, [patientUuid]);
 
     const validateForm = () => {
         const newErrors = {};
@@ -104,14 +109,23 @@ const Immunization = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleInputChange = (field, value) => {
-        const updater = isEditing ? setSelectedImmunization : setFormData;
-        updater(prev => ({ ...prev, [field]: value }));
-        
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
+    const handleInputChange = useCallback((field, value) => {
+        if (isEditing) {
+            setSelectedImmunization(prev => ({ ...prev, [field]: value }));
+        } else {
+            setFormData(prev => ({ ...prev, [field]: value }));
         }
-    };
+        
+        // Clear error for this field if it exists
+        setErrors(prev => {
+            if (prev[field]) {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            return prev;
+        });
+    }, [isEditing]);
 
     const handleSubmit = async () => {
         if (validateForm()) {
@@ -132,7 +146,10 @@ const Immunization = () => {
                     );
                 } else {
                     // Create new record
-                    const payload = mapToBackend(formData);
+                    const payload = { 
+                        ...mapToBackend(formData),
+                        patient_uuid: patientUuid 
+                    };
                     const res = await axiosInstance.post("/immunizations/add", payload);
                     const created = mapFromBackend(res.data.immunization);
                     setImmunizations((prev) => [created, ...prev]);
@@ -210,14 +227,19 @@ const Immunization = () => {
     };
 
     // --- Reusable Form ---
-    const ImmunizationFormFields = ({ data, onInputChange }) => (
+    const ImmunizationFormFields = useCallback(({ data, onInputChange, fieldErrors }) => (
         <Card>
             <CardContent className="p-4 sm:p-6 space-y-4">
                 <Field>
                     <FieldLabel>Vaccine Type *</FieldLabel>
                     <FieldContent>
-                        <Input placeholder="COVID - 19 (PFIZER)" value={data.vaccineType} onChange={(e) => onInputChange('vaccineType', e.target.value)} className={errors.vaccineType ? 'border-red-500' : ''} />
-                        {errors.vaccineType && <p className="text-red-500 text-sm mt-1">{errors.vaccineType}</p>}
+                        <Input 
+                            placeholder="COVID - 19 (PFIZER)" 
+                            value={data.vaccineType} 
+                            onChange={(e) => onInputChange('vaccineType', e.target.value)} 
+                            className={fieldErrors.vaccineType ? 'border-red-500' : ''} 
+                        />
+                        {fieldErrors.vaccineType && <p className="text-red-500 text-sm mt-1">{fieldErrors.vaccineType}</p>}
                     </FieldContent>
                 </Field>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -225,20 +247,30 @@ const Immunization = () => {
                         <FieldLabel>Last Administered *</FieldLabel>
                         <FieldContent>
                             <div className="relative">
-                                <Input type="date" value={data.lastAdministered} onChange={(e) => onInputChange('lastAdministered', e.target.value)} className={errors.lastAdministered ? 'border-red-500' : ''} />
+                                <Input 
+                                    type="date" 
+                                    value={data.lastAdministered} 
+                                    onChange={(e) => onInputChange('lastAdministered', e.target.value)} 
+                                    className={fieldErrors.lastAdministered ? 'border-red-500' : ''} 
+                                />
                                 <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                             </div>
-                            {errors.lastAdministered && <p className="text-red-500 text-sm mt-1">{errors.lastAdministered}</p>}
+                            {fieldErrors.lastAdministered && <p className="text-red-500 text-sm mt-1">{fieldErrors.lastAdministered}</p>}
                         </FieldContent>
                     </Field>
                     <Field>
                         <FieldLabel>Next Due (if applicable)</FieldLabel>
                         <FieldContent>
                             <div className="relative">
-                                <Input type="date" value={data.nextDue} onChange={(e) => onInputChange('nextDue', e.target.value)} className={errors.nextDue ? 'border-red-500' : ''} />
+                                <Input 
+                                    type="date" 
+                                    value={data.nextDue} 
+                                    onChange={(e) => onInputChange('nextDue', e.target.value)} 
+                                    className={fieldErrors.nextDue ? 'border-red-500' : ''} 
+                                />
                                 <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                             </div>
-                            {errors.nextDue && <p className="text-red-500 text-sm mt-1">{errors.nextDue}</p>}
+                            {fieldErrors.nextDue && <p className="text-red-500 text-sm mt-1">{fieldErrors.nextDue}</p>}
                         </FieldContent>
                     </Field>
                 </div>
@@ -258,7 +290,7 @@ const Immunization = () => {
                 </Field>
             </CardContent>
         </Card>
-    );
+    ), []);
 
     // --- Status Styling Helper ---
     const getStatusClass = (status) => {
@@ -356,7 +388,7 @@ const Immunization = () => {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
                         <DialogHeader><DialogTitle>Add Immunization</DialogTitle></DialogHeader>
-                        <ImmunizationFormFields data={formData} onInputChange={handleInputChange} />
+                        <ImmunizationFormFields data={formData} onInputChange={handleInputChange} fieldErrors={errors} />
                         <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
                             <Button onClick={handleSubmit}>Add</Button>
@@ -390,7 +422,7 @@ const Immunization = () => {
                     
                     {selectedImmunization && (
                         isEditing ? (
-                            <ImmunizationFormFields data={selectedImmunization} onInputChange={handleInputChange} />
+                            <ImmunizationFormFields data={selectedImmunization} onInputChange={handleInputChange} fieldErrors={errors} />
                         ) : (
                             <ImmunizationView item={selectedImmunization} />
                         )

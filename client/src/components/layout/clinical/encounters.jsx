@@ -4,13 +4,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { HeartPlus, Eye, Trash2, Loader2, AlertCircle } from "lucide-react";  
+import { HeartPlus, Eye, Trash2, Loader2, AlertCircle, ChevronDown, Printer, Calendar, User, FileText, Pill, Clock, Activity, AlertTriangle } from "lucide-react";  
 import axiosInstance from "@/lib/axiosInstance";
+import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // API Functions
 const fetchConsultationsByPatient = async (uuid) => {
     const { data } = await axiosInstance.get(`/consultations/user/${uuid}`);
     return data.consultations;
+};
+
+const fetchPatientByUUID = async (uuid) => {
+    const { data } = await axiosInstance.get(`/patients/${uuid}`);
+    return data.patient;
 };
 
 const fetchPrescriptionsByConsultation = async (consultation_id) => {
@@ -37,12 +44,455 @@ const formatDate = (dateString) => {
     });
 };
 
+// PDF Styles
+const pdfStyles = StyleSheet.create({
+    page: {
+        padding: 50,
+        fontSize: 10,
+        fontFamily: 'Helvetica',
+        size: [595.28, 700], // A4 width (595.28) x shorter height (700 instead of 841.89)
+    },
+    header: {
+        marginBottom: 20,
+        paddingBottom: 15,
+        borderBottomWidth: 2,
+        borderBottomColor: '#000',
+    },
+    headerTop: {
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    doctorName: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginBottom: 3,
+        textTransform: 'uppercase',
+    },
+    headerDetail: {
+        fontSize: 8,
+        color: '#333',
+        marginBottom: 2,
+    },
+    prescriptionTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 12,
+        marginBottom: 15,
+        textDecoration: 'underline',
+    },
+    patientSection: {
+        flexDirection: 'row',
+        marginBottom: 15,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    patientIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#D3D3D3',
+        marginRight: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        border: '2px solid #D3D3D3',
+    },
+    patientIconText: {
+        fontSize: 24,
+        color: '#ffffff',
+        fontWeight: 'bold',
+    },
+    patientInfo: {
+        flex: 1,
+    },
+    patientRow: {
+        flexDirection: 'row',
+        marginBottom: 4,
+    },
+    patientLabel: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        width: 100,
+    },
+    patientValue: {
+        fontSize: 9,
+        flex: 1,
+    },
+    table: {
+        display: 'table',
+        width: 'auto',
+        marginTop: 10,
+        marginBottom: 60,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#000',
+        borderBottomStyle: 'solid',
+        minHeight: 35,
+    },
+    tableHeader: {
+        backgroundColor: '#f5f5f5',
+        minHeight: 30,
+    },
+    tableColMed: {
+        width: '40%',
+        padding: 8,
+        borderRightWidth: 1,
+        borderRightColor: '#000',
+        borderRightStyle: 'solid',
+    },
+    tableColSchedule: {
+        width: '35%',
+        padding: 8,
+        borderRightWidth: 1,
+        borderRightColor: '#000',
+        borderRightStyle: 'solid',
+    },
+    tableColQty: {
+        width: '25%',
+        padding: 8,
+    },
+    tableCellHeader: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    tableCell: {
+        fontSize: 8,
+        textAlign: 'center',
+    },
+    tableCellMedName: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        marginBottom: 3,
+    },
+    tableCellSubtext: {
+        fontSize: 8,
+        color: '#666',
+        marginBottom: 2,
+    },
+    tableCellSchedule: {
+        fontSize: 8,
+        lineHeight: 1.4,
+    },
+    footer: {
+        position: 'absolute',
+        bottom: 40,
+        left: 50,
+        right: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    footerLeft: {
+        fontSize: 8,
+        color: '#333',
+    },
+    footerRight: {
+        fontSize: 8,
+        textAlign: 'right',
+    },
+    footerLabel: {
+        fontWeight: 'bold',
+        marginBottom: 2,
+    },
+});
+
+// Helper function to check if meal time matches category
+const checkMealTime = (mealTime, category) => {
+    if (!mealTime) return false;
+    const time = mealTime.toLowerCase().trim();
+    
+    switch(category) {
+        case 'breakfast':
+            return time.includes('breakfast');
+        case 'lunch':
+            return time.includes('lunch');
+        case 'dinner':
+            return time.includes('dinner');
+        default:
+            return false;
+    }
+};
+
+// PDF Document Component
+const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
+    // Calculate patient age
+    const calculateAge = (dateOfBirth) => {
+        if (!dateOfBirth) return 'N/A';
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    // Process prescriptions  
+    const processedPrescriptions = prescriptions.map(prescription => {
+        const schedules = prescription.schedules || [];
+        
+        // Get all schedule times as a formatted string
+        const scheduleText = schedules.map(s => {
+            const time = s.meal_time || '';
+            const dose = s.dosage || '';
+            return `${time}${dose ? ` (${dose})` : ''}`;
+        }).join('\n');
+        
+        // Get dosage info - combine all unique dosages
+        const dosages = [...new Set(schedules.map(s => s.dosage).filter(Boolean))];
+        const dosageInfo = dosages.length > 0 ? dosages.join(' / ') : '';
+            
+        return {
+            medication_name: prescription.medication_name,
+            instructions: prescription.instructions || '',
+            dosage: dosageInfo,
+            schedule: scheduleText || 'As prescribed',
+            quantity: prescription.quantity || 'As needed'
+        };
+    });
+
+    return (
+        <Document>
+            <Page style={pdfStyles.page}>
+                {/* Header */}
+                <View style={pdfStyles.header}>
+                    <View style={pdfStyles.headerTop}>
+                        <Text style={pdfStyles.doctorName}>FR. ALBERTO "TEX" PAUROM, SJ</Text>
+                        <Text style={pdfStyles.headerDetail}>Internal Medicine</Text>
+                        <Text style={pdfStyles.headerDetail}>University Chaplain</Text>
+                        <Text style={pdfStyles.headerDetail}>La Purisima, Ateneo de Zamboanga University, Zamboanga City</Text>
+                    </View>
+                    
+                    <Text style={pdfStyles.prescriptionTitle}>MEDICAL PRESCRIPTION</Text>
+                </View>
+
+                {/* Patient Information with Icon */}
+                <View style={pdfStyles.patientSection}>
+                    <View style={pdfStyles.patientIcon}>
+                        <Text style={pdfStyles.patientIconText}>
+                            {patient?.first_name?.charAt(0)?.toUpperCase() || patient?.name?.charAt(0)?.toUpperCase() || 'P'}
+                        </Text>
+                    </View>
+                    <View style={pdfStyles.patientInfo}>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Patient Name:</Text>
+                            <Text style={pdfStyles.patientValue}>
+                                {patient?.name || `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim() || 'N/A'}
+                            </Text>
+                        </View>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Age:</Text>
+                            <Text style={pdfStyles.patientValue}>{calculateAge(patient?.date_of_birth)}</Text>
+                        </View>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Sex:</Text>
+                            <Text style={pdfStyles.patientValue}>{patient?.sex || 'N/A'}</Text>
+                        </View>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Date Generated:</Text>
+                            <Text style={pdfStyles.patientValue}>{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Prescription Table */}
+                {processedPrescriptions.length > 0 ? (
+                    <View style={pdfStyles.table}>
+                        {/* Table Header */}
+                        <View style={[pdfStyles.tableRow, pdfStyles.tableHeader]}>
+                            <View style={pdfStyles.tableColMed}>
+                                <Text style={pdfStyles.tableCellHeader}>Medicine</Text>
+                            </View>
+                            <View style={pdfStyles.tableColSchedule}>
+                                <Text style={pdfStyles.tableCellHeader}>Schedule</Text>
+                            </View>
+                            <View style={pdfStyles.tableColQty}>
+                                <Text style={pdfStyles.tableCellHeader}>Quantity</Text>
+                            </View>
+                        </View>
+
+                        {/* Table Rows */}
+                        {processedPrescriptions.map((prescription, index) => (
+                            <View key={index} style={pdfStyles.tableRow}>
+                                {/* Medicine Column */}
+                                <View style={pdfStyles.tableColMed}>
+                                    <Text style={pdfStyles.tableCellMedName}>
+                                        {prescription.medication_name}
+                                    </Text>
+                                    {prescription.instructions && (
+                                        <Text style={pdfStyles.tableCellSubtext}>
+                                            {prescription.instructions}
+                                        </Text>
+                                    )}
+                                </View>
+                                
+                                {/* Schedule Column */}
+                                <View style={pdfStyles.tableColSchedule}>
+                                    <Text style={pdfStyles.tableCellSchedule}>
+                                        {prescription.schedule}
+                                    </Text>
+                                </View>
+                                
+                                {/* Quantity Column */}
+                                <View style={pdfStyles.tableColQty}>
+                                    <Text style={pdfStyles.tableCell}>
+                                        {prescription.quantity}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    <Text>No prescriptions available</Text>
+                )}
+
+                {/* Footer */}
+                <View style={pdfStyles.footer}>
+                    <View style={pdfStyles.footerLeft}>
+                        <Text style={pdfStyles.footerLabel}> For follow-up consult</Text>
+                        <Text style={pdfStyles.footerLabel}>Please contact us on:</Text>
+                        <Text>+63 917 123 4567</Text>
+                    </View>
+                    <View style={pdfStyles.footerRight}>
+                        <Text style={pdfStyles.footerLabel}>FR. ALBERTO "TEX" PAUROM, SJ</Text>
+                        <Text>Lic. No.: 0123456</Text>
+                        <Text>PTR No.: 7891011</Text>
+                        <Text>S2 No.: 1213141</Text>
+                    </View>
+                </View>
+            </Page>
+        </Document>
+    );
+};
+
+// Medical Certificate PDF Component
+const MedicalCertificatePDF = ({ patient, encounter, diagnosis, remarks }) => {
+    // Calculate patient age
+    const calculateAge = (dateOfBirth) => {
+        if (!dateOfBirth) return 'N/A';
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    const formatAddress = () => {
+        const parts = [];
+        if (patient.house_number) parts.push(patient.house_number);
+        if (patient.street_name) parts.push(patient.street_name);
+        if (patient.barangay) parts.push(patient.barangay);
+        return parts.length > 0 ? parts.join(', ') : 'N/A';
+    };
+
+    return (
+        <Document>
+            <Page style={pdfStyles.page}>
+                {/* Header */}
+                <View style={pdfStyles.header}>
+                    <View style={pdfStyles.headerTop}>
+                        <Text style={pdfStyles.doctorName}>FR. ALBERTO "TEX" PAUROM, SJ</Text>
+                        <Text style={pdfStyles.headerDetail}>Internal Medicine</Text>
+                        <Text style={pdfStyles.headerDetail}>University Chaplain</Text>
+                        <Text style={pdfStyles.headerDetail}>La Purisima, Ateneo de Zamboanga University, Zamboanga City</Text>
+                    </View>
+                    
+                    <Text style={pdfStyles.prescriptionTitle}>MEDICAL CERTIFICATE</Text>
+                </View>
+
+                {/* Patient Information with Icon */}
+                <View style={pdfStyles.patientSection}>
+                    <View style={pdfStyles.patientIcon}>
+                        <Text style={pdfStyles.patientIconText}>
+                            {patient?.first_name?.charAt(0)?.toUpperCase() || patient?.name?.charAt(0)?.toUpperCase() || 'P'}
+                        </Text>
+                    </View>
+                    <View style={pdfStyles.patientInfo}>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Patient Name:</Text>
+                            <Text style={pdfStyles.patientValue}>
+                                {patient?.name || `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim() || 'N/A'}
+                            </Text>
+                        </View>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Age:</Text>
+                            <Text style={pdfStyles.patientValue}>{calculateAge(patient?.date_of_birth)}</Text>
+                        </View>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Sex:</Text>
+                            <Text style={pdfStyles.patientValue}>{patient?.sex || 'N/A'}</Text>
+                        </View>
+                        <View style={pdfStyles.patientRow}>
+                            <Text style={pdfStyles.patientLabel}>Date Generated:</Text>
+                            <Text style={pdfStyles.patientValue}>{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Certificate Content */}
+                <View style={{ marginBottom: 60, marginTop: 10 }}>
+                    <Text style={{ fontSize: 10, lineHeight: 1.6, textAlign: 'justify', marginBottom: 20 }}>
+                        This is to certify that{' '}
+                        <Text style={{ fontWeight: 'bold' }}>
+                            {patient?.name || `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim() || 'N/A'}
+                        </Text>
+                        , {calculateAge(patient?.date_of_birth)} years old, {patient?.sex || 'N/A'}, of {formatAddress()}, was examined on{' '}
+                        <Text style={{ fontWeight: 'bold' }}>{formatDate(encounter.date_of_check)}</Text> due to the following:
+                    </Text>
+
+                    <View style={{ marginBottom: 15 }}>
+                        <Text style={{ fontSize: 10, fontWeight: 'bold', marginBottom: 5 }}>Diagnosis:</Text>
+                        <Text style={{ fontSize: 10, lineHeight: 1.5, marginLeft: 20 }}>{diagnosis || 'N/A'}</Text>
+                    </View>
+
+                    <View style={{ marginBottom: 20 }}>
+                        <Text style={{ fontSize: 10, fontWeight: 'bold', marginBottom: 5 }}>Remarks:</Text>
+                        <Text style={{ fontSize: 10, lineHeight: 1.5, marginLeft: 20 }}>{remarks || 'N/A'}</Text>
+                    </View>
+
+                    <Text style={{ fontSize: 10, lineHeight: 1.6, textAlign: 'justify' }}>
+                        This certificate is being issued upon the request of the above-mentioned name for whatever purpose it may serve (excluding legal matters).
+                    </Text>
+                </View>
+
+                {/* Footer */}
+                <View style={pdfStyles.footer}>
+                    <View style={pdfStyles.footerLeft}>
+                        <Text style={pdfStyles.footerLabel}>For follow-up consult</Text>
+                        <Text style={pdfStyles.footerLabel}>Please contact us on:</Text>
+                        <Text>+63 917 123 4567</Text>
+                    </View>
+                    <View style={pdfStyles.footerRight}>
+                        <Text style={pdfStyles.footerLabel}>FR. ALBERTO "TEX" PAUROM, SJ</Text>
+                        <Text>Lic. No.: 0123456</Text>
+                        <Text>PTR No.: 7891011</Text>
+                        <Text>S2 No.: 1213141</Text>
+                    </View>
+                </View>
+            </Page>
+        </Document>
+    );
+};
+
 const Encounters = ({ recordId }) => { 
     const queryClient = useQueryClient();
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedEncounter, setSelectedEncounter] = useState(null); 
     const [selectedPrescriptions, setSelectedPrescriptions] = useState([]);
+    const [selectedPatient, setSelectedPatient] = useState(null);
     const [sortOrder, setSortOrder] = useState("recent");
+    const [isMedCertModalOpen, setIsMedCertModalOpen] = useState(false);
+    const [medCertData, setMedCertData] = useState({ diagnosis: '', remarks: '' });
 
     // Fetch consultations for the patient
     const { 
@@ -68,6 +518,15 @@ const Encounters = ({ recordId }) => {
         setSelectedEncounter(encounter);
         setIsViewModalOpen(true);
         
+        // Fetch patient information
+        try {
+            const patient = await fetchPatientByUUID(recordId);
+            setSelectedPatient(patient);
+        } catch (error) {
+            console.error("Error fetching patient:", error);
+            setSelectedPatient(null);
+        }
+        
         // Fetch prescriptions for this consultation
         try {
             const prescriptions = await fetchPrescriptionsByConsultation(encounter.consultation_id);
@@ -91,6 +550,78 @@ const Encounters = ({ recordId }) => {
         e.stopPropagation();
         if (window.confirm("Are you sure you want to delete this encounter?")) {
             deleteEncounterMutation.mutate(consultation_id);
+        }
+    };
+
+    const handlePrintPrescription = async (encounter) => {
+        try {
+            // Fetch patient data
+            const patient = await fetchPatientByUUID(recordId);
+            
+            // Fetch prescriptions
+            const prescriptions = await fetchPrescriptionsByConsultation(encounter.consultation_id);
+            
+            // Fetch schedules for each prescription
+            const prescriptionsWithSchedules = await Promise.all(
+                prescriptions.map(async (prescription) => {
+                    const schedules = await fetchSchedulesByPrescription(prescription.prescription_id);
+                    return { ...prescription, schedules };
+                })
+            );
+            
+            // Generate and download PDF
+            const blob = await pdf(
+                <PrescriptionPDF 
+                    patient={patient}
+                    encounter={encounter}
+                    prescriptions={prescriptionsWithSchedules}
+                />
+            ).toBlob();
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `prescription_${encounter.consultation_id}_${new Date().toISOString().split('T')[0]}.pdf`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("Failed to generate prescription PDF. Please try again.");
+        }
+    };
+
+    const handleOpenMedCertModal = (encounter) => {
+        setSelectedEncounter(encounter);
+        setMedCertData({ diagnosis: '', remarks: '' });
+        setIsMedCertModalOpen(true);
+    };
+
+    const handlePrintMedicalCertificate = async () => {
+        try {
+            // Fetch patient data
+            const patient = await fetchPatientByUUID(recordId);
+            
+            // Generate and download PDF
+            const blob = await pdf(
+                <MedicalCertificatePDF 
+                    patient={patient}
+                    encounter={selectedEncounter}
+                    diagnosis={medCertData.diagnosis}
+                    remarks={medCertData.remarks}
+                />
+            ).toBlob();
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `medical_certificate_${selectedEncounter.consultation_id}_${new Date().toISOString().split('T')[0]}.pdf`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            setIsMedCertModalOpen(false);
+        } catch (error) {
+            console.error("Error generating medical certificate:", error);
+            alert("Failed to generate medical certificate. Please try again.");
         }
     };
 
@@ -209,6 +740,41 @@ const Encounters = ({ recordId }) => {
                                             >
                                                 <Eye className="w-4 h-4" />
                                             </button>
+                                            
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <button
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-gray-900 flex items-center gap-1"
+                                                        title="More Actions"
+                                                    >
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    </button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-56 p-2" align="end">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handlePrintPrescription(encounter);
+                                                        }}
+                                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors w-full text-left"
+                                                    >
+                                                        <Printer className="w-4 h-4" />
+                                                        <span>Print Prescription</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenMedCertModal(encounter);
+                                                        }}
+                                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors w-full text-left"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                        <span>Print Medical Certificate</span>
+                                                    </button>
+                                                </PopoverContent>
+                                            </Popover>
+
                                             <button
                                                 onClick={(e) => handleDeleteEncounter(e, encounter.consultation_id)}
                                                 disabled={deleteEncounterMutation.isPending}
@@ -234,160 +800,219 @@ const Encounters = ({ recordId }) => {
         
             {/* --- VIEW MODAL --- */}   
             <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-                <DialogContent 
-                    className="
-                        sm:max-w-3xl     
-                        w-full
-                        h-[90vh]          
-                        overflow-y-auto
-                        py-8 px-6         
-                        text-[17px]     
-                    "
-                >
+                <DialogContent className="sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     {selectedEncounter ? (
-                        <>
-                            {/* Modal Header */}
-                            <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold">
+                        <div className="space-y-6">
+                            {/* Header */}
+                            <DialogHeader className="pb-2">
+                                <DialogTitle className="text-2xl font-bold text-gray-900">
                                     Encounter Details
                                 </DialogTitle>
-                            </DialogHeader>
-
-                            {/* Date and Medical Clearance */}
-                            <div>
-                                <p className="text-lg font-semibold text-gray-800">
-                                    Visit on {formatDate(selectedEncounter.date_of_check)}
-                                </p>
-                                <p className="text-gray-600">
-                                    Medical Clearance: 
-                                    <span className={`ml-2 font-medium ${
-                                        selectedEncounter.medical_clearance === 'Fit' 
-                                            ? 'text-green-600' 
-                                            : selectedEncounter.medical_clearance === 'Unfit'
-                                            ? 'text-red-600'
-                                            : 'text-yellow-600'
-                                    }`}>
-                                        {selectedEncounter.medical_clearance || 'N/A'}
-                                    </span>
-                                </p>
-                            </div>
-
-                            {/* Main Unified Container */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-8">
-
-                                {/* Symptoms */}
-                                <section>
-                                    <p className="text-lg font-bold text-gray-700">Chief Complaint / Symptoms</p>
-                                    <p className="mt-1 text-gray-900 leading-relaxed">
-                                        {selectedEncounter.symptoms || 'N/A'}
-                                    </p>
-                                </section>
+                                <div className="flex items-center gap-4 mt-3 text-sm">
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <Calendar className="h-4 w-4" />
+                                        <span className="font-medium">{formatDate(selectedEncounter.date_of_check)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Activity className="h-4 w-4 text-gray-600" />
+                                        <span className="text-gray-600">Medical Clearance:</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                            selectedEncounter.medical_clearance === 'Normal' 
+                                                ? 'bg-green-100 text-green-700' 
+                                                : selectedEncounter.medical_clearance === 'Critical'
+                                                ? 'bg-red-100 text-red-700'
+                                                : 'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                            {selectedEncounter.medical_clearance || 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </DialogHeader> 
 
                                 {/* Chronic Risk Factors */}
-                                <section>
-                                    <p className="text-lg font-bold text-gray-700">Chronic Risk Factors</p>
-                                    <p className="mt-1 text-gray-900 leading-relaxed">
-                                        {selectedEncounter.chronic_risk_factor || 'None'}
-                                    </p>
-                                </section>
-
-                                {/* History */}
-                                <section>
-                                    <p className="text-lg font-bold text-gray-700">History</p>
-                                    <p className="mt-1 text-gray-900 whitespace-pre-wrap leading-relaxed">
-                                        {selectedEncounter.history || 'N/A'}
-                                    </p>
-                                </section>
-
-                                {/* Prescriptions */}
-                                {selectedPrescriptions.length > 0 && (
-                                    <section>
-                                        <p className="text-lg font-bold text-gray-700 mb-3">Prescriptions</p>
-                                        <div className="space-y-4">
-                                            {selectedPrescriptions.map((prescription, index) => (
-                                                <div key={prescription.prescription_id} className="bg-white border border-gray-300 rounded-lg p-4">
-                                                    <p className="font-semibold text-gray-800 mb-2">
-                                                        Medication {index + 1}: {prescription.medication_name}
-                                                    </p>
-                                                    
-                                                    <div className="space-y-1 text-gray-900">
-                                                        {prescription.quantity && (
-                                                            <p><strong>Quantity:</strong> {prescription.quantity}</p>
-                                                        )}
-                                                        {prescription.instructions && (
-                                                            <p><strong>Instructions:</strong> {prescription.instructions}</p>
-                                                        )}
-                                                        
-                                                        {/* Schedules */}
-                                                        {prescription.schedules && prescription.schedules.length > 0 && (
-                                                            <div className="mt-3">
-                                                                <p className="font-semibold text-gray-700 mb-2">Dosage Schedule:</p>
-                                                                <div className="space-y-2 ml-4">
-                                                                    {prescription.schedules.map((schedule, scheduleIndex) => (
-                                                                        <div key={schedule.schedule_id} className="text-sm">
-                                                                            <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">
-                                                                                {schedule.meal_time}
-                                                                            </span>
-                                                                            <span>{schedule.dosage}</span>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                {selectedEncounter.chronic_risk_factor && selectedEncounter.chronic_risk_factor !== 'None' && (
+                                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <AlertTriangle className="h-5 w-5 text-orange-600" />
+                                            <h3 className="text-base font-semibold text-orange-900">Chronic Risk Factors</h3>
                                         </div>
-                                    </section>
-                                )}
-                                
-                                {/* Legacy Prescription (fallback for old records) */}
-                                {selectedPrescriptions.length === 0 && 
-                                 (selectedEncounter.prescription_medication_name || 
-                                  selectedEncounter.prescription_instructions) && (
-                                    <section>
-                                        <p className="text-lg font-bold text-gray-700">Prescription (Legacy)</p>
-                                        <div className="mt-1 text-gray-900 space-y-2">
-                                            {selectedEncounter.prescription_medication_name && (
-                                                <p><strong>Medication:</strong> {selectedEncounter.prescription_medication_name}</p>
-                                            )}
-                                            {selectedEncounter.prescription_dosage && (
-                                                <p><strong>Dosage:</strong> {selectedEncounter.prescription_dosage}</p>
-                                            )}
-                                            {selectedEncounter.prescription_quantity && (
-                                                <p><strong>Quantity:</strong> {selectedEncounter.prescription_quantity}</p>
-                                            )}
-                                            {selectedEncounter.prescription_meal_time && (
-                                                <p><strong>Meal Time:</strong> {selectedEncounter.prescription_meal_time}</p>
-                                            )}
-                                            {selectedEncounter.prescription_instructions && (
-                                                <p><strong>Instructions:</strong> {selectedEncounter.prescription_instructions}</p>
-                                            )}
+                                        <div className="flex flex-wrap gap-2 pl-7">
+                                            {Array.isArray(selectedEncounter.chronic_risk_factor) 
+                                                ? selectedEncounter.chronic_risk_factor.map((factor, index) => (
+                                                    <span 
+                                                        key={index}
+                                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-[15px] font-medium bg-orange-100 text-orange-800 border border-orange-300"
+                                                    >
+                                                        {factor}
+                                                    </span>
+                                                ))
+                                                : <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[15px] font-medium bg-orange-100 text-orange-800 border border-orange-300">
+                                                    {selectedEncounter.chronic_risk_factor}
+                                                </span>
+                                            }
                                         </div>
-                                    </section>
+                                    </div>
                                 )}
 
+                            {/* Clinical Information Grid */}
+                            <div className="grid grid-cols-1 gap-4">
+                                {/* Chief Complaint */}
+                                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <FileText className="h-5 w-5 text-gray-700" />
+                                        <h3 className="text-base font-semibold text-gray-900">Chief Complaint / Symptoms</h3>
+                                    </div>
+                                    <p className="text-[15px] text-gray-700 leading-relaxed pl-7">
+                                        {selectedEncounter.symptoms || 'No symptoms recorded'}
+                                    </p>
+                                </div>
+
+                                {/* Medical History */}
+                                {selectedEncounter.history && (
+                                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <FileText className="h-5 w-5 text-gray-700" />
+                                            <h3 className="text-base font-semibold text-gray-900">Medical History</h3>
+                                        </div>
+                                        <p className="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed pl-7">
+                                            {selectedEncounter.history}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
+                            {/* Prescriptions Section */}
+                            {selectedPrescriptions.length > 0 && (
+                                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Pill className="h-5 w-5 text-gray-700" />
+                                        <h3 className="text-base font-semibold text-gray-900">Prescribed Medications</h3>
+                                    </div>
+                                    <div className="overflow-hidden rounded-lg border border-gray-200">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                                    <TableHead className="font-semibold text-gray-900 text-[15px]">Medication</TableHead>
+                                                    <TableHead className="font-semibold text-gray-900 text-[15px]">Dosage</TableHead>
+                                                    <TableHead className="font-semibold text-gray-900 text-[15px]">
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock className="h-3.5 w-3.5" />
+                                                            Meal Time
+                                                        </div>
+                                                    </TableHead>
+                                                    <TableHead className="font-semibold text-gray-900 text-[15px]">Instructions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {selectedPrescriptions.map((prescription, index) => (
+                                                    prescription.schedules && prescription.schedules.length > 0 ? (
+                                                        prescription.schedules.map((schedule, schedIndex) => (
+                                                            <TableRow key={`${prescription.prescription_id}-${schedIndex}`} className="hover:bg-gray-50">
+                                                                <TableCell className={`text-[15px] ${schedIndex === 0 ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                                                                    {schedIndex === 0 ? prescription.medication_name : ''}
+                                                                </TableCell>
+                                                                <TableCell className="text-[15px] text-gray-700">
+                                                                    {schedule.dosage || '—'}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md text-[13px] font-medium">
+                                                                        {schedule.meal_time || 'N/A'}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell className="text-[15px] text-gray-700">
+                                                                    {schedIndex === 0 ? (prescription.instructions || '—') : ''}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow key={prescription.prescription_id} className="hover:bg-gray-50">
+                                                            <TableCell className="font-semibold text-[15px] text-gray-900">
+                                                                {prescription.medication_name}
+                                                            </TableCell>
+                                                            <TableCell className="text-[15px] text-gray-500">—</TableCell>
+                                                            <TableCell className="text-[15px] text-gray-500">—</TableCell>
+                                                            <TableCell className="text-[15px] text-gray-700">
+                                                                {prescription.instructions || '—'}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Footer */}
-                            <DialogFooter className="mt-6">
+                            <DialogFooter className="pt-2">
                                 <Button 
                                     variant="outline" 
                                     onClick={() => setIsViewModalOpen(false)}
-                                    className="text-base px-6 py-2"
+                                    className="px-6"
                                 >
                                     Close
                                 </Button>
                             </DialogFooter>
-                        </>
+                        </div>
                     ) : (
-                        <DialogHeader>
-                            <DialogTitle>Error</DialogTitle>
+                        <div className="text-center py-8">
+                            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+                            <DialogTitle className="text-lg font-semibold mb-2">Error Loading Data</DialogTitle>
                             <DialogDescription>
-                                No data found. Please close and try again.
+                                No encounter data found. Please close and try again.
                             </DialogDescription>
-                        </DialogHeader>
+                        </div>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* --- MEDICAL CERTIFICATE MODAL --- */}
+            <Dialog open={isMedCertModalOpen} onOpenChange={setIsMedCertModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Medical Certificate Information</DialogTitle>
+                        <DialogDescription>
+                            Please provide the diagnosis and remarks for the medical certificate.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Diagnosis *</label>
+                            <textarea
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 min-h-[100px] text-sm"
+                                placeholder="Enter diagnosis..."
+                                value={medCertData.diagnosis}
+                                onChange={(e) => setMedCertData(prev => ({ ...prev, diagnosis: e.target.value }))}
+                            />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Remarks *</label>
+                            <textarea
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 min-h-[100px] text-sm"
+                                placeholder="Enter remarks..."
+                                value={medCertData.remarks}
+                                onChange={(e) => setMedCertData(prev => ({ ...prev, remarks: e.target.value }))}
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setIsMedCertModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handlePrintMedicalCertificate}
+                            disabled={!medCertData.diagnosis.trim() || !medCertData.remarks.trim()}
+                            style={{ backgroundColor: '#0033A0' }}
+                        >
+                            Generate Certificate
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div> 
@@ -395,3 +1020,4 @@ const Encounters = ({ recordId }) => {
 }; 
 
 export default Encounters;
+

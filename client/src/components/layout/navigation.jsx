@@ -26,6 +26,7 @@ const Navigation = () => {
     "/profile": "/profile",
     "/Clinical": "/profile",
     "/admin": "admin",
+    "/controls": "controls",
     "/help": "help",
   };
 
@@ -163,6 +164,27 @@ const Navigation = () => {
             }`}
           >
             Admin
+          </p>
+        </div>
+
+        {/* Controls */}
+        <div
+          className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
+            activeTab === "controls" ? "bg-attention-blue" : "bg-container"
+          }`}
+          onClick={() => handleNavClick("controls", "/controls")}
+        >
+          <Circle
+            className={`ml-10 w-6 h-6 transition-colors ${
+              activeTab === "controls" ? "text-white" : "text-text-primary"
+            }`}
+          />
+          <p
+            className={`font-semibold transition-colors hidden md:block ${
+              activeTab === "controls" ? "text-white" : "text-text-primary"
+            }`}
+          >
+            Controls
           </p>
         </div>
 

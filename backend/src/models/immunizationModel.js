@@ -3,14 +3,15 @@ import supabase from "../config/supabaseClient.js";
 const ImmunizationModel = {
 
   // Insert a new immunization record
-  async insertImmunization(vaccine, last_administered, next_due, status) {
-    console.log("[insertImmunization] Inserting immunization:", { vaccine, last_administered, next_due, status });
+  async insertImmunization(vaccine, last_administered, next_due, status, patient_uuid) {
+    console.log("[insertImmunization] Inserting immunization:", { vaccine, last_administered, next_due, status, patient_uuid });
 
     const { data, error } = await supabase.from('immunization').insert([{
       vaccine,
       last_administered,
       next_due,
-      status
+      status,
+      patient_uuid
     }])
     .select()
     .single();
@@ -67,6 +68,24 @@ const ImmunizationModel = {
     }
 
     console.log(`[getAllImmunizations] ✅ Fetched ${data.length} records`);
+    return data;
+  },
+
+  // Get immunizations by patient UUID
+  async getImmunizationsByPatient(patient_uuid) {
+    console.log("[getImmunizationsByPatient] Fetching immunizations for patient:", patient_uuid);
+
+    const { data, error } = await supabase
+      .from("immunization")
+      .select("*")
+      .eq("patient_uuid", patient_uuid);
+
+    if (error) {
+      console.error("[getImmunizationsByPatient] Supabase error:", error);
+      throw new Error(`Supabase error: ${error.message}. Code: ${error.code}`);
+    }
+
+    console.log(`[getImmunizationsByPatient] ✅ Fetched ${data.length} records`);
     return data;
   },
 

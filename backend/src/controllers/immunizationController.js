@@ -70,10 +70,17 @@ const ImmunizationController = {
   // Insert a new immunization
   async addImmunization(req, res) {
     try {
-      const { vaccine, last_administered, next_due, status } = req.body;
-      console.log("[addImmunization] Adding new immunization:", { vaccine, last_administered, next_due, status });
+      const { vaccine, last_administered, next_due, status, patient_uuid } = req.body;
+      console.log("[addImmunization] Adding new immunization:", { vaccine, last_administered, next_due, status, patient_uuid });
 
-      const { data, error } = await ImmunizationModel.insertImmunization(vaccine, last_administered, next_due, status);
+      if (!patient_uuid) {
+        return res.status(400).json({
+          success: false,
+          error: "patient_uuid is required"
+        });
+      }
+
+      const { data, error } = await ImmunizationModel.insertImmunization(vaccine, last_administered, next_due, status, patient_uuid);
 
       if (error) {
         console.error("[addImmunization] Error:", error);
@@ -92,6 +99,31 @@ const ImmunizationController = {
 
     } catch (err) {
       console.error("[addImmunization] ❌ Unexpected error:", err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  },
+
+  // Get immunizations by patient UUID
+  async getImmunizationsByPatient(req, res) {
+    try {
+      const { patientUuid } = req.params;
+      console.log("[getImmunizationsByPatient] Fetching immunizations for patient:", patientUuid);
+
+      const immunizations = await ImmunizationModel.getImmunizationsByPatient(patientUuid);
+
+      console.log(`✅ Found ${immunizations.length} immunization record(s) for patient`);
+
+      res.json({
+        success: true,
+        message: `Fetched ${immunizations.length} immunization record(s).`,
+        immunizations
+      });
+
+    } catch (err) {
+      console.error("[getImmunizationsByPatient] ❌ Error:", err.message);
       res.status(500).json({
         success: false,
         error: err.message

@@ -11,7 +11,9 @@ import CreateProfile from "./pages/CreateProfile.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Admin from "./pages/Admin.jsx";
+import Controls from "./pages/Controls.jsx";
 import Help from "./pages/Help.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import TestSupabase from "./pages/TestSupabase.jsx";
 
 import './App.css'
@@ -27,6 +29,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Protected routes - All authenticated users */}
         <Route 
@@ -92,6 +95,15 @@ const AnimatedRoutes = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Admin />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/controls" 
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Controls />
             </ProtectedRoute>
           } 
         />

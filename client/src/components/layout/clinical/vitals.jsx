@@ -174,12 +174,6 @@ const Vitals = ({ recordId }) => {
                 <p className="text-xl font-bold">Vitals</p>
                 <div className="flex gap-2 flex-wrap"> 
                     <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                        <DialogTrigger asChild> 
-                            <Button variant="modify" className="flex items-center gap-2">
-                                <Plus className="w-4 h-4" />
-                                Add Vital Record
-                            </Button>
-                        </DialogTrigger> 
                         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Add New Vital Record</DialogTitle>

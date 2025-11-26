@@ -205,12 +205,6 @@ const Lab = ({ recordId }) => {
                 <p className="text-xl font-bold">Laboratory Test Results</p>
                 <div className="flex gap-2 flex-wrap">
                      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                        <DialogTrigger asChild> 
-                            <Button variant="modify" className="flex items-center gap-2">
-                                <Plus className="w-4 h-4" />
-                                Add Lab Results
-                            </Button>
-                        </DialogTrigger> 
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Add New Lab Results</DialogTitle>
