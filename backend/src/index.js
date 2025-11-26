@@ -9,6 +9,7 @@ import vitalRoutes from './routes/vitalRoutes.js';
 import resultRoutes from './routes/resultRoutes.js';
 import consultationRoutes from './routes/consultationRoutes.js';
 import prescriptionRoutes from './routes/prescriptionRoutes.js';
+import immunizationRoutes from './routes/immunizationRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -46,6 +47,8 @@ app.use('/api/results', resultRoutes);
 app.use('/api/consultations', consultationRoutes);
 
 app.use('/api/prescriptions', prescriptionRoutes);
+
+app.use('/api/immunizations', immunizationRoutes);
 
 
 const PORT = process.env.PORT || 3001;

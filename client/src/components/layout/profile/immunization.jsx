@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,31 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Edit, Archive, Calendar, AlertTriangle } from "lucide-react";
-
-// Mock data
-const initialImmunizations = [
-    {
-        id: 1,
-        vaccineType: 'COVID - 19 (PFIZER)',
-        lastAdministered: '2022-08-05',
-        nextDue: '',
-        complianceStatus: 'completed'
-    },
-    {
-        id: 2,
-        vaccineType: 'Hepatitis B',
-        lastAdministered: '2007-07-05',
-        nextDue: '',
-        complianceStatus: 'completed'
-    },
-    {
-        id: 3,
-        vaccineType: 'Influenza',
-        lastAdministered: '2024-08-23',
-        nextDue: '2025-08-23',
-        complianceStatus: 'overdue'
-    }
-];
+import axiosInstance from "@/lib/axiosInstance";
 
 // Blank form
 const blankForm = {
@@ -41,7 +17,9 @@ const blankForm = {
 };
 
 const Immunization = () => {
-    const [immunizations, setImmunizations] = useState(initialImmunizations);
+    const [immunizations, setImmunizations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [apiError, setApiError] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isViewEditModalOpen, setIsViewEditModalOpen] = useState(false);
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -51,6 +29,47 @@ const Immunization = () => {
 
     const [formData, setFormData] = useState(blankForm);
     const [errors, setErrors] = useState({});
+
+    // Map backend record -> frontend shape
+    const mapFromBackend = (item) => ({
+        id: item.immunization_id,
+        vaccineType: item.vaccine,
+        lastAdministered: item.last_administered || "",
+        nextDue: item.next_due || "",
+        complianceStatus: item.status || "up-to-date",
+    });
+
+    // Map frontend shape -> backend payload
+    const mapToBackend = (item) => ({
+        vaccine: item.vaccineType,
+        last_administered: item.lastAdministered || null,
+        next_due: item.nextDue || null,
+        status: item.complianceStatus,
+    });
+
+    // Load immunizations on mount
+    useEffect(() => {
+        const fetchImmunizations = async () => {
+            setLoading(true);
+            setApiError("");
+            try {
+                const res = await axiosInstance.get("/immunizations");
+                const records = res.data?.immunizations || [];
+                setImmunizations(records.map(mapFromBackend));
+            } catch (error) {
+                console.error("[Immunization] Failed to load records:", error);
+                setApiError(
+                    error.response?.data?.message ||
+                    error.response?.data?.error ||
+                    "Failed to load immunization records."
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchImmunizations();
+    }, []);
 
     const validateForm = () => {
         const newErrors = {};
@@ -94,22 +113,45 @@ const Immunization = () => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (validateForm()) {
-            if (isEditing) {
-                setImmunizations(immunizations.map(item => 
-                    item.id === selectedImmunization.id ? selectedImmunization : item
-                ));
-            } else {
-                setImmunizations([{ ...formData, id: Date.now() }, ...immunizations]);
+            setApiError("");
+            try {
+                if (isEditing) {
+                    // Update existing record
+                    const payload = mapToBackend(selectedImmunization);
+                    const res = await axiosInstance.patch(
+                        `/immunizations/update/${selectedImmunization.id}`,
+                        payload
+                    );
+                    const updated = mapFromBackend(res.data.immunization);
+                    setImmunizations((prev) =>
+                        prev.map((item) =>
+                            item.id === updated.id ? updated : item
+                        )
+                    );
+                } else {
+                    // Create new record
+                    const payload = mapToBackend(formData);
+                    const res = await axiosInstance.post("/immunizations/add", payload);
+                    const created = mapFromBackend(res.data.immunization);
+                    setImmunizations((prev) => [created, ...prev]);
+                }
+
+                setIsAddModalOpen(false);
+                setIsViewEditModalOpen(false);
+                setIsEditing(false);
+                setSelectedImmunization(null);
+                setFormData(blankForm);
+                setErrors({});
+            } catch (error) {
+                console.error("[Immunization] Failed to save record:", error);
+                setApiError(
+                    error.response?.data?.message ||
+                    error.response?.data?.error ||
+                    "Failed to save immunization record."
+                );
             }
-            
-            setIsAddModalOpen(false);
-            setIsViewEditModalOpen(false);
-            setIsEditing(false);
-            setSelectedImmunization(null);
-            setFormData(blankForm);
-            setErrors({});
         }
     };
 
@@ -140,10 +182,24 @@ const Immunization = () => {
         setIsArchiveModalOpen(true);
     };
 
-    const handleArchive = () => {
-        setImmunizations(immunizations.filter(item => item.id !== selectedImmunization.id));
-        setIsArchiveModalOpen(false);
-        setSelectedImmunization(null);
+    const handleArchive = async () => {
+        if (!selectedImmunization) return;
+        setApiError("");
+        try {
+            await axiosInstance.delete(`/immunizations/delete/${selectedImmunization.id}`);
+            setImmunizations((prev) =>
+                prev.filter((item) => item.id !== selectedImmunization.id)
+            );
+            setIsArchiveModalOpen(false);
+            setSelectedImmunization(null);
+        } catch (error) {
+            console.error("[Immunization] Failed to archive record:", error);
+            setApiError(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to archive immunization record."
+            );
+        }
     };
 
     const formatDate = (dateString) => {
@@ -311,8 +367,15 @@ const Immunization = () => {
 
             {/* Immunization Records */}
             <div className="space-y-4 mt-6">
-                {immunizations.length > 0 ? (
-                    immunizations.map(item => <ImmunizationRecord key={item.id} item={item} />)
+                {apiError && (
+                    <p className="text-red-600 text-sm text-center">{apiError}</p>
+                )}
+                {loading ? (
+                    <p className="text-gray-500 text-center">Loading immunization records...</p>
+                ) : immunizations.length > 0 ? (
+                    immunizations.map((item) => (
+                        <ImmunizationRecord key={item.id} item={item} />
+                    ))
                 ) : (
                     <p className="text-gray-500 text-center">No immunization records found.</p>
                 )}

@@ -22,17 +22,10 @@ const ConsultationController = {
 
       console.log(`✅ Found ${consultations.length} consultation(s)`);
 
-      const sanitized = consultations.map(c => ({
-        consultation_id: c.consultation_id,
-        uuid: c.uuid,
-        date_of_check: c.date_of_check,
-        allFields: Object.keys(c)
-      }));
-
       res.json({
         success: true,
         message: `Found ${consultations.length} consultation(s).`,
-        consultations: sanitized
+        consultations
       });
 
     } catch (err) {
