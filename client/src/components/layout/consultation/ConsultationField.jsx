@@ -212,6 +212,19 @@ export const LabFields = ({ onDataChange, recordId }) => {
         setLabData(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleKeyDown = (e, currentIndex) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextIndex = currentIndex + 1;
+            if (nextIndex < labTests.length) {
+                const nextInput = document.getElementById(`lab-input-${labTests[nextIndex].key}`);
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+        }
+    };
+
     const handleCustomFieldUpdate = (index, field, value) => {
         const updatedFields = [...customFields];
         updatedFields[index] = { ...updatedFields[index], [field]: value };
@@ -232,89 +245,77 @@ export const LabFields = ({ onDataChange, recordId }) => {
         setCustomFields(customFields.filter((_, idx) => idx !== index));
     };
 
-    // Lab test definitions with categories
+    // Lab test definitions
     const labTests = [
-        { key: 'hgb', label: 'HGB (Hemoglobin)', unit: 'g/dL', category: 'Hematology' },
-        { key: 'mcv', label: 'MCV', unit: 'fL', category: 'Hematology' },
-        { key: 'wbc', label: 'WBC', unit: 'K/μL', category: 'Hematology' },
-        { key: 'slp', label: 'S/L/P', unit: '', category: 'Hematology' },
-        { key: 'tchol', label: 'Total Cholesterol', unit: 'mg/dL', category: 'Lipid Panel' },
-        { key: 'hdl', label: 'HDL', unit: 'mg/dL', category: 'Lipid Panel' },
-        { key: 'ldl', label: 'LDL', unit: 'mg/dL', category: 'Lipid Panel' },
-        { key: 'trig', label: 'Triglycerides', unit: 'mg/dL', category: 'Lipid Panel' },
-        { key: 'fbs', label: 'FBS', unit: 'mg/dL', category: 'Diabetes' },
-        { key: 'hba1c', label: 'HbA1c', unit: '%', category: 'Diabetes' },
-        { key: 'sgpt', label: 'SGPT', unit: 'U/L', category: 'Liver' },
-        { key: 'screa', label: 'Serum Creatinine', unit: 'mg/dL', category: 'Kidney' },
-        { key: 'burica', label: 'Blood Uric Acid', unit: 'mg/dL', category: 'Kidney' },
-        { key: 'na', label: 'Sodium (Na)', unit: 'mEq/L', category: 'Electrolytes' },
-        { key: 'k', label: 'Potassium (K)', unit: 'mEq/L', category: 'Electrolytes' },
-        { key: 'diastolic', label: 'Blood Pressure (DBP)', unit: 'mmHg', category: 'Vitals' },
-        { key: 'systolic', label: 'Blood Pressure (SBP)', unit: 'mmHg', category: 'Vitals' },
-        { key: 'psa', label: 'PSA', unit: 'ng/mL', category: 'Other' },
-        { key: 'ekg', label: 'EKG', unit: 'Result', category: 'Diagnostics' },
-        { key: 'echo_2d', label: '2D Echo', unit: 'Result', category: 'Diagnostics' },
-        { key: 'cxr', label: 'CXR', unit: 'Result', category: 'Diagnostics' },
-        { key: 'urinalysis', label: 'Urinalysis', unit: 'Result', category: 'Other' },
-        { key: 'folate', label: 'Folate', unit: 'ng/mL', category: 'Vitamins' },
-        { key: 'vitd', label: 'Vitamin D', unit: 'ng/mL', category: 'Vitamins' },
-        { key: 'b12', label: 'Vitamin B12', unit: 'pg/mL', category: 'Vitamins' },
-        { key: 'tsh', label: 'TSH', unit: 'mIU/L', category: 'Thyroid' }
+        { key: 'hgb', label: 'HGB (Hemoglobin)', unit: 'g/dL' },
+        { key: 'mcv', label: 'MCV', unit: 'fL' },
+        { key: 'wbc', label: 'WBC', unit: 'K/μL' },
+        { key: 'slp', label: 'S/L/P', unit: '' },
+        { key: 'tchol', label: 'Total Cholesterol', unit: 'mg/dL' },
+        { key: 'hdl', label: 'HDL', unit: 'mg/dL' },
+        { key: 'ldl', label: 'LDL', unit: 'mg/dL' },
+        { key: 'trig', label: 'Triglycerides', unit: 'mg/dL' },
+        { key: 'fbs', label: 'FBS', unit: 'mg/dL' },
+        { key: 'hba1c', label: 'HbA1c', unit: '%' },
+        { key: 'sgpt', label: 'SGPT', unit: 'U/L' },
+        { key: 'screa', label: 'Serum Creatinine', unit: 'mg/dL' },
+        { key: 'burica', label: 'Blood Uric Acid', unit: 'mg/dL' },
+        { key: 'na', label: 'Sodium (Na)', unit: 'mEq/L' },
+        { key: 'k', label: 'Potassium (K)', unit: 'mEq/L' },
+        { key: 'diastolic', label: 'Blood Pressure (DBP)', unit: 'mmHg' },
+        { key: 'systolic', label: 'Blood Pressure (SBP)', unit: 'mmHg' },
+        { key: 'psa', label: 'PSA', unit: 'ng/mL' },
+        { key: 'ekg', label: 'EKG', unit: 'Result' },
+        { key: 'echo_2d', label: '2D Echo', unit: 'Result' },
+        { key: 'cxr', label: 'CXR', unit: 'Result' },
+        { key: 'urinalysis', label: 'Urinalysis', unit: 'Result' },
+        { key: 'folate', label: 'Folate', unit: 'ng/mL' },
+        { key: 'vitd', label: 'Vitamin D', unit: 'ng/mL' },
+        { key: 'b12', label: 'Vitamin B12', unit: 'pg/mL' },
+        { key: 'tsh', label: 'TSH', unit: 'mIU/L' }
     ];
-
-    // Group tests by category
-    const groupedTests = labTests.reduce((acc, test) => {
-        if (!acc[test.category]) {
-            acc[test.category] = [];
-        }
-        acc[test.category].push(test);
-        return acc;
-    }, {});
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
             <p className="text-xl font-bold mb-6">Laboratory Tests</p>
 
-            {/* Standard Lab Fields organized by category */}
-            {Object.entries(groupedTests).map(([category, tests]) => (
-                <div key={category} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3 text-gray-700">{category}</h3>
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-gray-800 hover:bg-gray-800">
-                                    <TableHead className="text-white font-semibold">Test Name</TableHead>
-                                    <TableHead className="text-white font-semibold text-center min-w-32">Result/Value</TableHead>
-                                </TableRow>
-                            </TableHeader>
+            {/* Standard Lab Fields - continuous table without categories */}
+            <div className="overflow-x-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-gray-800 hover:bg-gray-800">
+                            <TableHead className="text-white font-semibold">Test Name</TableHead>
+                            <TableHead className="text-white font-semibold text-center min-w-32">Result/Value</TableHead>
+                        </TableRow>
+                    </TableHeader>
 
-                            <TableBody>
-                                {tests.map((test) => (
-                                    <TableRow key={test.key} className="hover:bg-gray-50">
-                                        <TableCell className="font-medium">
-                                            <div className="font-semibold">{test.label}</div>
-                                            {test.unit && (
-                                                <div className="text-xs text-gray-500">{test.unit}</div>
-                                            )}
-                                        </TableCell>
+                    <TableBody>
+                        {labTests.map((test, index) => (
+                            <TableRow key={test.key} className="hover:bg-gray-50">
+                                <TableCell className="font-medium">
+                                    <div className="font-semibold">{test.label}</div>
+                                    {test.unit && (
+                                        <div className="text-xs text-gray-500">{test.unit}</div>
+                                    )}
+                                </TableCell>
 
-                                        <TableCell className="text-center">
-                                            <Input
-                                                type={test.category === 'Diagnostics' || test.unit === 'Result' ? 'text' : 'number'}
-                                                step="0.01"
-                                                placeholder={test.category === 'Diagnostics' ? 'Enter result' : 'Enter value'}
-                                                value={labData[test.key]}
-                                                onChange={(e) => handleStandardFieldChange(test.key, e.target.value)}
-                                                className="h-8"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-            ))}
+                                <TableCell className="text-center">
+                                    <Input
+                                        id={`lab-input-${test.key}`}
+                                        type={test.unit === 'Result' ? 'text' : 'number'}
+                                        step="0.01"
+                                        placeholder={test.unit === 'Result' ? 'Enter result' : 'Enter value'}
+                                        value={labData[test.key]}
+                                        onChange={(e) => handleStandardFieldChange(test.key, e.target.value)}
+                                        onKeyDown={(e) => handleKeyDown(e, index)}
+                                        className="h-8"
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
 
             {/* Custom User-Defined Fields Section */}
             <div className="mt-8 pt-6 border-t-2 border-gray-200">

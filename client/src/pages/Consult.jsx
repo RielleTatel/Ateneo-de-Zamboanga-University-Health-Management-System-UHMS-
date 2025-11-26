@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
+import { useAuth } from "@/context/AuthContext";
 
 import { VitalsField, LabFields, ConsultationNotes } from "@/components/layout/consultation/ConsultationField";
 import ProfileHeader from "@/components/layout/profileHeader";
@@ -13,6 +14,7 @@ const Consult = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { canAccessConsultation } = useAuth();
     
     // Get the selected components from navigation state
     const { 
@@ -22,6 +24,14 @@ const Consult = () => {
         recordDepartment, 
         selectedComponents = [] 
     } = location.state || {};
+
+    // Filter out consultation if user doesn't have access
+    const allowedComponents = selectedComponents.filter(component => {
+        if (component === 'consultation' && !canAccessConsultation()) {
+            return false;
+        }
+        return true;
+    });
 
     // State to hold data from each component
     const [vitalsData, setVitalsData] = useState(null);
@@ -62,11 +72,13 @@ const Consult = () => {
             title: 'Laboratory Tests',
             onDataChange: setLabData
         },
-        'consultation': { 
-            component: ConsultationNotes, 
-            title: 'Consultation Notes',
-            onDataChange: setConsultationData
-        }
+        ...(canAccessConsultation() && {
+            'consultation': { 
+                component: ConsultationNotes, 
+                title: 'Consultation Notes',
+                onDataChange: setConsultationData
+            }
+        })
     };
 
     const handleSaveConsultation = async () => {
@@ -74,19 +86,19 @@ const Consult = () => {
             const promises = [];
 
             // Save vitals if component was selected
-            if (selectedComponents.includes('vitals') && vitalsData) {
+            if (allowedComponents.includes('vitals') && vitalsData) {
                 console.log('Saving vitals:', vitalsData);
                 promises.push(createVitalMutation.mutateAsync(vitalsData));
             }
 
             // Save lab results if component was selected (with custom fields support)
-            if (selectedComponents.includes('lab') && labData) {
+            if (allowedComponents.includes('lab') && labData) {
                 console.log('Saving lab results:', labData);
                 promises.push(createLabMutation.mutateAsync(labData));
             }
 
-            // Save consultation if component was selected
-            if (selectedComponents.includes('consultation') && consultationData) {
+            // Save consultation if component was selected (only if user has access)
+            if (allowedComponents.includes('consultation') && consultationData && canAccessConsultation()) {
                 console.log('Saving consultation:', consultationData);
                 promises.push(createConsultationMutation.mutateAsync(consultationData));
             }
@@ -102,11 +114,13 @@ const Consult = () => {
     };
 
     const renderSelectedComponents = () => {
-        if (!selectedComponents || selectedComponents.length === 0) {
+        if (!allowedComponents || allowedComponents.length === 0) {
             return (
                 <div className="text-center py-12 bg-white rounded-lg">
                     <p className="text-gray-500 text-lg">
-                        No check-up components selected. Please go back and select components.
+                        {selectedComponents.includes('consultation') && !canAccessConsultation()
+                            ? 'You do not have permission to access consultation notes. Only doctors and admins can access this component.'
+                            : 'No check-up components selected. Please go back and select components.'}
                     </p>
                     <Button 
                         className="mt-4 bg-blue-500 hover:bg-blue-600"
@@ -118,7 +132,7 @@ const Consult = () => {
             );
         }
 
-        return selectedComponents.map((componentKey) => {
+        return allowedComponents.map((componentKey) => {
             const componentData = componentMap[componentKey];
             if (componentData) {
                 const Component = componentData.component;
@@ -174,9 +188,9 @@ const Consult = () => {
                                 {recordPosition} • {recordDepartment}
                             </p>
                         )}
-                        {selectedComponents.length > 0 && (
+                        {allowedComponents.length > 0 && (
                             <p className="text-sm text-gray-500 mt-1">
-                                Selected Components: {selectedComponents.map(comp => componentMap[comp]?.title).join(', ')}
+                                Selected Components: {allowedComponents.map(comp => componentMap[comp]?.title).join(', ')}
                             </p>
                         )}
                     </div>
@@ -185,7 +199,7 @@ const Consult = () => {
                         {renderSelectedComponents()}
                     </div>
 
-                    {selectedComponents.length > 0 && (
+                    {allowedComponents.length > 0 && (
                         <div className="flex justify-end gap-4 mt-6">
                             <Button 
                                 variant="outline"

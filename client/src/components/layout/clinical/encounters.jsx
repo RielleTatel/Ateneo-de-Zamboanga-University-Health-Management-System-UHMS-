@@ -4,8 +4,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { HeartPlus, Eye, Trash2, Loader2, AlertCircle, ChevronDown, Printer, Calendar, User, FileText, Pill, Clock, Activity, AlertTriangle } from "lucide-react";  
+import { HeartPlus, Eye, Trash2, Loader2, AlertCircle, ChevronDown, Printer, Calendar, User, FileText, Pill, Clock, Activity, AlertTriangle, Lock } from "lucide-react";  
 import axiosInstance from "@/lib/axiosInstance";
+import { useAuth } from "@/context/AuthContext";
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -486,6 +487,7 @@ const MedicalCertificatePDF = ({ patient, encounter, diagnosis, remarks }) => {
 
 const Encounters = ({ recordId }) => { 
     const queryClient = useQueryClient();
+    const { canAccessConsultation } = useAuth();
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedEncounter, setSelectedEncounter] = useState(null); 
     const [selectedPrescriptions, setSelectedPrescriptions] = useState([]);
@@ -752,26 +754,35 @@ const Encounters = ({ recordId }) => {
                                                     </button>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-56 p-2" align="end">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handlePrintPrescription(encounter);
-                                                        }}
-                                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors w-full text-left"
-                                                    >
-                                                        <Printer className="w-4 h-4" />
-                                                        <span>Print Prescription</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleOpenMedCertModal(encounter);
-                                                        }}
-                                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors w-full text-left"
-                                                    >
-                                                        <FileText className="w-4 h-4" />
-                                                        <span>Print Medical Certificate</span>
-                                                    </button>
+                                                    {canAccessConsultation() ? (
+                                                        <>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handlePrintPrescription(encounter);
+                                                                }}
+                                                                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors w-full text-left"
+                                                            >
+                                                                <Printer className="w-4 h-4" />
+                                                                <span>Print Prescription</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleOpenMedCertModal(encounter);
+                                                                }}
+                                                                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors w-full text-left"
+                                                            >
+                                                                <FileText className="w-4 h-4" />
+                                                                <span>Print Medical Certificate</span>
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600">
+                                                            <Lock className="w-4 h-4 text-red-500" />
+                                                            <span className="text-xs text-gray-500">Print options available to doctors and admins only</span>
+                                                        </div>
+                                                    )}
                                                 </PopoverContent>
                                             </Popover>
 

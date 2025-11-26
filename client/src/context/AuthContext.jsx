@@ -214,6 +214,21 @@ export const AuthProvider = ({ children }) => {
     return session?.access_token || null;
   };
 
+  // Role-based access check
+  const hasRole = (role) => {
+    if (Array.isArray(role)) {
+      return role.includes(user?.role);
+    }
+    return user?.role === role;
+  };
+
+  // Check if user can access consultation notes
+  const canAccessConsultation = () => {
+    // Only admin and doctor can access consultation notes
+    // Staff and nurse cannot access
+    return hasRole(['admin', 'doctor']);
+  };
+
   const value = {
     user,
     session,
@@ -223,7 +238,12 @@ export const AuthProvider = ({ children }) => {
     logout,
     getAccessToken,
     isAuthenticated: !!session && !!user,
-    isAdmin: user?.role === "admin"
+    isAdmin: user?.role === "admin",
+    isDoctor: user?.role === "doctor",
+    isNurse: user?.role === "nurse",
+    isStaff: user?.role === "staff",
+    hasRole,
+    canAccessConsultation
   };
 
   return (

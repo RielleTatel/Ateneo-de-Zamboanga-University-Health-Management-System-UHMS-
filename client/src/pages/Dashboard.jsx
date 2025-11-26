@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import Navigation from "../components/layout/navigation.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -9,7 +10,7 @@ import {
 } from 'recharts';
 import { 
   Users, Calendar, FileText, Activity, TrendingUp, AlertCircle, 
-  Heart, Droplet, Scale, Mail, Shield, ChevronLeft, ChevronRight
+  Heart, Droplet, Scale, Mail, Shield, ChevronLeft, ChevronRight, Eye
 } from "lucide-react";
 import UserNav from "../components/layout/userNav.jsx";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ const fetchAllPatients = async () => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [processedData, setProcessedData] = useState({
     hypertensiveCount: 0,
     criticalLDLCount: 0,
@@ -522,20 +524,66 @@ const Dashboard = () => {
       }
     });
 
+    // Check latest consultations for risk factors (medical_clearance)
+    latestConsultationsArray.forEach(consultation => {
+      const uuid = consultation.uuid;
+      const clearance = consultation.medical_clearance;
+      const chronicFactor = consultation.chronic_risk_factor;
+      
+      if (clearance === 'Critical' || clearance === 'At Risk') {
+        let factorText = clearance === 'Critical' ? 'Critical Condition' : 'At Risk Condition';
+        
+        // Add chronic risk factors if available
+        if (chronicFactor) {
+          const factorString = String(chronicFactor);
+          const factors = factorString.includes(',') 
+            ? factorString.split(',').map(f => f.trim())
+            : [factorString.trim()];
+          
+          const validFactors = factors.filter(f => 
+            f && f.toLowerCase() !== 'none' && 
+            f.toLowerCase() !== 'null' && 
+            f.toLowerCase() !== 'n/a'
+          );
+          
+          if (validFactors.length > 0) {
+            factorText = validFactors.join(', ');
+          }
+        }
+        
+        updateUserData(uuid, clearance, factorText, consultation.date_of_check);
+      }
+    });
+
     // Filter only At Risk and Critical patients, combine factors into string
+    // Use the same patientRiskMap logic to ensure consistency with risk stratification
     const atRiskCohort = Object.values(userDataMap)
-      .filter(patient => patient.status === 'At Risk' || patient.status === 'Critical')
-      .map(patient => ({
-        ...patient,
-        chronicFactor: patient.chronicFactors.join(', ')
-      }))
+      .filter(patient => {
+        // Also check patientRiskMap to ensure we include all at-risk patients
+        const riskFromMap = patientRiskMap[patient.uuid];
+        return (patient.status === 'At Risk' || patient.status === 'Critical' || 
+                riskFromMap === 'At Risk' || riskFromMap === 'Critical');
+      })
+      .map(patient => {
+        // Use patientRiskMap status if it's higher risk
+        const finalStatus = (patientRiskMap[patient.uuid] === 'Critical' || patient.status === 'Critical') 
+          ? 'Critical' 
+          : (patientRiskMap[patient.uuid] === 'At Risk' || patient.status === 'At Risk')
+          ? 'At Risk'
+          : patient.status;
+        
+        return {
+          ...patient,
+          status: finalStatus,
+          chronicFactor: patient.chronicFactors.join(', ')
+        };
+      })
       .sort((a, b) => {
         // Sort Critical first, then At Risk
         if (a.status === 'Critical' && b.status !== 'Critical') return -1;
         if (a.status !== 'Critical' && b.status === 'Critical') return 1;
         return 0;
-      })
-      .slice(0, 10); // Top 10 at-risk patients
+      });
 
     console.log('📊 [DASHBOARD] At-risk cohort:', atRiskCohort.length, 'patients');
 
@@ -914,9 +962,15 @@ const Dashboard = () => {
                                         size="sm"
                                         className="border-2"
                                         style={{ borderColor: '#0033A0', color: '#0033A0' }}
+                                        onClick={() => navigate('/profile', { 
+                                          state: { 
+                                            recordId: patient.uuid,
+                                            recordName: patient.name 
+                                          } 
+                                        })}
                                       >
-                                        <Mail className="h-4 w-4 mr-1" />
-                                        Notify
+                                        <Eye className="h-4 w-4 mr-1" />
+                                        View Profile
                                       </Button>
                                     </TableCell>
                                   </TableRow>

@@ -13,8 +13,9 @@ import {
     SelectTrigger, 
     SelectValue 
 } from "@/components/ui/select.jsx";
-import { Search, Eye, FileText, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus, Loader2 } from "lucide-react";
+import { Search, Eye, FileText, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus, Loader2, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import axiosInstance from "../lib/axiosInstance";
 
@@ -26,6 +27,7 @@ const fetchPatients = async () => {
 
 const Records = () => {
     const navigate = useNavigate();
+    const { canAccessConsultation } = useAuth();
     const [selectedCheckups, setSelectedCheckups] = useState({});
     const [openPopovers, setOpenPopovers] = useState({});
     const [searchQuery, setSearchQuery] = useState("");
@@ -45,11 +47,18 @@ const Records = () => {
         refetchOnWindowFocus: false
     });
 
+    // Filter checkup options based on role
     const checkupOptions = [
         { value: 'vitals', label: 'Vitals' },
         { value: 'lab', label: 'Laboratory Tests' },
-        { value: 'consultation', label: 'Consultation Notes' }
-    ];
+        { value: 'consultation', label: 'Consultation Notes', requiresRole: 'consultation' }
+    ].filter(option => {
+        // Filter out consultation notes if user doesn't have access
+        if (option.requiresRole === 'consultation') {
+            return canAccessConsultation();
+        }
+        return true;
+    });
 
     const toggleCheckupOption = (recordId, optionValue) => {
         setSelectedCheckups(prev => {
