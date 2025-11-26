@@ -1,4 +1,6 @@
 import ConsultationModel from "../models/consultationModel.js";
+import ConsultationPrescriptionsModel from "../models/consultationPrescriptionsModel.js";
+import PrescriptionSchedulesModel from "../models/prescriptionSchedulesModel.js";
 import supabase from "../config/supabaseClient.js";
 
 const ConsultationController = {
@@ -53,9 +55,11 @@ const ConsultationController = {
       const consultations = await ConsultationModel.getConsultationsByUUID(uuid);
 
       if (!consultations || consultations.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "No consultations found for this user."
+        console.log(`⚠️ No consultations found for patient UUID ${uuid}`);
+        return res.json({
+          success: true,
+          message: "No consultations found for this user.",
+          consultations: []
         });
       }
 
@@ -111,9 +115,10 @@ const ConsultationController = {
     try {
       console.log("[createConsultation] Creating new consultation...");
 
-      const consultationData = req.body;
+      const { consultation, prescriptions } = req.body;
 
-      const { data, error } = await ConsultationModel.insertConsultation(consultationData);
+      // Insert the main consultation record
+      const { data, error } = await ConsultationModel.insertConsultation(consultation);
 
       if (error) {
         console.error("[createConsultation] Error:", error);
@@ -123,7 +128,55 @@ const ConsultationController = {
         });
       }
 
-      console.log("[createConsultation] Consultation created successfully");
+      console.log("[createConsultation] Consultation created successfully:", data.consultation_id);
+
+      // If prescriptions exist, store them in consultation_prescriptions table
+      if (prescriptions && prescriptions.length > 0) {
+        console.log("[createConsultation] Storing", prescriptions.length, "prescriptions...");
+        
+        for (const prescription of prescriptions) {
+          // Extract schedules from prescription
+          const { schedules, ...prescriptionData } = prescription;
+
+          // Insert prescription into consultation_prescriptions
+          const prescriptionToInsert = {
+            consultation_id: data.consultation_id,
+            medication_name: prescriptionData.name || prescriptionData.medication_name,
+            quantity: prescriptionData.quantity,
+            instructions: prescriptionData.frequency || prescriptionData.instructions
+          };
+
+          const { data: prescriptionResult, error: prescriptionError } = 
+            await ConsultationPrescriptionsModel.insertPrescription(prescriptionToInsert);
+
+          if (prescriptionError) {
+            console.error("[createConsultation] Error storing prescription:", prescriptionError);
+            continue; // Skip to next prescription
+          }
+
+          console.log("[createConsultation] Prescription stored with ID:", prescriptionResult.prescription_id);
+
+          // If schedules exist for this prescription, store them
+          if (schedules && schedules.length > 0) {
+            console.log("[createConsultation] Storing", schedules.length, "schedules for prescription...");
+            
+            const schedulesToInsert = schedules.map(schedule => ({
+              prescription_id: prescriptionResult.prescription_id,
+              meal_time: schedule.time,
+              dosage: schedule.tabsPerSchedule || schedule.dosage
+            }));
+
+            const { error: schedulesError } = 
+              await PrescriptionSchedulesModel.insertMultipleSchedules(schedulesToInsert);
+
+            if (schedulesError) {
+              console.error("[createConsultation] Error storing schedules:", schedulesError);
+            } else {
+              console.log("[createConsultation] Successfully stored", schedulesToInsert.length, "schedules");
+            }
+          }
+        }
+      }
 
       res.json({
         success: true,
@@ -200,6 +253,56 @@ const ConsultationController = {
 
     } catch (err) {
       console.error("[deleteConsultation] Unexpected error:", err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  },
+
+  // GET PRESCRIPTIONS BY CONSULTATION ID
+  async getPrescriptionsByConsultation(req, res) {
+    try {
+      const { id } = req.params;
+      console.log("[getPrescriptionsByConsultation] Fetching prescriptions for consultation:", id);
+
+      const prescriptions = await ConsultationPrescriptionsModel.getPrescriptionsByConsultationId(id);
+
+      console.log(`✅ Found ${prescriptions.length} prescription(s)`);
+
+      res.json({
+        success: true,
+        message: `Found ${prescriptions.length} prescription(s)`,
+        prescriptions
+      });
+
+    } catch (err) {
+      console.error("[getPrescriptionsByConsultation] Error:", err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  },
+
+  // GET SCHEDULES BY PRESCRIPTION ID
+  async getSchedulesByPrescription(req, res) {
+    try {
+      const { prescription_id } = req.params;
+      console.log("[getSchedulesByPrescription] Fetching schedules for prescription:", prescription_id);
+
+      const schedules = await PrescriptionSchedulesModel.getSchedulesByPrescriptionId(prescription_id);
+
+      console.log(`✅ Found ${schedules.length} schedule(s)`);
+
+      res.json({
+        success: true,
+        message: `Found ${schedules.length} schedule(s)`,
+        schedules
+      });
+
+    } catch (err) {
+      console.error("[getSchedulesByPrescription] Error:", err);
       res.status(500).json({
         success: false,
         error: err.message

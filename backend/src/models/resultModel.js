@@ -6,34 +6,38 @@ const ResultModel = {
   async insertResult(resultData) {
     console.log("[insertResult] Inserting:", resultData);
 
-    // Only allow fields that EXIST in your table  
-    const allowedFields = [
-      "hgb", "mcv", "wbc", "slp", "tchol", "hdl", "ldl", "trig",
-      "fbs", "hba1c", "sgpt", "screa", "burica", "na", "k", "psa",
-      "ekg", "2d_echo", "cxr", "diastolic", "systolic", "urinalysis",
-      "folate", "vitd", "b12", "tsh"
-    ];
-
-    const filtered = {};
-    for (const key of allowedFields) {
-      if (resultData[key] !== undefined) {
-        filtered[key] = resultData[key];
-      }
-    }
-
     const { data, error } = await supabase
-      .from("result")
-      .insert([filtered])
+      .from("results")
+      .insert([resultData])
       .select()
       .single();
 
     return { data, error };
   },
 
+  // Get results by patient UUID
+  async getResultsByPatient(uuid) {
+    console.log("[getResultsByPatient] Fetching results for patient UUID:", uuid);
+    
+    const { data, error } = await supabase
+      .from("results")
+      .select("*")
+      .eq("user_uuid", uuid)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[getResultsByPatient] Error:", error);
+      throw new Error(`Supabase error: ${error.message}`);
+    }
+
+    console.log(`[getResultsByPatient] ✅ Fetched ${data.length} records`);
+    return data;
+  },
+
   // Get result by ID
   async findById(result_id) {
     const { data, error } = await supabase
-      .from("result")
+      .from("results")
       .select("*")
       .eq("result_id", result_id)
       .single();
@@ -45,7 +49,7 @@ const ResultModel = {
   // Get all results
   async getAllResults() {
     const { data, error } = await supabase
-      .from("result")
+      .from("results")
       .select("*");
 
     if (error) throw new Error(error.message);
@@ -54,24 +58,9 @@ const ResultModel = {
 
   // Update a result
   async updateResult(result_id, updatedData) {
-    // Only update allowed fields
-    const allowedFields = [
-      "hgb", "mcv", "wbc", "slp", "tchol", "hdl", "ldl", "trig",
-      "fbs", "hba1c", "sgpt", "screa", "burica", "na", "k", "psa",
-      "ekg", "2d_echo", "cxr", "diastolic", "systolic", "urinalysis",
-      "folate", "vitd", "b12", "tsh"
-    ];
-
-    const filtered = {};
-    for (const key of allowedFields) {
-      if (updatedData[key] !== undefined) {
-        filtered[key] = updatedData[key];
-      }
-    }
-
     const { data, error } = await supabase
-      .from("result")
-      .update(filtered)
+      .from("results")
+      .update(updatedData)
       .eq("result_id", result_id)
       .select()
       .single();
@@ -82,7 +71,7 @@ const ResultModel = {
   // Delete a result
   async deleteResult(result_id) {
     const { data, error } = await supabase
-      .from("result")
+      .from("results")
       .delete()
       .eq("result_id", result_id);
 

@@ -1,7 +1,9 @@
-import React from "react"; 
+import React, { useState } from "react"; 
 import { useLocation, useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import axiosInstance from "@/lib/axiosInstance";
 
 import { VitalsField, LabFields, ConsultationNotes } from "@/components/layout/consultation/ConsultationField";
 import ProfileHeader from "@/components/layout/profileHeader";
@@ -10,6 +12,7 @@ import Navigation from "@/components/layout/navigation";
 const Consult = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     
     // Get the selected components from navigation state
     const { 
@@ -20,11 +23,82 @@ const Consult = () => {
         selectedComponents = [] 
     } = location.state || {};
 
+    // State to hold data from each component
+    const [vitalsData, setVitalsData] = useState(null);
+    const [labData, setLabData] = useState(null);
+    const [consultationData, setConsultationData] = useState(null);
+
+    // Mutations for creating records
+    const createVitalMutation = useMutation({
+        mutationFn: (data) => axiosInstance.post('/vitals/add', data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['vitals', recordId]);
+        }
+    });
+
+    const createLabMutation = useMutation({
+        mutationFn: (data) => axiosInstance.post('/results/add', data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['results', recordId]);
+        }
+    });
+
+    const createConsultationMutation = useMutation({
+        mutationFn: (data) => axiosInstance.post('/consultations/create', data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['consultations', recordId]);
+        }
+    });
+
     // Component mapping
     const componentMap = {
-        'vitals': { component: VitalsField, title: 'Vitals' },
-        'lab': { component: LabFields, title: 'Laboratory Tests' },
-        'consultation': { component: ConsultationNotes, title: 'Consultation Notes' }
+        'vitals': { 
+            component: VitalsField, 
+            title: 'Vitals',
+            onDataChange: setVitalsData
+        },
+        'lab': { 
+            component: LabFields, 
+            title: 'Laboratory Tests',
+            onDataChange: setLabData
+        },
+        'consultation': { 
+            component: ConsultationNotes, 
+            title: 'Consultation Notes',
+            onDataChange: setConsultationData
+        }
+    };
+
+    const handleSaveConsultation = async () => {
+        try {
+            const promises = [];
+
+            // Save vitals if component was selected
+            if (selectedComponents.includes('vitals') && vitalsData) {
+                console.log('Saving vitals:', vitalsData);
+                promises.push(createVitalMutation.mutateAsync(vitalsData));
+            }
+
+            // Save lab results if component was selected (with custom fields support)
+            if (selectedComponents.includes('lab') && labData) {
+                console.log('Saving lab results:', labData);
+                promises.push(createLabMutation.mutateAsync(labData));
+            }
+
+            // Save consultation if component was selected
+            if (selectedComponents.includes('consultation') && consultationData) {
+                console.log('Saving consultation:', consultationData);
+                promises.push(createConsultationMutation.mutateAsync(consultationData));
+            }
+
+            await Promise.all(promises);
+
+            alert('Consultation saved successfully!');
+            navigate('/records');
+        } catch (error) {
+            console.error('Error saving consultation:', error);
+            alert('Error saving consultation: ' + (error.response?.data?.error || error.message));
+        }
     };
 
     const renderSelectedComponents = () => {
@@ -50,13 +124,20 @@ const Consult = () => {
                 const Component = componentData.component;
                 return (
                     <div key={componentKey}>
-                        <Component />
+                        <Component 
+                            recordId={recordId} 
+                            onDataChange={componentData.onDataChange}
+                        />
                     </div>
                 );
             }
             return null;
         });
     };
+
+    const isLoading = createVitalMutation.isPending || 
+                     createLabMutation.isPending || 
+                     createConsultationMutation.isPending;
 
     return (
         <div className="bg-background-primary w-screen min-h-screen flex flex-row">
@@ -108,19 +189,17 @@ const Consult = () => {
                             <Button 
                                 variant="outline"
                                 onClick={() => navigate('/records')}
+                                disabled={isLoading}
                             >
                                 Cancel
                             </Button>
                             <Button 
-                                className="bg-blue-500 hover:bg-blue-600"
-                                onClick={() => {
-                                    // Handle save consultation logic
-                                    console.log('Saving consultation for:', recordName);
-                                    // Navigate back after saving
-                                    navigate('/records');
-                                }}
+                                className="bg-blue-500 hover:bg-blue-600 flex items-center gap-2"
+                                onClick={handleSaveConsultation}
+                                disabled={isLoading}
                             >
-                                Save Consultation
+                                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {isLoading ? 'Saving...' : 'Save Consultation'}
                             </Button>
                         </div>
                     )}

@@ -3,19 +3,10 @@ import supabase from "../config/supabaseClient.js";
 const VitalModel = {
 
   // Insert a new vital record
-  async insertVital({ uuid, blood_pressure, temperature, heart_rate, respiratory_rate, weight, height, bmi }) {
-    console.log("[insertVital] Inserting vital record:", { uuid, blood_pressure, temperature, heart_rate, respiratory_rate, weight, height, bmi });
+  async insertVital(vitalData) {
+    console.log("[insertVital] Inserting vital record:", vitalData);
     
-    const { data, error } = await supabase.from('vitals').insert([{
-      uuid,
-      blood_pressure,
-      temperature,
-      heart_rate,
-      respiratory_rate,
-      weight,
-      height,
-      bmi
-    }])
+    const { data, error } = await supabase.from('vitals').insert([vitalData])
     .select()
     .single();
 
@@ -45,7 +36,11 @@ const VitalModel = {
   // Get vitals by patient UUID
   async getVitalsByPatient(uuid) {
     console.log("[getVitalsByPatient] Fetching vitals for patient UUID:", uuid);
-    const { data, error } = await supabase.from('vitals').select('*').eq('uuid', uuid);
+    const { data, error } = await supabase
+      .from('vitals')
+      .select('*')
+      .eq('user_uuid', uuid)
+      .order('date_of_check', { ascending: false });
 
     if (error) {
       console.error("[getVitalsByPatient] Error:", error);

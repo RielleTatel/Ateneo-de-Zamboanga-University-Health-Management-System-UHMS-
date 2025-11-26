@@ -7,7 +7,7 @@ const ConsultationModel = {
     console.log("[insertConsultation] Inserting consultation:", consultationData);
 
     const { data, error } = await supabase
-      .from("consultation")
+      .from("consultations")
       .insert([ consultationData ])
       .select()
       .single();
@@ -26,7 +26,7 @@ const ConsultationModel = {
     console.log("[getConsultationById] Looking up:", consultation_id);
 
     const { data, error } = await supabase
-      .from("consultation")
+      .from("consultations")
       .select("*")
       .eq("consultation_id", consultation_id)
       .single();
@@ -44,9 +44,10 @@ const ConsultationModel = {
     console.log("[getConsultationsByUUID] Fetching consultations for uuid:", uuid);
 
     const { data, error } = await supabase
-      .from("consultation")
+      .from("consultations")
       .select("*")
-      .eq("uuid", uuid);
+      .eq("uuid", uuid)
+      .order("date_of_check", { ascending: false });
 
     if (error) {
       console.error("[getConsultationsByUUID] Error:", error);
@@ -61,7 +62,7 @@ const ConsultationModel = {
     console.log("[getAllConsultations] Fetching all consultations");
 
     const { data, error } = await supabase
-      .from("consultation")
+      .from("consultations")
       .select("*");
 
     if (error) {
@@ -77,7 +78,7 @@ const ConsultationModel = {
     console.log("[updateConsultation] Updating:", { consultation_id, updates });
 
     const { data, error } = await supabase
-      .from("consultation")
+      .from("consultations")
       .update(updates)
       .eq("consultation_id", consultation_id)
       .select()
@@ -97,7 +98,7 @@ const ConsultationModel = {
     console.log("[deleteConsultation] Deleting:", consultation_id);
 
     const { data, error } = await supabase
-      .from("consultation")
+      .from("consultations")
       .delete()
       .eq("consultation_id", consultation_id);
 

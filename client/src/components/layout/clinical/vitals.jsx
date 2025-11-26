@@ -1,5 +1,5 @@
-import React from "react"; 
-import { useState } from "react";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, 
     DialogContent, 
@@ -15,226 +15,351 @@ import { Table,
     TableHeader, 
     TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Edit, Archive, Calendar, AlertTriangle, Download, FileText, X, Trash2, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Loader2, Trash2, Plus, AlertCircle, Download } from "lucide-react";
+import axiosInstance from "@/lib/axiosInstance";
 
-// Mock data for initial vitals
+// API Functions
+const fetchVitalsByPatient = async (uuid) => {
+    const { data } = await axiosInstance.get(`/vitals/patient/${uuid}`);
+    return data.vitals;
+};
 
-const vitals = () => { 
+const addVital = async (vitalData) => {
+    const { data } = await axiosInstance.post("/vitals/add", vitalData);
+    return data;
+};
 
-    
-    const initialDates = ["10/15/2025", "9/3/2025", "8/3/2025"];
-    const [dates, setDates] = useState(initialDates);  
+const deleteVital = async (vital_id) => {
+    const { data } = await axiosInstance.delete(`/vitals/delete/${vital_id}`);
+    return data;
+};
 
-    const initialVitals = [
-        {
-            id: 1,
-            test: "Blood Pressure",
-            unit: "mmHg",
-            "10/15/2025": "118/76",
-            "9/3/2025": "120/80",
-            "8/3/2025": "115/75"
-        },
-        {
-            id: 2,
-            test: "Temperature",
-            unit: "°C",
-            "10/15/2025": "36.9",
-            "9/3/2025": "36.8",
-            "8/3/2025": "36.7"
-        },
-        {
-            id: 3,
-            test: "Weight",
-            unit: "kg",
-            "10/15/2025": "64.8",
-            "9/3/2025": "65.0",
-            "8/3/2025": "63.9"
-        },
-        {
-            id: 4,
-            test: "Height",
-            unit: "cm",
-            "10/15/2025": "170",
-            "9/3/2025": "170",
-            "8/3/2025": "170"
-        },
-        {
-            id: 5,
-            test: "Heart Rate",
-            unit: "bpm",
-            "10/15/2025": "70",
-            "9/3/2025": "72",
-            "8/3/2025": "68"
-        },
-        {
-            id: 6,
-            test: "Respiratory Rate",
-            unit: "breaths/min",
-            "10/15/2025": "15",
-            "9/3/2025": "16",
-            "8/3/2025": "15"
-        },
-        {
-            id: 7,
-            test: "BMI",
-            unit: "kg/m²",
-            "10/15/2025": "22.4",
-            "9/3/2025": "22.5",
-            "8/3/2025": "22.1"
+const Vitals = ({ recordId }) => {
+    const queryClient = useQueryClient();
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newVital, setNewVital] = useState({
+        date_of_check: new Date().toISOString().split('T')[0],
+        blood_pressure: '',
+        temperature: '',
+        heart_rate: '',
+        respiratory_rate: '',
+        weight: '',
+        height: '',
+        bmi: ''
+    });
+
+    // Fetch vitals for the patient
+    const { 
+        data: vitals = [], 
+        isLoading,
+        error 
+    } = useQuery({
+        queryKey: ["vitals", recordId],
+        queryFn: () => fetchVitalsByPatient(recordId),
+        enabled: !!recordId,
+        refetchOnWindowFocus: false
+    });
+
+    // Add vital mutation
+    const addVitalMutation = useMutation({
+        mutationFn: addVital,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["vitals", recordId] });
+            setIsAddModalOpen(false);
+            setNewVital({
+                date_of_check: new Date().toISOString().split('T')[0],
+                blood_pressure: '',
+                temperature: '',
+                heart_rate: '',
+                respiratory_rate: '',
+                weight: '',
+                height: '',
+                bmi: ''
+            });
         }
+    });
+
+    // Delete vital mutation
+    const deleteVitalMutation = useMutation({
+        mutationFn: deleteVital,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["vitals", recordId] });
+        }
+    });
+
+    const handleAddVital = () => {
+        // Calculate BMI if weight and height are provided
+        let calculatedBMI = newVital.bmi;
+        if (newVital.weight && newVital.height) {
+            const weightKg = parseFloat(newVital.weight);
+            const heightM = parseFloat(newVital.height) / 100; // convert cm to m
+            calculatedBMI = (weightKg / (heightM * heightM)).toFixed(2);
+        }
+
+        const vitalData = {
+            user_uuid: recordId,
+            date_of_check: newVital.date_of_check,
+            blood_pressure: newVital.blood_pressure || null,
+            temperature: newVital.temperature ? parseFloat(newVital.temperature) : null,
+            heart_rate: newVital.heart_rate ? parseInt(newVital.heart_rate) : null,
+            respiratory_rate: newVital.respiratory_rate ? parseInt(newVital.respiratory_rate) : null,
+            weight: newVital.weight ? parseFloat(newVital.weight) : null,
+            height: newVital.height ? parseFloat(newVital.height) : null,
+            bmi: calculatedBMI ? parseFloat(calculatedBMI) : null
+        };
+
+        addVitalMutation.mutate(vitalData);
+    };
+
+    const handleDeleteVital = (vital_id) => {
+        if (window.confirm("Are you sure you want to delete this vital record?")) {
+            deleteVitalMutation.mutate(vital_id);
+        }
+    };
+
+    // Format date for display
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            month: '2-digit', 
+            day: '2-digit', 
+            year: 'numeric' 
+        });
+    };
+
+    // Group vitals by measurement type
+    const vitalTypes = [
+        { label: 'Blood Pressure', key: 'blood_pressure', unit: 'mmHg' },
+        { label: 'Temperature', key: 'temperature', unit: '°C' },
+        { label: 'Heart Rate', key: 'heart_rate', unit: 'bpm' },
+        { label: 'Respiratory Rate', key: 'respiratory_rate', unit: 'breaths/min' },
+        { label: 'Weight', key: 'weight', unit: 'kg' },
+        { label: 'Height', key: 'height', unit: 'cm' },
+        { label: 'BMI', key: 'bmi', unit: 'kg/m²' }
     ];
 
-    const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false); 
-    const [editingCell, setEditingCell] = useState(null); 
-    const [vitalsData, setVitalsData] = useState(initialVitals);
-
-    const handleCellUpdate = (rowIndex, columnId, value) => {
-        const updateData = vitalsData.map((row, index) => {
-            if (index === rowIndex) {
-                return {...row, [columnId]: value }; 
-            }
-            return row; 
-        }); 
-
-        setVitalsData(updateData); 
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-[23px] border-2 border-container p-6">
+                <div className="flex items-center justify-center p-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <span className="ml-3 text-gray-600">Loading vitals data...</span>
+                </div>
+            </div>
+        );
     }
 
-    // HOW TO RENDER OTHER FILES OR OTHER VALUES 
-    const renderCellContent = (value) => {
-        if (typeof value === 'object' && value !== null) {
-            const FileIcon = <FileText className="w-3 h-3 text-blue-500"/> 
-            const renderFile = (name) => {
-                <div 
-                key={name} 
-                className="flex items-center gap-1"
-                > 
-                    {FileIcon}
-                    <span className="text-blue-500 text-xs cursor-pointer hover:underline"> {name} </span>
-                </div>
-            };  
-
-            if (value.type === 'file') {
-                return renderFile(value.name); 
-            } 
-
-            if (value.type === 'files') {
-                return <div className="space-y-1"> 
-                    {value.files.map(renderFile)}
-                </div>
-            }
-        }
-        return value || "-"; 
-     } 
-
-     // COMPONENT FOR AN EDITABLE CELL 
-     const EditableCell = ({ value, rowIndex, columnId}) => {
-        const isEditing = editingCell?.rowIndex === rowIndex && editingCell?.columnId === columnId; 
-
-        if (isEditing) {
-            return (
-                <Input
-                    type="text"
-                    value={value}
-                    onChange={(e) => handleCellUpdate(rowIndex, columnId, e.target.value)}
-                    onBlur={() => setEditingCell(null)} // Save on blur
-                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingCell(null); }} // Save on Enter
-                    autoFocus
-                    className="h-8"
-                />
-            ); 
-        }
-
+    if (error) {
         return (
-            <div
-                onClick={''}
-                className="cursor-pointer min-h-[32px] flex items-center justify-center p-2 -m-2" // Added padding for easier clicking
-            > 
-                {value || "-"}
+            <div className="bg-white rounded-[23px] border-2 border-container p-6">
+                <div className="flex items-center justify-center p-12">
+                    <AlertCircle className="w-8 h-8 text-red-500" />
+                    <span className="ml-3 text-red-500">Error loading vitals: {error.message}</span>
+                </div>
             </div>
-        )
+        );
      }
+
+    // Sort vitals by date (most recent first) and limit to last 5 records for display
+    const sortedVitals = [...vitals].sort((a, b) => 
+        new Date(b.date_of_check) - new Date(a.date_of_check)
+    ).slice(0, 5);
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-container p-6"> 
-
-            {/* --- Component Header --- */} 
+            {/* Component Header */}
             <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
-                <p className="text-xl font-bold"> Vitals  </p>  
+                <p className="text-xl font-bold">Vitals</p>
                 <div className="flex gap-2 flex-wrap"> 
-                    <Dialog> 
+                    <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                         <DialogTrigger asChild> 
-                            <Button variant="modify" className="flex items-center gap-2"> <Plus className="w-4 h-4"/> Add Column  </Button>
+                            <Button variant="modify" className="flex items-center gap-2">
+                                <Plus className="w-4 h-4" />
+                                Add Vital Record
+                            </Button>
                         </DialogTrigger> 
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Add New Vital Record</DialogTitle>
+                                <DialogDescription>
+                                    Enter the patient's vital signs for this checkup.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid grid-cols-2 gap-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="date">Date of Check</Label>
+                                    <Input
+                                        id="date"
+                                        type="date"
+                                        value={newVital.date_of_check}
+                                        onChange={(e) => setNewVital({ ...newVital, date_of_check: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="bp">Blood Pressure (mmHg)</Label>
+                                    <Input
+                                        id="bp"
+                                        placeholder="120/80"
+                                        value={newVital.blood_pressure}
+                                        onChange={(e) => setNewVital({ ...newVital, blood_pressure: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="temp">Temperature (°C)</Label>
+                                    <Input
+                                        id="temp"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="36.5"
+                                        value={newVital.temperature}
+                                        onChange={(e) => setNewVital({ ...newVital, temperature: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="hr">Heart Rate (bpm)</Label>
+                                    <Input
+                                        id="hr"
+                                        type="number"
+                                        placeholder="72"
+                                        value={newVital.heart_rate}
+                                        onChange={(e) => setNewVital({ ...newVital, heart_rate: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="rr">Respiratory Rate (breaths/min)</Label>
+                                    <Input
+                                        id="rr"
+                                        type="number"
+                                        placeholder="16"
+                                        value={newVital.respiratory_rate}
+                                        onChange={(e) => setNewVital({ ...newVital, respiratory_rate: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="weight">Weight (kg)</Label>
+                                    <Input
+                                        id="weight"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="65.0"
+                                        value={newVital.weight}
+                                        onChange={(e) => setNewVital({ ...newVital, weight: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="height">Height (cm)</Label>
+                                    <Input
+                                        id="height"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="170"
+                                        value={newVital.height}
+                                        onChange={(e) => setNewVital({ ...newVital, height: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="bmi">BMI (kg/m²)</Label>
+                                    <Input
+                                        id="bmi"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="Auto-calculated or enter manually"
+                                        value={newVital.bmi}
+                                        onChange={(e) => setNewVital({ ...newVital, bmi: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            {addVitalMutation.isError && (
+                                <div className="text-red-500 text-sm">
+                                    Error: {addVitalMutation.error?.response?.data?.error || addVitalMutation.error?.message}
+                                </div>
+                            )}
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    onClick={handleAddVital}
+                                    disabled={addVitalMutation.isPending}
+                                >
+                                    {addVitalMutation.isPending ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        'Add Vital Record'
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
                     </Dialog> 
 
-                    <Button variant="outline" className="flex items-center gap-2"> <Download className="w-4 h-4" /> Export </Button>
+                    <Button variant="outline" className="flex items-center gap-2">
+                        <Download className="w-4 h-4" />
+                        Export
+                    </Button>
                 </div> 
             </div> 
 
-            {/* --- Vitals Table --- */} 
-            <div className="overflow-x-auto "> 
-                
+            {/* Vitals Table */}
+            <div className="overflow-x-auto">
+                {sortedVitals.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                        <p className="text-lg font-medium">No vital records found</p>
+                        <p className="text-sm mt-2">Add a new vital record to get started</p>
+                    </div>
+                ) : (
                 <Table>
-
                     <TableHeader>
-                        <TableRow className="bg-gray-800 hover:bg-gray-800">
-                            <TableHead className="text-white font-semibold"> Vitals test </TableHead> 
-
-                            {dates.map((date) => (
-                                <TableHead key={date} className="text-white font-semibold text-center min-w-32 group relative"> 
-                                    {date}
-                                    <Button variant="ghost" size="sm" onClick={''} className="h-6 w-6 p-0 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"> <X className="h-4 w-4 text-red-400" /> </Button>
+                        <TableRow className="bg-gray-800 hover:bg-gray-800 ">
+                                <TableHead className="text-white font-semibold ">Vital Sign</TableHead>
+                                {sortedVitals.map((vital) => (
+                                    <TableHead key={vital.vitals_id} className="text-white font-semibold text-center min-w-32">
+                                        <div className="flex flex-row justify-center items-center gap-x-3">
+                                            <span>{formatDate(vital.date_of_check)}</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteVital(vital.vitals_id)}
+                                                disabled={deleteVitalMutation.isPending}
+                                                className="h-6 w-6 p-0 mt-1 mx-auto text-red-400 hover:text-red-600 hover:bg-red-50"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                 </TableHead>
                             ))} 
-                            <TableHead className="text-white font-semibold text-center min-w-24"> Actions </TableHead>
-
                         </TableRow>
                     </TableHeader> 
-
                     <TableBody> 
-                        {initialVitals.map((row, rowIndex) => (
-                            <TableRow key={row.id || rowIndex} className="hover:bg-gray-50">
-
-                                    {/* Editable Row? */}
+                            {vitalTypes.map((type) => (
+                                <TableRow key={type.key} className="hover:bg-gray-50 ">
                                     <TableCell className="font-medium">
-
-                                        <div className="font-semibold">
-                                            <EditableCell value={row.test} rowIndex={rowIndex} columnId="test" />
-                                        </div>
-
-                                        <div className="text-xs text-gray-500">
-                                            <EditableCell value={row.unit} rowIndex={rowIndex} columnId="unit" />
-                                        </div>
+                                        <div className="font-semibold">{type.label}</div>
+                                        <div className="text-xs text-gray-500">{type.unit}</div>
                                     </TableCell>
-
-                                {/* 1st Row ??? */}
-                                {dates.map((date) => (
-                                    <TableCell key={date} className="text-center"> 
-                                        {typeof row[date] === 'object' ? (
-                                            renderCellContent(row[date])
-                                        ) : (
-                                            <EditableCell value={row[date]} rowIndex={rowIndex} columnId={date} />
-                                        )}
+                                    {sortedVitals.map((vital) => (
+                                        <TableCell key={vital.vitals_id} className="text-center">
+                                            {vital[type.key] || '-'}
                                     </TableCell>     
                                 ))} 
-                                
-                                {/* 2nd Row ??? */}
-                                    <TableCell className="text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Button variant="ghost" size="sm" onClick={''} className="h-8 w-8 p-0 text-red-600 hover:text-red-700"> <Trash2 className="h-4 w-4" /> </Button>
-                                        </div>
-                                    </TableCell>
-
                             </TableRow> 
                         ))}
                     </TableBody>
-
                 </Table> 
+                )}
             </div>
 
+            {vitals.length > 5 && (
+                <div className="mt-4 text-center text-sm text-gray-500">
+                    Showing latest 5 of {vitals.length} records
+                </div>
+            )}
         </div>
-    )
-}
+    );
+};
 
-export default vitals; 
+export default Vitals;

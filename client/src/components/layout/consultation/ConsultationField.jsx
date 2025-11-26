@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -10,256 +10,359 @@ import { Plus, Trash2, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus } from "lu
 import { cn } from "@/lib/utils";
 
 // --- Vitals Field Component for Consultation ---
-export const VitalsField = () => {
-    const [editingCell, setEditingCell] = useState(null);
-    
-    const initialVitalsData = [
-        { id: 1, test: "Blood Pressure", unit: "mmHg", value: "" },
-        { id: 2, test: "Temperature", unit: "°C", value: "" },
-        { id: 3, test: "Heart Rate", unit: "bpm", value: "" },
-        { id: 4, test: "Respiratory Rate", unit: "breaths/min", value: "" },
-        { id: 5, test: "Weight", unit: "kg", value: "" },
-        { id: 6, test: "Height", unit: "cm", value: "" },
-        { id: 7, test: "BMI", unit: "kg/m²", value: "" }
-    ];
+export const VitalsField = ({ onDataChange, recordId }) => {
+    const [vitalData, setVitalData] = useState({
+        date_of_check: new Date().toISOString().split('T')[0],
+        blood_pressure: "",
+        temperature: "",
+        heart_rate: "",
+        respiratory_rate: "",
+        weight: "",
+        height: "",
+        bmi: ""
+    });
 
-    const [vitalsData, setVitalsData] = useState(initialVitalsData);
-
-    const handleCellUpdate = (rowIndex, columnId, value) => {
-        const updatedData = vitalsData.map((row, index) => {
-            if (index === rowIndex) {
-                return { ...row, [columnId]: value };
-            }
-            return row;
-        });
-        setVitalsData(updatedData);
-    };
-
-    const handleAddRow = () => {
-        const newRow = { 
-            id: Date.now(), 
-            test: "", 
-            unit: "", 
-            value: "" 
-        };
-        setVitalsData([...vitalsData, newRow]);
-    };
-
-    const handleDeleteRow = (rowIndex) => {
-        setVitalsData(vitalsData.filter((_, index) => index !== rowIndex));
-    };
-
-    const EditableCell = ({ value, rowIndex, columnId, className = "" }) => {
-        const isEditing = editingCell?.rowIndex === rowIndex && editingCell?.columnId === columnId;
-
-        if (isEditing) {
-            return (
-                <Input
-                    type="text"
-                    value={value || ""}
-                    onChange={(e) => handleCellUpdate(rowIndex, columnId, e.target.value)}
-                    onBlur={() => setEditingCell(null)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingCell(null); }}
-                    autoFocus
-                    className={`h-8 ${className}`}
-                />
-            );
+    // Auto-calculate BMI
+    useEffect(() => {
+        const weight = parseFloat(vitalData.weight);
+        const height = parseFloat(vitalData.height);
+        if (weight > 0 && height > 0) {
+            const heightInMeters = height / 100;
+            const calculatedBMI = (weight / (heightInMeters * heightInMeters)).toFixed(2);
+            setVitalData(prev => ({ ...prev, bmi: calculatedBMI }));
         }
+    }, [vitalData.weight, vitalData.height]);
 
-        return (
-            <div
-                onClick={() => setEditingCell({ rowIndex, columnId })}
-                className="cursor-pointer min-h-[32px] flex items-center justify-center p-2 -m-2"
-            >
-                {value || "-"}
-            </div>
-        );
+    // Notify parent of data changes
+    useEffect(() => {
+        if (onDataChange) {
+            onDataChange({ ...vitalData, user_uuid: recordId });
+        }
+    }, [vitalData, recordId, onDataChange]);
+
+    const handleInputChange = (field, value) => {
+        setVitalData(prev => ({ ...prev, [field]: value }));
     };
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
-            <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
-                <p className="text-xl font-bold">Vitals</p>
-                <Button 
-                    variant="modify" 
-                    className="flex items-center gap-2"
-                    onClick={handleAddRow}
-                >
-                    <Plus className="w-4 h-4" /> Add Row
-                </Button>
+            <p className="text-xl font-bold mb-6">Vitals</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date of Check
+                    </label>
+                    <Input
+                        type="date"
+                        value={vitalData.date_of_check}
+                        onChange={(e) => handleInputChange('date_of_check', e.target.value)}
+                        className="rounded-lg"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Blood Pressure (mmHg)
+                    </label>
+                    <Input
+                        type="text"
+                        placeholder="120/80"
+                        value={vitalData.blood_pressure}
+                        onChange={(e) => handleInputChange('blood_pressure', e.target.value)}
+                        className="rounded-lg"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Temperature (°C)
+                    </label>
+                    <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="36.5"
+                        value={vitalData.temperature}
+                        onChange={(e) => handleInputChange('temperature', e.target.value)}
+                        className="rounded-lg"
+                    />
             </div>
 
-            <div className="overflow-x-auto">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="bg-gray-800 hover:bg-gray-800">
-                            <TableHead className="text-white font-semibold">Vital Test</TableHead>
-                            <TableHead className="text-white font-semibold text-center min-w-32">Value</TableHead>
-                            <TableHead className="text-white font-semibold text-center min-w-24">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Heart Rate (bpm)
+                    </label>
+                    <Input
+                        type="number"
+                        placeholder="72"
+                        value={vitalData.heart_rate}
+                        onChange={(e) => handleInputChange('heart_rate', e.target.value)}
+                        className="rounded-lg"
+                    />
+                </div>
 
-                    <TableBody>
-                        {vitalsData.map((row, rowIndex) => (
-                            <TableRow key={row.id} className="hover:bg-gray-50">
-                                <TableCell className="font-medium">
-                                    <div className="font-semibold">
-                                        <EditableCell 
-                                            value={row.test} 
-                                            rowIndex={rowIndex} 
-                                            columnId="test" 
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Respiratory Rate (breaths/min)
+                    </label>
+                    <Input
+                        type="number"
+                        placeholder="16"
+                        value={vitalData.respiratory_rate}
+                        onChange={(e) => handleInputChange('respiratory_rate', e.target.value)}
+                        className="rounded-lg"
                                         />
                                     </div>
-                                    <div className="text-xs text-gray-500">
-                                        <EditableCell 
-                                            value={row.unit} 
-                                            rowIndex={rowIndex} 
-                                            columnId="unit" 
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Weight (kg)
+                    </label>
+                    <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="70"
+                        value={vitalData.weight}
+                        onChange={(e) => handleInputChange('weight', e.target.value)}
+                        className="rounded-lg"
                                         />
                                     </div>
-                                </TableCell>
 
-                                <TableCell className="text-center">
-                                    <EditableCell 
-                                        value={row.value} 
-                                        rowIndex={rowIndex} 
-                                        columnId="value" 
-                                    />
-                                </TableCell>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Height (cm)
+                    </label>
+                    <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="170"
+                        value={vitalData.height}
+                        onChange={(e) => handleInputChange('height', e.target.value)}
+                        className="rounded-lg"
+                    />
+                </div>
 
-                                <TableCell className="text-center">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            onClick={() => handleDeleteRow(rowIndex)} 
-                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        BMI (kg/m²)
+                    </label>
+                    <Input
+                        type="text"
+                        value={vitalData.bmi}
+                        readOnly
+                        className="rounded-lg bg-gray-50"
+                        placeholder="Auto-calculated"
+                    />
                                     </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
             </div>
         </div>
     );
 };
 
 // --- Lab Field Component for Consultation ---
-export const LabFields = () => {
+export const LabFields = ({ onDataChange, recordId }) => {
+    // Standard lab test fields from database schema
+    const standardLabFields = {
+        hgb: '',
+        mcv: '',
+        wbc: '',
+        slp: '',
+        tchol: '',
+        hdl: '',
+        ldl: '',
+        trig: '',
+        fbs: '',
+        hba1c: '',
+        sgpt: '',
+        screa: '',
+        burica: '',
+        na: '',
+        k: '',
+        psa: '',
+        ekg: '',
+        'echo_2d': '',
+        cxr: '',
+        diastolic: '',
+        systolic: '',
+        urinalysis: '',
+        folate: '',
+        vitd: '',
+        b12: '',
+        tsh: ''
+    };
+
+    const [labData, setLabData] = useState(standardLabFields);
+    
+    // Custom user-defined fields (for results_fields table)
+    const [customFields, setCustomFields] = useState([]);
+    
     const [editingCell, setEditingCell] = useState(null);
     
-    const initialLabData = [
-        { id: 1, test: "Complete Blood Count (CBC)", unit: "g/dL", value: "" },
-        { id: 2, test: "Blood Glucose", unit: "mg/dL", value: "" },
-        { id: 3, test: "Cholesterol", unit: "mg/dL", value: "" },
-        { id: 4, test: "Urinalysis", unit: "N/A", value: "" },  
+    // Notify parent of data changes
+    useEffect(() => {
+        if (onDataChange) {
+            onDataChange({
+                standardFields: { ...labData, user_uuid: recordId },
+                customFields: customFields
+            });
+        }
+    }, [labData, customFields, recordId]);
+
+    const handleStandardFieldChange = (field, value) => {
+        setLabData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleCustomFieldUpdate = (index, field, value) => {
+        const updatedFields = [...customFields];
+        updatedFields[index] = { ...updatedFields[index], [field]: value };
+        setCustomFields(updatedFields);
+    };
+
+    const handleAddCustomRow = () => {
+        const newField = { 
+            id: Date.now(), 
+            field_key: "", 
+            field_value: "",
+            value_type: "text"
+        };
+        setCustomFields([...customFields, newField]);
+    };
+
+    const handleDeleteCustomRow = (index) => {
+        setCustomFields(customFields.filter((_, idx) => idx !== index));
+    };
+
+    // Lab test definitions with categories
+    const labTests = [
+        { key: 'hgb', label: 'HGB (Hemoglobin)', unit: 'g/dL', category: 'Hematology' },
+        { key: 'mcv', label: 'MCV', unit: 'fL', category: 'Hematology' },
+        { key: 'wbc', label: 'WBC', unit: 'K/μL', category: 'Hematology' },
+        { key: 'slp', label: 'S/L/P', unit: '', category: 'Hematology' },
+        { key: 'tchol', label: 'Total Cholesterol', unit: 'mg/dL', category: 'Lipid Panel' },
+        { key: 'hdl', label: 'HDL', unit: 'mg/dL', category: 'Lipid Panel' },
+        { key: 'ldl', label: 'LDL', unit: 'mg/dL', category: 'Lipid Panel' },
+        { key: 'trig', label: 'Triglycerides', unit: 'mg/dL', category: 'Lipid Panel' },
+        { key: 'fbs', label: 'FBS', unit: 'mg/dL', category: 'Diabetes' },
+        { key: 'hba1c', label: 'HbA1c', unit: '%', category: 'Diabetes' },
+        { key: 'sgpt', label: 'SGPT', unit: 'U/L', category: 'Liver' },
+        { key: 'screa', label: 'Serum Creatinine', unit: 'mg/dL', category: 'Kidney' },
+        { key: 'burica', label: 'Blood Uric Acid', unit: 'mg/dL', category: 'Kidney' },
+        { key: 'na', label: 'Sodium (Na)', unit: 'mEq/L', category: 'Electrolytes' },
+        { key: 'k', label: 'Potassium (K)', unit: 'mEq/L', category: 'Electrolytes' },
+        { key: 'diastolic', label: 'Blood Pressure (DBP)', unit: 'mmHg', category: 'Vitals' },
+        { key: 'systolic', label: 'Blood Pressure (SBP)', unit: 'mmHg', category: 'Vitals' },
+        { key: 'psa', label: 'PSA', unit: 'ng/mL', category: 'Other' },
+        { key: 'ekg', label: 'EKG', unit: 'Result', category: 'Diagnostics' },
+        { key: 'echo_2d', label: '2D Echo', unit: 'Result', category: 'Diagnostics' },
+        { key: 'cxr', label: 'CXR', unit: 'Result', category: 'Diagnostics' },
+        { key: 'urinalysis', label: 'Urinalysis', unit: 'Result', category: 'Other' },
+        { key: 'folate', label: 'Folate', unit: 'ng/mL', category: 'Vitamins' },
+        { key: 'vitd', label: 'Vitamin D', unit: 'ng/mL', category: 'Vitamins' },
+        { key: 'b12', label: 'Vitamin B12', unit: 'pg/mL', category: 'Vitamins' },
+        { key: 'tsh', label: 'TSH', unit: 'mIU/L', category: 'Thyroid' }
     ];
 
-    const [labData, setLabData] = useState(initialLabData);
-
-    const handleCellUpdate = (rowIndex, columnId, value) => {
-        const updatedData = labData.map((row, index) => {
-            if (index === rowIndex) {
-                return { ...row, [columnId]: value };
-            }
-            return row;
-        });
-        setLabData(updatedData);
-    };
-
-    const handleAddRow = () => {
-        const newRow = { 
-            id: Date.now(), 
-            test: "", 
-            unit: "", 
-            value: "" 
-        };
-        setLabData([...labData, newRow]);
-    };
-
-    const handleDeleteRow = (rowIndex) => {
-        setLabData(labData.filter((_, index) => index !== rowIndex));
-    };
-
-    const EditableCell = ({ value, rowIndex, columnId, className = "" }) => {
-        const isEditing = editingCell?.rowIndex === rowIndex && editingCell?.columnId === columnId;
-
-        if (isEditing) {
-            return (
-                <Input
-                    type="text"
-                    value={value || ""}
-                    onChange={(e) => handleCellUpdate(rowIndex, columnId, e.target.value)}
-                    onBlur={() => setEditingCell(null)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingCell(null); }}
-                    autoFocus
-                    className={`h-8 ${className}`}
-                />
-            );
+    // Group tests by category
+    const groupedTests = labTests.reduce((acc, test) => {
+        if (!acc[test.category]) {
+            acc[test.category] = [];
         }
-
-        return (
-            <div
-                onClick={() => setEditingCell({ rowIndex, columnId })}
-                className="cursor-pointer min-h-[32px] flex items-center justify-center p-2 -m-2"
-            >
-                {value || "-"}
-            </div>
-        );
-    };
+        acc[test.category].push(test);
+        return acc;
+    }, {});
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6">
-            <div className="flex justify-between items-center gap-2 mb-6 flex-wrap">
-                <p className="text-xl font-bold">Laboratory Tests</p>
+            <p className="text-xl font-bold mb-6">Laboratory Tests</p>
+
+            {/* Standard Lab Fields organized by category */}
+            {Object.entries(groupedTests).map(([category, tests]) => (
+                <div key={category} className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-700">{category}</h3>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-gray-800 hover:bg-gray-800">
+                                    <TableHead className="text-white font-semibold">Test Name</TableHead>
+                                    <TableHead className="text-white font-semibold text-center min-w-32">Result/Value</TableHead>
+                                </TableRow>
+                            </TableHeader>
+
+                            <TableBody>
+                                {tests.map((test) => (
+                                    <TableRow key={test.key} className="hover:bg-gray-50">
+                                        <TableCell className="font-medium">
+                                            <div className="font-semibold">{test.label}</div>
+                                            {test.unit && (
+                                                <div className="text-xs text-gray-500">{test.unit}</div>
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell className="text-center">
+                                            <Input
+                                                type={test.category === 'Diagnostics' || test.unit === 'Result' ? 'text' : 'number'}
+                                                step="0.01"
+                                                placeholder={test.category === 'Diagnostics' ? 'Enter result' : 'Enter value'}
+                                                value={labData[test.key]}
+                                                onChange={(e) => handleStandardFieldChange(test.key, e.target.value)}
+                                                className="h-8"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            ))}
+
+            {/* Custom User-Defined Fields Section */}
+            <div className="mt-8 pt-6 border-t-2 border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-700">Additional Custom Tests</h3>
+                        <p className="text-sm text-gray-500">Add custom lab tests not in the standard list</p>
+                    </div>
                 <Button 
                     variant="modify" 
                     className="flex items-center gap-2"
-                    onClick={handleAddRow}
+                        onClick={handleAddCustomRow}
                 >
-                    <Plus className="w-4 h-4" /> Add Row
+                        <Plus className="w-4 h-4" /> Add Custom Test
                 </Button>
             </div>
 
+                {customFields.length > 0 && (
             <div className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-gray-800 hover:bg-gray-800">
-                            <TableHead className="text-white font-semibold">Laboratory Test</TableHead>
-                            <TableHead className="text-white font-semibold text-center min-w-32">Result</TableHead>
+                                    <TableHead className="text-white font-semibold">Test Name</TableHead>
+                                    <TableHead className="text-white font-semibold text-center min-w-32">Result/Value</TableHead>
                             <TableHead className="text-white font-semibold text-center min-w-24">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        {labData.map((row, rowIndex) => (
-                            <TableRow key={row.id} className="hover:bg-gray-50">
+                                {customFields.map((field, index) => (
+                                    <TableRow key={field.id} className="hover:bg-gray-50">
                                 <TableCell className="font-medium">
-                                    <div className="font-semibold">
-                                        <EditableCell 
-                                            value={row.test} 
-                                            rowIndex={rowIndex} 
-                                            columnId="test" 
-                                        />
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                        <EditableCell 
-                                            value={row.unit} 
-                                            rowIndex={rowIndex} 
-                                            columnId="unit" 
-                                        />
-                                    </div>
+                                            <Input
+                                                type="text"
+                                                placeholder="e.g., Custom Test Name"
+                                                value={field.field_key}
+                                                onChange={(e) => handleCustomFieldUpdate(index, 'field_key', e.target.value)}
+                                                className="h-8"
+                                            />
                                 </TableCell>
 
                                 <TableCell className="text-center">
-                                    <EditableCell 
-                                        value={row.value} 
-                                        rowIndex={rowIndex} 
-                                        columnId="value" 
+                                            <Input
+                                                type="text"
+                                                placeholder="Enter result"
+                                                value={field.field_value}
+                                                onChange={(e) => handleCustomFieldUpdate(index, 'field_value', e.target.value)}
+                                                className="h-8"
                                     />
                                 </TableCell>
 
@@ -268,7 +371,7 @@ export const LabFields = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            onClick={() => handleDeleteRow(rowIndex)} 
+                                                    onClick={() => handleDeleteCustomRow(index)} 
                                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -279,26 +382,33 @@ export const LabFields = () => {
                         ))}
                     </TableBody>
                 </Table>
+                    </div>
+                )}
+
+                {customFields.length === 0 && (
+                    <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                        <p className="text-sm">No custom tests added. Click "Add Custom Test" to add your own.</p>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
 // --- Consultation Notes Component ---
-export const ConsultationNotes = () => { 
+export const ConsultationNotes = ({ onDataChange, recordId }) => { 
+    const [consultationData, setConsultationData] = useState({
+        date_of_check: new Date().toISOString().split('T')[0],
+        symptoms: "",
+        history: "",
+        medical_clearance: "",
+        chronic_risk_factor: [],
+        additional_notes: ""
+    });
 
     // --- Prescription State ---
 const [prescriptions, setPrescriptions] = useState([]);
 const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
-
-    const [notes, setNotes] = useState("");
-    const [prescription, setPrescription] = useState("");
-    const [history, setHistory] = useState(""); 
-    const [additionalNotes, setAdditionalNotes] = useState("");  
-    
-    const [medicalClearance, setMedicalClearance] = useState("");
-
-    const [chronicRiskFactors, setChronicRiskFactors] = useState([]);
     const [openRiskFactors, setOpenRiskFactors] = useState(false);
 
     const riskFactorOptions = [
@@ -308,6 +418,27 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
         { value: "hypertension", label: "Hypertension" },
         { value: "diabetes", label: "Diabetes" },
     ]; 
+
+    // Notify parent of data changes
+    useEffect(() => {
+        if (onDataChange) {
+            const { additional_notes, ...consultationFields } = consultationData;
+            
+            onDataChange({
+                consultation: {
+                    ...consultationFields,
+                    uuid: recordId,
+                    chronic_risk_factor: consultationData.chronic_risk_factor.join(', ')
+                },
+                prescriptions: prescriptions,
+                additional_notes: additional_notes
+            });
+        }
+    }, [consultationData, prescriptions, recordId, onDataChange]);
+
+    const handleConsultationChange = (field, value) => {
+        setConsultationData(prev => ({ ...prev, [field]: value }));
+    }; 
 
     const handleAddPrescription = () => {
         setShowPrescriptionFields(true);
@@ -379,60 +510,72 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
     
  
     const toggleRiskFactor = (value) => {
-        setChronicRiskFactors((prev) =>
-            prev.includes(value)
-                ? prev.filter((item) => item !== value)
-                : [...prev, value]
-        );
+        setConsultationData(prev => ({
+            ...prev,
+            chronic_risk_factor: prev.chronic_risk_factor.includes(value)
+                ? prev.chronic_risk_factor.filter((item) => item !== value)
+                : [...prev.chronic_risk_factor, value]
+        }));
     };
 
     const removeRiskFactor = (value) => {
-        setChronicRiskFactors((prev) => prev.filter((item) => item !== value));
+        setConsultationData(prev => ({
+            ...prev,
+            chronic_risk_factor: prev.chronic_risk_factor.filter((item) => item !== value)
+        }));
     };
 
 
     return (
         <div className="bg-white rounded-[23px] border-2 border-[#E5E5E5] p-6 space-y-6">
-            <p className="text-lg font-bold text-[#353535]"> Checkup Form- </p> 
+            <p className="text-lg font-bold text-[#353535]">Consultation Form</p> 
 
-            <div className="flex flex-row gap-x-5"> 
-                <p className="text-[#353535]"> <b> Date: </b> <span> October 24, 2025 </span> </p>
-                <p className="text-[#353535]"> <b> Attending staff: </b> <span> Dr. Resly Kadiri </span> </p>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Check</label>
+                <Input
+                    type="date"
+                    value={consultationData.date_of_check}
+                    onChange={(e) => handleConsultationChange('date_of_check', e.target.value)}
+                    className="rounded-lg"
+                />
             </div>
 
             <div className="space-y-4">
                 <div>
-                    <label className="block text-md font-semibold mb-2 text-[#353535]"> Chief Complaint / Symptoms</label>
+                    <label className="block text-md font-semibold mb-2 text-[#353535]">Chief Complaint / Symptoms</label>
                     <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="min-h-[100px] resize-none rounded-[17px] "
+                        value={consultationData.symptoms}
+                        onChange={(e) => handleConsultationChange('symptoms', e.target.value)}
+                        className="min-h-[100px] resize-none rounded-[17px]"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-md font-semibold mb-2 text-[#353535]"> History </label>
+                    <label className="block text-md font-semibold mb-2 text-[#353535]">History</label>
                     <Textarea
-                        value={history}
-                        onChange={(e) => setHistory(e.target.value)}
+                        value={consultationData.history}
+                        onChange={(e) => handleConsultationChange('history', e.target.value)}
                         className="min-h-[100px] resize-none rounded-[17px]"
                     />
                 </div> 
                 
-            {/* ADDED NEW DROPDOWN SECTION HERE */}
+            {/* Medical Clearance & Risk Factors */}
             <div className="flex flex-col md:flex-row gap-4 mb-6"> 
                                 {/* DROPDOWN SELECTION 1 */}
                                 <div className="flex flex-col flex-1"> 
                                     <div>
-                                        <label className="block text-md font-semibold mb-1 text-gray-700"> Medical Clearance </label>
-                                        <Select value={medicalClearance} onValueChange={setMedicalClearance}>
+                        <label className="block text-md font-semibold mb-1 text-gray-700">Medical Clearance</label>
+                        <Select 
+                            value={consultationData.medical_clearance} 
+                            onValueChange={(value) => handleConsultationChange('medical_clearance', value)}
+                        >
                                             <SelectTrigger className="rounded-[10px]">
                                                 <SelectValue placeholder="Select clearance status" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="normal">Normal</SelectItem>
-                                                <SelectItem value="at-risk">At Risk</SelectItem>
-                                                <SelectItem value="critical">Critical</SelectItem>
+                                <SelectItem value="Normal">Normal</SelectItem>
+                                <SelectItem value="At Risk">At Risk</SelectItem>
+                                <SelectItem value="Critical">Critical</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -441,7 +584,7 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                 {/* DROPDOWN SELECTION 2 - Multi-select */}
                                 <div className="flex flex-col flex-1">
                                     <div>
-                                        <label className="block text-md font-semibold mb-1 text-gray-700"> Chronic Risk Factors </label>
+                        <label className="block text-md font-semibold mb-1 text-gray-700">Chronic Risk Factors</label>
                                         <Popover open={openRiskFactors} onOpenChange={setOpenRiskFactors}>
                                             <PopoverTrigger asChild>
                                                 <Button
@@ -451,10 +594,10 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                     className="w-full justify-between rounded-[10px] h-auto min-h-[40px] py-2"
                                                 >
                                                     <div className="flex gap-1 flex-wrap">
-                                                        {chronicRiskFactors.length === 0 ? (
-                                                            <span className="text-muted-foreground"> Select risk factors</span>
+                                        {consultationData.chronic_risk_factor.length === 0 ? (
+                                            <span className="text-muted-foreground">Select risk factors</span>
                                                         ) : (
-                                                            chronicRiskFactors.map((factor) => {
+                                            consultationData.chronic_risk_factor.map((factor) => {
                                                                 const option = riskFactorOptions.find(opt => opt.value === factor);
                                                                 return (
                                                                     <span
@@ -482,7 +625,7 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                 <Command>
                                                     <CommandInput placeholder="Search risk factors..." />
                                                     <CommandList>
-                                                        <CommandEmpty> No risk factor found. </CommandEmpty>
+                                        <CommandEmpty>No risk factor found.</CommandEmpty>
                                                         <CommandGroup>
                                                             {riskFactorOptions.map((option) => (
                                                                 <CommandItem
@@ -493,7 +636,7 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                                     <div className="flex items-center gap-2 w-full">
                                                                         <div className={cn(
                                                                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                                            chronicRiskFactors.includes(option.value)
+                                                            consultationData.chronic_risk_factor.includes(option.value)
                                                                                 ? "bg-primary text-primary-foreground"
                                                                                 : "opacity-50 [&_svg]:invisible"
                                                                         )}>
@@ -514,10 +657,10 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                             
 
                             <div>
-                                <label className="block text-md font-semibold mb-2 text-[#353535]"> Additional Notes </label>
+                                <label className="block text-md font-semibold mb-2 text-[#353535]">Additional Notes</label>
                                 <Textarea
-                                    value={additionalNotes}
-                                    onChange={(e) => setAdditionalNotes(e.target.value)}
+                                    value={consultationData.additional_notes}
+                                    onChange={(e) => handleConsultationChange('additional_notes', e.target.value)}
                                     className="min-h-[100px] resize-none rounded-[17px]"
                                 />
                             </div>   

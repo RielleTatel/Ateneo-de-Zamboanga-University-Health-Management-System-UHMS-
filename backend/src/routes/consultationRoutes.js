@@ -7,8 +7,9 @@ const router = express.Router();
 // Consultation management routes - Protected (Admin only)
 router.get("/", ConsultationController.getAllConsultations);
 router.get("/user/:uuid", ConsultationController.getConsultationsByUUID);
-router.get("/:id",ConsultationController.getConsultationById);
-router.post("/create",ConsultationController.createConsultation);
+router.get("/:id", ConsultationController.getConsultationById);
+router.get("/:id/prescriptions", ConsultationController.getPrescriptionsByConsultation);
+router.post("/create", ConsultationController.createConsultation);
 router.patch("/update/:id", ConsultationController.updateConsultation);
 router.delete("/delete/:id", ConsultationController.deleteConsultation);
 

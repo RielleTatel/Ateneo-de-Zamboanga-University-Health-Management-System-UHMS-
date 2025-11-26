@@ -43,9 +43,10 @@ const VitalController = {
 
       if (!vitals || vitals.length === 0) {
         console.log(`⚠️ No vitals found for patient UUID ${uuid}`);
-        return res.status(404).json({
-          success: false,
-          message: `No vitals found for patient UUID ${uuid}`
+        return res.json({
+          success: true,
+          message: `No vitals found for patient UUID ${uuid}`,
+          vitals: []
         });
       }
 

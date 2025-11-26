@@ -158,9 +158,9 @@ const Clinical = () => {
                         </div> 
 
                         {/* Conditional Rendering based on active tab */} 
-                        {activeTab === 'vitals' && <Vitals />}
-                        {activeTab === 'lab' && <Lab />}
-                        {activeTab == 'encounters' && <Encounters />}
+                        {activeTab === 'vitals' && <Vitals recordId={recordId} />}
+                        {activeTab === 'lab' && <Lab recordId={recordId} />}
+                        {activeTab == 'encounters' && <Encounters recordId={recordId} />}
 
                     </div>
                 </div>
