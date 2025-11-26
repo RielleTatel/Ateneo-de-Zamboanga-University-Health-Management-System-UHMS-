@@ -161,6 +161,7 @@ const Consult = () => {
 
                 <div className="bg-background-secondary mt-2 min-h-[700px] rounded-[23px] border-outline border-2 p-7">  
                     <ProfileHeader 
+                        recordId={recordId}
                         patientName={recordName}
                         patientPosition={recordPosition}
                         patientDepartment={recordDepartment}
