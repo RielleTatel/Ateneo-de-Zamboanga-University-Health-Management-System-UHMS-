@@ -33,10 +33,25 @@ export const VitalsField = ({ onDataChange, recordId }) => {
         }
     }, [vitalData.weight, vitalData.height]);
 
-    // Notify parent of data changes
+    // Notify parent of data changes with validation info
     useEffect(() => {
         if (onDataChange) {
-            onDataChange({ ...vitalData, user_uuid: recordId });
+            const filledFields = Object.keys(vitalData).filter(key => 
+                key !== 'date_of_check' && vitalData[key] && vitalData[key] !== ''
+            );
+            const emptyFields = Object.keys(vitalData).filter(key => 
+                key !== 'date_of_check' && key !== 'bmi' && (!vitalData[key] || vitalData[key] === '')
+            );
+            
+            onDataChange({ 
+                ...vitalData, 
+                user_uuid: recordId,
+                _meta: {
+                    hasData: filledFields.length > 0,
+                    emptyFieldCount: emptyFields.length,
+                    filledFieldCount: filledFields.length
+                }
+            });
         }
     }, [vitalData, recordId, onDataChange]);
 
@@ -198,12 +213,28 @@ export const LabFields = ({ onDataChange, recordId }) => {
     
     const [editingCell, setEditingCell] = useState(null);
     
-    // Notify parent of data changes
+    // Notify parent of data changes with validation info
     useEffect(() => {
         if (onDataChange) {
+            const filledStandardFields = Object.keys(labData).filter(key => 
+                labData[key] && labData[key] !== ''
+            );
+            const emptyStandardFields = Object.keys(labData).filter(key => 
+                !labData[key] || labData[key] === ''
+            );
+            const filledCustomFields = customFields.filter(field => 
+                field.field_key && field.field_value
+            );
+            
             onDataChange({
                 standardFields: { ...labData, user_uuid: recordId },
-                customFields: customFields
+                customFields: customFields,
+                _meta: {
+                    hasData: filledStandardFields.length > 0 || filledCustomFields.length > 0,
+                    emptyStandardCount: emptyStandardFields.length,
+                    filledStandardCount: filledStandardFields.length,
+                    filledCustomCount: filledCustomFields.length
+                }
             });
         }
     }, [labData, customFields, recordId]);
@@ -265,10 +296,6 @@ export const LabFields = ({ onDataChange, recordId }) => {
         { key: 'diastolic', label: 'Blood Pressure (DBP)', unit: 'mmHg' },
         { key: 'systolic', label: 'Blood Pressure (SBP)', unit: 'mmHg' },
         { key: 'psa', label: 'PSA', unit: 'ng/mL' },
-        { key: 'ekg', label: 'EKG', unit: 'Result' },
-        { key: 'echo_2d', label: '2D Echo', unit: 'Result' },
-        { key: 'cxr', label: 'CXR', unit: 'Result' },
-        { key: 'urinalysis', label: 'Urinalysis', unit: 'Result' },
         { key: 'folate', label: 'Folate', unit: 'ng/mL' },
         { key: 'vitd', label: 'Vitamin D', unit: 'ng/mL' },
         { key: 'b12', label: 'Vitamin B12', unit: 'pg/mL' },
@@ -404,7 +431,7 @@ export const ConsultationNotes = ({ onDataChange, recordId }) => {
         history: "",
         medical_clearance: "",
         chronic_risk_factor: [],
-        additional_notes: ""
+        remarks: ""
     });
 
     // --- Prescription State ---
@@ -420,19 +447,38 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
         { value: "diabetes", label: "Diabetes" },
     ]; 
 
-    // Notify parent of data changes
+    // Notify parent of data changes with validation info
     useEffect(() => {
         if (onDataChange) {
-            const { additional_notes, ...consultationFields } = consultationData;
+            const { date_of_check, remarks, ...consultationFields } = consultationData;
+            
+            const filledConsultationFields = Object.keys(consultationFields).filter(key => {
+                const value = consultationFields[key];
+                if (Array.isArray(value)) return value.length > 0;
+                return value && value !== '';
+            });
+            
+            const emptyConsultationFields = Object.keys(consultationFields).filter(key => {
+                const value = consultationFields[key];
+                if (Array.isArray(value)) return value.length === 0;
+                return !value || value === '';
+            });
             
             onDataChange({
                 consultation: {
                     ...consultationFields,
+                    date_of_check,
                     uuid: recordId,
-                    chronic_risk_factor: consultationData.chronic_risk_factor.join(', ')
+                    chronic_risk_factor: consultationData.chronic_risk_factor, // Keep as array
+                    remarks: remarks || ''
                 },
                 prescriptions: prescriptions,
-                additional_notes: additional_notes
+                _meta: {
+                    hasData: filledConsultationFields.length > 0 || prescriptions.length > 0 || remarks,
+                    emptyFieldCount: emptyConsultationFields.length + (remarks ? 0 : 1),
+                    filledFieldCount: filledConsultationFields.length + (remarks ? 1 : 0),
+                    prescriptionCount: prescriptions.length
+                }
             });
         }
     }, [consultationData, prescriptions, recordId, onDataChange]);
@@ -658,10 +704,10 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                             
 
                             <div>
-                                <label className="block text-md font-semibold mb-2 text-[#353535]">Additional Notes</label>
+                                <label className="block text-md font-semibold mb-2 text-[#353535]"> Remarks </label>
                                 <Textarea
-                                    value={consultationData.additional_notes}
-                                    onChange={(e) => handleConsultationChange('additional_notes', e.target.value)}
+                                    value={consultationData.remarks}
+                                    onChange={(e) => handleConsultationChange('remarks', e.target.value)}
                                     className="min-h-[100px] resize-none rounded-[17px]"
                                 />
                             </div>   

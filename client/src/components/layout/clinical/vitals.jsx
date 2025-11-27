@@ -291,10 +291,6 @@ const Vitals = ({ recordId }) => {
                         </DialogContent>
                     </Dialog> 
 
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <Download className="w-4 h-4" />
-                        Export
-                    </Button>
                 </div> 
             </div> 
 

@@ -59,14 +59,10 @@ const Lab = ({ recordId }) => {
         { key: 'na', label: 'Sodium (Na)', unit: 'mEq/L', category: 'Electrolytes' },
         { key: 'k', label: 'Potassium (K)', unit: 'mEq/L', category: 'Electrolytes' },
         { key: 'psa', label: 'PSA', unit: 'ng/mL', category: 'Other' },
-        { key: 'urinalysis', label: 'Urinalysis', unit: 'Result', category: 'Other' },
         { key: 'folate', label: 'Folate', unit: 'ng/mL', category: 'Vitamins' },
         { key: 'vitd', label: 'Vitamin D', unit: 'ng/mL', category: 'Vitamins' },
         { key: 'b12', label: 'Vitamin B12', unit: 'pg/mL', category: 'Vitamins' },
         { key: 'tsh', label: 'TSH', unit: 'mIU/L', category: 'Thyroid' },
-        { key: 'ekg', label: 'EKG', unit: 'Attachment', category: 'Diagnostics' },
-        { key: 'echo_2d', label: '2D Echo', unit: 'Attachment', category: 'Diagnostics' },
-        { key: 'cxr', label: 'CXR', unit: 'Attachment', category: 'Diagnostics' }
     ];
 
     const [newResult, setNewResult] = useState({
@@ -255,10 +251,7 @@ const Lab = ({ recordId }) => {
                         </DialogContent>
                     </Dialog>
 
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <Download className="w-4 h-4" />
-                        Export
-                    </Button>
+
                 </div> 
             </div>
 

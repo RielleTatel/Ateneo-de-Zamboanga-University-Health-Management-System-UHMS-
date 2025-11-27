@@ -207,13 +207,25 @@ const Overview = ({ recordId }) => {
                                             {medicalClearance.status}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-start">
-                                        <span className="text-gray-600">Chronic Risk Factors:</span>
-                                        <span className={`text-gray-800 text-right font-medium rounded-lg px-2 p-1 ${
-                                            chronicFactors !== 'None' ? 'bg-blue-400' : ''
-                                        }`}>
-                                            {chronicFactors}
-                                        </span>
+                                    <div className="flex justify-between items-start gap-3">
+                                        <span className="text-gray-600 whitespace-nowrap">Chronic Risk Factors:</span>
+                                        {chronicFactors !== 'None' ? (
+                                            <div className="flex flex-wrap gap-2 justify-end max-w-[60%]">
+                                                {(Array.isArray(latestConsultation?.chronic_risk_factor)
+                                                    ? latestConsultation.chronic_risk_factor
+                                                    : chronicFactors.split(',').map(f => f.trim())
+                                                ).map((factor, idx) => (
+                                                    <span
+                                                        key={`${factor}-${idx}`}
+                                                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300"
+                                                    >
+                                                        {factor}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-800">None</span>
+                                        )}
                                     </div>
 
                                     <div className="flex justify-between items-start">

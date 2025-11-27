@@ -1,8 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { AlertCircle } from "lucide-react";
 
 const StaffProfile = ({ formData, setFormData }) => {
+    const [errors, setErrors] = useState({});
+
+    const validateField = (fieldName, value) => {
+        const newErrors = { ...errors };
+
+        switch (fieldName) {
+            case 'department':
+                if (!value || value.trim() === '') {
+                    newErrors.department = 'Department is required';
+                } else {
+                    delete newErrors.department;
+                }
+                break;
+            case 'position':
+                if (!value || value.trim() === '') {
+                    newErrors.position = 'Position is required';
+                } else if (!/^[a-zA-Z\s.,-]+$/.test(value)) {
+                    newErrors.position = 'Position should contain only letters and basic punctuation';
+                } else if (value.trim().length < 2) {
+                    newErrors.position = 'Position must be at least 2 characters';
+                } else if (value.trim().length > 100) {
+                    newErrors.position = 'Position must not exceed 100 characters';
+                } else {
+                    delete newErrors.position;
+                }
+                break;
+            default:
+                break;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleInputChange = (fieldName, value) => {
+        setFormData({ ...formData, [fieldName]: value });
+        validateField(fieldName, value);
+    };
+
+    const handleSelectChange = (fieldName, value) => {
+        setFormData({ ...formData, [fieldName]: value });
+        validateField(fieldName, value);
+    };
+
     return (
         <div>
             <div className="flex justify-center items-center mb-8">
@@ -14,9 +59,9 @@ const StaffProfile = ({ formData, setFormData }) => {
                     <label className="font-bold">Department <span className="text-red-500">*</span></label>
                     <Select 
                         value={formData.department} 
-                        onValueChange={(value) => setFormData({ ...formData, department: value })}
+                        onValueChange={(value) => handleSelectChange('department', value)}
                     >
-                        <SelectTrigger>
+                        <SelectTrigger className={errors.department ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select Staff Department" />
                         </SelectTrigger>
                         <SelectContent>
@@ -29,6 +74,12 @@ const StaffProfile = ({ formData, setFormData }) => {
                             <SelectItem value="Maintenance">Maintenance</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.department && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.department}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-y-2">
@@ -36,8 +87,16 @@ const StaffProfile = ({ formData, setFormData }) => {
                     <Input 
                         placeholder="Enter Staff Position"
                         value={formData.position || ''}
-                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                        onChange={(e) => handleInputChange('position', e.target.value)}
+                        className={errors.position ? "border-red-500" : ""}
+                        maxLength={100}
                     />
+                    {errors.position && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.position}</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

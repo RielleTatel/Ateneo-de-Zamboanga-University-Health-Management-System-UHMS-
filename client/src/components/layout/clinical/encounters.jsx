@@ -890,6 +890,19 @@ const Encounters = ({ recordId }) => {
                                         </p>
                                     </div>
                                 )}
+
+                                {/* Remarks Section */}
+                                {selectedEncounter.remarks && (
+                                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <FileText className="h-5 w-5 text-gray-700" />
+                                            <h3 className="text-base font-semibold text-gray-900">Remarks</h3>
+                                        </div>
+                                        <p className="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed pl-7">
+                                            {selectedEncounter.remarks}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Prescriptions Section */}
@@ -902,7 +915,7 @@ const Encounters = ({ recordId }) => {
                                     <div className="overflow-hidden rounded-lg border border-gray-200">
                                         <Table>
                                             <TableHeader>
-                                                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                                <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
                                                     <TableHead className="font-semibold text-gray-900 text-[15px]">Medication</TableHead>
                                                     <TableHead className="font-semibold text-gray-900 text-[15px]">Dosage</TableHead>
                                                     <TableHead className="font-semibold text-gray-900 text-[15px]">
@@ -918,31 +931,31 @@ const Encounters = ({ recordId }) => {
                                                 {selectedPrescriptions.map((prescription, index) => (
                                                     prescription.schedules && prescription.schedules.length > 0 ? (
                                                         prescription.schedules.map((schedule, schedIndex) => (
-                                                            <TableRow key={`${prescription.prescription_id}-${schedIndex}`} className="hover:bg-gray-50">
-                                                                <TableCell className={`text-[15px] ${schedIndex === 0 ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                                                            <TableRow key={`${prescription.prescription_id}-${schedIndex}`} className="hover:bg-gray-50 border-gray-200">
+                                                                <TableCell className={`text-[15px] border-gray-200 ${schedIndex === 0 ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
                                                                     {schedIndex === 0 ? prescription.medication_name : ''}
                                                                 </TableCell>
-                                                                <TableCell className="text-[15px] text-gray-700">
+                                                                <TableCell className="text-[15px] text-gray-700 border-gray-200">
                                                                     {schedule.dosage || '—'}
                                                                 </TableCell>
-                                                                <TableCell>
+                                                                <TableCell className="border-gray-200">
                                                                     <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md text-[13px] font-medium">
                                                                         {schedule.meal_time || 'N/A'}
                                                                     </span>
                                                                 </TableCell>
-                                                                <TableCell className="text-[15px] text-gray-700">
+                                                                <TableCell className="text-[15px] text-gray-700 border-gray-200">
                                                                     {schedIndex === 0 ? (prescription.instructions || '—') : ''}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))
                                                     ) : (
-                                                        <TableRow key={prescription.prescription_id} className="hover:bg-gray-50">
-                                                            <TableCell className="font-semibold text-[15px] text-gray-900">
+                                                        <TableRow key={prescription.prescription_id} className="hover:bg-gray-50 border-gray-200">
+                                                            <TableCell className="font-semibold text-[15px] text-gray-900 border-gray-200">
                                                                 {prescription.medication_name}
                                                             </TableCell>
-                                                            <TableCell className="text-[15px] text-gray-500">—</TableCell>
-                                                            <TableCell className="text-[15px] text-gray-500">—</TableCell>
-                                                            <TableCell className="text-[15px] text-gray-700">
+                                                            <TableCell className="text-[15px] text-gray-500 border-gray-200">—</TableCell>
+                                                            <TableCell className="text-[15px] text-gray-500 border-gray-200">—</TableCell>
+                                                            <TableCell className="text-[15px] text-gray-700 border-gray-200">
                                                                 {prescription.instructions || '—'}
                                                             </TableCell>
                                                         </TableRow>

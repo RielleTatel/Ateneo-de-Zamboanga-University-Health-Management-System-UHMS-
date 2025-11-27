@@ -84,23 +84,62 @@ const Consult = () => {
     const handleSaveConsultation = async () => {
         try {
             const promises = [];
+            const warnings = [];
 
-            // Save vitals if component was selected
+            // Check vitals if component was selected
             if (allowedComponents.includes('vitals') && vitalsData) {
-                console.log('Saving vitals:', vitalsData);
-                promises.push(createVitalMutation.mutateAsync(vitalsData));
+                if (vitalsData._meta) {
+                    if (vitalsData._meta.emptyFieldCount > 0) {
+                        warnings.push(`Vitals: ${vitalsData._meta.emptyFieldCount} field(s) left empty`);
+                    }
+                    if (vitalsData._meta.hasData) {
+                        console.log('Saving vitals:', vitalsData);
+                        promises.push(createVitalMutation.mutateAsync(vitalsData));
+                    }
+                }
             }
 
-            // Save lab results if component was selected (with custom fields support)
+            // Check lab results if component was selected
             if (allowedComponents.includes('lab') && labData) {
-                console.log('Saving lab results:', labData);
-                promises.push(createLabMutation.mutateAsync(labData));
+                if (labData._meta) {
+                    if (labData._meta.emptyStandardCount > 0) {
+                        warnings.push(`Lab Tests: ${labData._meta.emptyStandardCount} standard test(s) left empty`);
+                    }
+                    if (labData._meta.hasData) {
+                        console.log('Saving lab results:', labData);
+                        promises.push(createLabMutation.mutateAsync(labData));
+                    }
+                }
             }
 
-            // Save consultation if component was selected (only if user has access)
+            // Check consultation if component was selected
             if (allowedComponents.includes('consultation') && consultationData && canAccessConsultation()) {
-                console.log('Saving consultation:', consultationData);
-                promises.push(createConsultationMutation.mutateAsync(consultationData));
+                if (consultationData._meta) {
+                    if (consultationData._meta.emptyFieldCount > 0) {
+                        warnings.push(`Consultation: ${consultationData._meta.emptyFieldCount} field(s) left empty`);
+                    }
+                    if (consultationData._meta.hasData) {
+                        console.log('Saving consultation:', consultationData);
+                        promises.push(createConsultationMutation.mutateAsync(consultationData));
+                    }
+                }
+            }
+
+            // Show warnings if there are empty fields
+            if (warnings.length > 0) {
+                const warningMessage = "The following sections have empty fields:\n\n" + 
+                    warnings.join('\n') + 
+                    "\n\nDo you want to continue saving?";
+                
+                if (!window.confirm(warningMessage)) {
+                    return; // User cancelled
+                }
+            }
+
+            // Check if there's any data to save
+            if (promises.length === 0) {
+                alert('No data to save. Please fill in at least some fields.');
+                return;
             }
 
             await Promise.all(promises);

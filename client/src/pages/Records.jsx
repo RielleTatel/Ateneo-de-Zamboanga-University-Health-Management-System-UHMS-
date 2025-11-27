@@ -198,7 +198,7 @@ const Records = () => {
     };
 
     return (
-        <div className="bg-background-primary w-screen h-screen flex flex-row"> 
+        <div className="bg-background-primary w-screen min-h-screen flex flex-row"> 
             <Navigation/>  
 
             {/* 2nd half of the screen  */}

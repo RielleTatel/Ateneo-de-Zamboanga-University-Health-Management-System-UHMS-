@@ -1,7 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle } from "lucide-react";
 
 const StudentProfile = ({ formData, setFormData }) => {
+    const [errors, setErrors] = useState({});
+
+    const validateField = (fieldName, value) => {
+        const newErrors = { ...errors };
+
+        switch (fieldName) {
+            case 'department':
+                if (!value || value.trim() === '') {
+                    newErrors.department = 'Department is required';
+                } else {
+                    delete newErrors.department;
+                }
+                break;
+            case 'course':
+                if (!value || value.trim() === '') {
+                    newErrors.course = 'Course is required';
+                } else {
+                    delete newErrors.course;
+                }
+                break;
+            case 'yearLevel':
+                if (!value || value.trim() === '') {
+                    newErrors.yearLevel = 'Year level is required';
+                } else {
+                    delete newErrors.yearLevel;
+                }
+                break;
+            default:
+                break;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSelectChange = (fieldName, value) => {
+        setFormData({ ...formData, [fieldName]: value });
+        validateField(fieldName, value);
+    };
+
     return (
         <div>
             <div className="flex justify-center items-center mb-8">
@@ -13,9 +54,9 @@ const StudentProfile = ({ formData, setFormData }) => {
                     <label className="font-bold">Department <span className="text-red-500">*</span></label>
                     <Select 
                         value={formData.department} 
-                        onValueChange={(value) => setFormData({ ...formData, department: value })}
+                        onValueChange={(value) => handleSelectChange('department', value)}
                     >
-                        <SelectTrigger>
+                        <SelectTrigger className={errors.department ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select Student Department" />
                         </SelectTrigger>
                         <SelectContent>
@@ -27,16 +68,22 @@ const StudentProfile = ({ formData, setFormData }) => {
                             <SelectItem value="School of Law">School of Law</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.department && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.department}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-y-2">
                     <label className="font-bold">Course <span className="text-red-500">*</span></label>
                     <Select 
                         value={formData.course} 
-                        onValueChange={(value) => setFormData({ ...formData, course: value })}
+                        onValueChange={(value) => handleSelectChange('course', value)}
                     >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select Student Department" />
+                        <SelectTrigger className={errors.course ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select Student Course" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="BS Computer Science">BS Computer Science</SelectItem>
@@ -50,15 +97,21 @@ const StudentProfile = ({ formData, setFormData }) => {
                             <SelectItem value="Bachelor of Secondary Education">Bachelor of Secondary Education</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.course && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.course}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-y-2">
                     <label className="font-bold">Year Level <span className="text-red-500">*</span></label>
                     <Select 
                         value={formData.yearLevel} 
-                        onValueChange={(value) => setFormData({ ...formData, yearLevel: value })}
+                        onValueChange={(value) => handleSelectChange('yearLevel', value)}
                     >
-                        <SelectTrigger>
+                        <SelectTrigger className={errors.yearLevel ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select Year Level" />
                         </SelectTrigger>
                         <SelectContent>
@@ -69,6 +122,12 @@ const StudentProfile = ({ formData, setFormData }) => {
                             <SelectItem value="5th Year">5th Year</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.yearLevel && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.yearLevel}</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

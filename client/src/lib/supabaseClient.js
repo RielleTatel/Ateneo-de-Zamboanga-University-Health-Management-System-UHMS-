@@ -17,6 +17,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables. Check your .env file.");
 }
 
+console.log('[Supabase Client] Initializing with URL:', supabaseUrl);
+
 // Create and export a SINGLE Supabase client instance
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -25,8 +27,24 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,  // Enable handling password reset tokens from URL
     storage: window.localStorage,
     storageKey: 'supabase.auth.token'
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'x-application-name': 'adzu-health-frontend'
+    }
+  },
+  // Add realtime configuration
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
+
+console.log('[Supabase Client] Initialized successfully');
 
 export default supabase;
 
