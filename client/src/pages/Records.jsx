@@ -267,6 +267,18 @@ const Records = () => {
                                 <SelectItem value="all">All Records</SelectItem>
                                 <SelectItem value="students">Students Only</SelectItem>
                                 <SelectItem value="staff">Staff Only</SelectItem>
+                                {uniqueDepartments.length > 0 && (
+                                    <>
+                                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500">
+                                            BY DEPARTMENT
+                                        </div>
+                                        {uniqueDepartments.map(dept => (
+                                            <SelectItem key={dept} value={`dept-${dept}`}>
+                                                {dept}
+                                            </SelectItem>
+                                        ))}
+                                    </>
+                                )}
                             </SelectContent>
                         </Select>
                         
