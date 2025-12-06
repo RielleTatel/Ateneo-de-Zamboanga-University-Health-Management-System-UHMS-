@@ -1,4 +1,4 @@
-import React, { useState } from "react"; 
+import React, { useState, useCallback } from "react"; 
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,19 @@ const Consult = () => {
     const [labData, setLabData] = useState(null);
     const [consultationData, setConsultationData] = useState(null);
 
+    // Use useCallback to memoize the callback functions
+    const handleVitalsChange = useCallback((data) => {
+        setVitalsData(data);
+    }, []);
+
+    const handleLabChange = useCallback((data) => {
+        setLabData(data);
+    }, []);
+
+    const handleConsultationChange = useCallback((data) => {
+        setConsultationData(data);
+    }, []);
+
     // Mutations for creating records
     const createVitalMutation = useMutation({
         mutationFn: (data) => axiosInstance.post('/vitals/add', data),
@@ -65,18 +78,18 @@ const Consult = () => {
         'vitals': { 
             component: VitalsField, 
             title: 'Vitals',
-            onDataChange: setVitalsData
+            onDataChange: handleVitalsChange
         },
         'lab': { 
             component: LabFields, 
             title: 'Laboratory Tests',
-            onDataChange: setLabData
+            onDataChange: handleLabChange
         },
         ...(canAccessConsultation() && {
             'consultation': { 
                 component: ConsultationNotes, 
                 title: 'Consultation Notes',
-                onDataChange: setConsultationData
+                onDataChange: handleConsultationChange
             }
         })
     };

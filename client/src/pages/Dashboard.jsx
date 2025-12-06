@@ -74,7 +74,8 @@ const Dashboard = () => {
     lipidProfile: [],
     bmiVsBP: [],
     atRiskCohort: [],
-    departmentRiskMix: []
+    departmentRiskMix: [],
+    departmentChronicRiskMix: []
   });
 
   // Pagination state for At-Risk Cohort table
@@ -634,6 +635,80 @@ const Dashboard = () => {
 
     console.log('📊 [DASHBOARD] Department risk mix:', departmentRiskMix);
 
+    // Process Chronic Risk Factor Distribution by Department (100% stacked bar)
+    console.log('🔍 [DASHBOARD] Processing department chronic risk factor distribution...');
+    const departmentChronicCounts = {};
+
+    // Map each patient to their department and chronic risk factors
+    patients.forEach((pt) => {
+      const dept = pt.department || 'Unknown';
+      const uuid = pt.uuid;
+
+      // Find the latest consultation for this patient
+      const patientConsultation = latestConsultationsArray.find(c => c.uuid === uuid);
+
+      if (!departmentChronicCounts[dept]) {
+        departmentChronicCounts[dept] = {
+          smoking: 0,
+          drinking: 0,
+          hypertension: 0,
+          diabetes: 0,
+          none: 0,
+          total: 0
+        };
+      }
+
+      if (patientConsultation && patientConsultation.chronic_risk_factor) {
+        const rawFactor = patientConsultation.chronic_risk_factor;
+        const factorString = String(rawFactor).toLowerCase();
+
+        // Check for each chronic risk factor
+        if (factorString.includes('smoking')) {
+          departmentChronicCounts[dept].smoking += 1;
+        } else if (factorString.includes('drinking')) {
+          departmentChronicCounts[dept].drinking += 1;
+        } else if (factorString.includes('hypertension')) {
+          departmentChronicCounts[dept].hypertension += 1;
+        } else if (factorString.includes('diabetes')) {
+          departmentChronicCounts[dept].diabetes += 1;
+        } else if (factorString === 'none' || factorString === 'null' || factorString === 'n/a' || factorString === '') {
+          departmentChronicCounts[dept].none += 1;
+        } else {
+          // If it's some other factor, count as none
+          departmentChronicCounts[dept].none += 1;
+        }
+      } else {
+        // No consultation data = none
+        departmentChronicCounts[dept].none += 1;
+      }
+
+      departmentChronicCounts[dept].total += 1;
+    });
+
+    const departmentChronicRiskMix = Object.entries(departmentChronicCounts)
+      .map(([department, counts]) => {
+        const { smoking, drinking, hypertension, diabetes, none, total } = counts;
+        if (!total) {
+          return { department, smoking: 0, drinking: 0, hypertension: 0, diabetes: 0, none: 0 };
+        }
+        return {
+          department,
+          smoking: smoking / total,
+          drinking: drinking / total,
+          hypertension: hypertension / total,
+          diabetes: diabetes / total,
+          none: none / total,
+        };
+      })
+      // Sort by highest chronic risk factors (smoking + drinking + hypertension + diabetes)
+      .sort((a, b) => {
+        const aRisk = a.smoking + a.drinking + a.hypertension + a.diabetes;
+        const bRisk = b.smoking + b.drinking + b.hypertension + b.diabetes;
+        return bRisk - aRisk;
+      });
+
+    console.log('📊 [DASHBOARD] Department chronic risk mix:', departmentChronicRiskMix);
+
     setProcessedData({
       hypertensiveCount,
       criticalLDLCount,
@@ -644,7 +719,8 @@ const Dashboard = () => {
       lipidProfile,
       bmiVsBP,
       atRiskCohort,
-      departmentRiskMix
+      departmentRiskMix,
+      departmentChronicRiskMix
     });
   }, [consultations, results, vitals, patients, loadingConsultations, loadingResults, loadingVitals, loadingPatients]);
 
@@ -827,39 +903,48 @@ const Dashboard = () => {
 
                 {/* Section 3: Deep Dive Analytics */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  {/* Lipid Profile Radar Chart */}
+                  {/* Chronic Risk Factor Distribution by Department */}
                   <Card className="bg-white shadow-md border-2 border-outline">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                        <Droplet className="h-5 w-5" style={{ color: '#0033A0' }} />
-                        Lipid Profile Analysis
+                        <AlertCircle className="h-5 w-5" style={{ color: '#0033A0' }} />
+                        Chronic Risk Factor Distribution
                       </CardTitle>
-                      <p className="text-sm text-gray-500">Average vs Healthy Limits (mg/dL)</p>
+                      <p className="text-sm text-gray-500">
+                        Departments ranked by share of students with chronic risk factors
+                      </p>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={350}>
-                        <RadarChart data={processedData.lipidProfile}>
-                          <PolarGrid />
-                          <PolarAngleAxis dataKey="metric" />
-                          <PolarRadiusAxis angle={90} domain={[0, 250]} />
-                          <Radar
-                            name="Avg Student"
-                            dataKey="Avg Student"
-                            stroke="#0033A0"
-                            fill="#0033A0"
-                            fillOpacity={0.6}
+                        <BarChart
+                          data={processedData.departmentChronicRiskMix}
+                          layout="vertical"
+                          stackOffset="expand"
+                          margin={{ left: 40, right: 10, top: 5, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" tickFormatter={(v) => `${Math.round(v * 100)}%`} />
+                          <YAxis 
+                            type="category" 
+                            dataKey="department" 
+                            width={140} 
+                            tick={{ fontSize: 12 }}
+                            interval={0}
                           />
-                          <Radar
-                            name="Healthy Limit"
-                            dataKey="Healthy Limit"
-                            stroke="#22c55e"
-                            fill="#22c55e"
-                            fillOpacity={0.3}
+                          <Tooltip
+                            formatter={(value, name) => [`${Math.round(value * 100)}%`, name]}
                           />
                           <Legend />
-                          <Tooltip />
-                        </RadarChart>
+                          <Bar dataKey="smoking" stackId="chronic" fill="#8b5cf6" name="Smoking" />
+                          <Bar dataKey="drinking" stackId="chronic" fill="#ec4899" name="Drinking" />
+                          <Bar dataKey="hypertension" stackId="chronic" fill="#ef4444" name="Hypertension" />
+                          <Bar dataKey="diabetes" stackId="chronic" fill="#f59e0b" name="Diabetes" />
+                          <Bar dataKey="none" stackId="chronic" fill="#22c55e" name="None" />
+                        </BarChart>
                       </ResponsiveContainer>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Bars represent 100% of each department; identify departments with highest chronic risk factor prevalence.
+                      </p>
                     </CardContent>
                   </Card>
 
@@ -880,11 +965,17 @@ const Dashboard = () => {
                           data={processedData.departmentRiskMix}
                           layout="vertical"
                           stackOffset="expand"
-                          margin={{ left: 80 }}
+                          margin={{ left: 40, right: 10, top: 5, bottom: 5 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis type="number" tickFormatter={(v) => `${Math.round(v * 100)}%`} />
-                          <YAxis type="category" dataKey="department" width={80} />
+                          <YAxis 
+                            type="category" 
+                            dataKey="department" 
+                            width={140} 
+                            tick={{ fontSize: 12 }}
+                            interval={0}
+                          />
                           <Tooltip
                             formatter={(value, name) => [`${Math.round(value * 100)}%`, name]}
                           />

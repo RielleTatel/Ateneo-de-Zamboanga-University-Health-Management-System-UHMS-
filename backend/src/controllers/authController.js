@@ -362,6 +362,47 @@ const AuthController = {
   },
 
   /**
+   * Check user role by email (public route)
+   * Used to determine if user should get direct reset link or admin approval
+   */
+  async checkUserRole(req, res) {
+    try {
+      const { email } = req.body;
+
+      console.log("[checkUserRole] Checking role for:", email);
+
+      if (!email) {
+        return res.status(400).json({
+          error: "Missing required field",
+          message: "Email is required"
+        });
+      }
+
+      // Check if user exists
+      const user = await UserModel.findByEmail(email);
+      if (!user) {
+        return res.status(404).json({
+          error: "User not found",
+          message: "No account found with this email address"
+        });
+      }
+
+      console.log("[checkUserRole] User found with role:", user.role);
+
+      return res.json({
+        role: user.role,
+        email: user.email
+      });
+    } catch (err) {
+      console.error("[checkUserRole] Error:", err);
+      return res.status(500).json({
+        error: "Server error",
+        message: err.message
+      });
+    }
+  },
+
+  /**
    * Get all pending password reset requests (admin only)
    * Protected route - requires valid token and admin role
    */

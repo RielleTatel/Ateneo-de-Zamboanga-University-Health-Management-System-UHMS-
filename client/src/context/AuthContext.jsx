@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   // Get API base URL (same logic as axiosInstance)
   const getApiBaseURL = () => {
+    
     if (import.meta.env.VITE_API_URL) {
       return import.meta.env.VITE_API_URL;
     }

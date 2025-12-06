@@ -47,6 +47,14 @@ const Records = () => {
         refetchOnWindowFocus: false
     });
 
+    // Extract unique departments from the data
+    const uniqueDepartments = React.useMemo(() => {
+        const departments = recordsData
+            .map(record => record.department)
+            .filter(dept => dept && dept.trim() !== ''); // Filter out empty/null departments
+        return [...new Set(departments)].sort(); // Remove duplicates and sort alphabetically
+    }, [recordsData]);
+
     // Filter checkup options based on role
     const checkupOptions = [
         { value: 'vitals', label: 'Vitals' },
@@ -126,6 +134,14 @@ const Records = () => {
         }
         if (filterBy === "staff" && record.position?.toLowerCase() !== "staff") {
             return false;
+        }
+
+        // Department filter - check if filterBy starts with "dept-"
+        if (filterBy.startsWith("dept-")) {
+            const selectedDept = filterBy.replace("dept-", "");
+            if (record.department !== selectedDept) {
+                return false;
+            }
         }
 
         return true;

@@ -73,8 +73,6 @@ const Admin = () => {
     const [activeTab, setActiveTab] = useState("pending");
     const [transferTarget, setTransferTarget] = useState("");
     const [transferMessage, setTransferMessage] = useState("");
-    const [resetMessage, setResetMessage] = useState("");
-    const [isResettingPassword, setIsResettingPassword] = useState(false);
     const queryClient = useQueryClient();
     const { user } = useAuth();
 
@@ -223,37 +221,6 @@ const Admin = () => {
         if (!confirmed) return;
         setTransferMessage("");
         transferAdminMutation.mutate(transferTarget);
-    };
-
-    const handleAdminPasswordReset = async () => {
-        try {
-            setIsResettingPassword(true);
-            setResetMessage("");
-
-            if (!user?.email) {
-                setResetMessage("No admin email found on your profile.");
-                return;
-            }
-
-            const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-                redirectTo: `${window.location.origin}/login`
-            });
-
-            if (error) {
-                console.error("Error sending reset email:", error);
-                setResetMessage(error.message || "Failed to send password reset email.");
-                return;
-            }
-
-            setResetMessage(
-                "Password reset email sent to your registered admin inbox. Because only you can access that email, this acts as a two-factor verification step."
-            );
-        } catch (err) {
-            console.error("Unexpected error sending reset email:", err);
-            setResetMessage("Unexpected error sending password reset email.");
-        } finally {
-            setIsResettingPassword(false);
-        }
     };
 
     return (

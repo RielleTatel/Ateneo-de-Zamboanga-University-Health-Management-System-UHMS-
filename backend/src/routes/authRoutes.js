@@ -9,6 +9,7 @@ router.post("/login", AuthController.login);
 router.post("/register", AuthController.register);
 router.post("/logout", AuthController.logout);
 router.post("/password-reset/request", AuthController.requestPasswordReset);
+router.post("/check-user-role", AuthController.checkUserRole);
 
 // Protected routes
 router.get("/me", verifyToken, AuthController.getMe);

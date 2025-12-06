@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../lib/axiosInstance";
+import { supabase } from "../lib/supabaseClient";
 import { Eye as EyeIcon, EyeOff as EyeOffIcon, KeyRound } from "lucide-react"; 
 import { motion } from "framer-motion";
 import {
@@ -37,7 +38,8 @@ const Login = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [resetError, setResetError] = useState(null);
     const [resetSuccess, setResetSuccess] = useState(false);
-    const [isSubmittingReset, setIsSubmittingReset] = useState(false); 
+    const [isSubmittingReset, setIsSubmittingReset] = useState(false);
+    const [isAdminReset, setIsAdminReset] = useState(false); 
 
     // Check for registration success message from navigation state
     useEffect(() => {
@@ -134,45 +136,88 @@ const Login = () => {
         setIsSubmittingReset(true);
 
         // Validation
-        if (!resetEmail || !newPassword || !confirmPassword) {
-            setResetError("All fields are required");
-            setIsSubmittingReset(false);
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            setResetError("Passwords do not match");
-            setIsSubmittingReset(false);
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            setResetError("Password must be at least 6 characters long");
+        if (!resetEmail) {
+            setResetError("Email is required");
             setIsSubmittingReset(false);
             return;
         }
 
         try {
-            const response = await axiosInstance.post("/auth/password-reset/request", {
-                email: resetEmail,
-                newPassword: newPassword
+            // First, check if the email belongs to an admin user
+            const checkResponse = await axiosInstance.post("/auth/check-user-role", {
+                email: resetEmail
             });
 
-            console.log("Password reset request submitted:", response.data);
-            setResetSuccess(true);
-            
-            // Close modal after 3 seconds
-            setTimeout(() => {
-                setForgotPasswordOpen(false);
-                setResetSuccess(false);
-            }, 3000);
+            const { role } = checkResponse.data;
+
+            // If admin, use Supabase's built-in password reset email (2FA)
+            if (role === 'admin') {
+                setIsAdminReset(true);
+                
+                console.log('[Password Reset] Sending reset email to admin:', resetEmail);
+                
+                // Use Supabase's password reset email
+                const { data, error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+                    redirectTo: `${window.location.origin}/reset-password`
+                });
+
+                if (resetError) {
+                    console.error('[Password Reset] Supabase error:', resetError);
+                    throw new Error(resetError.message);
+                }
+
+                console.log('[Password Reset] Email sent successfully:', data);
+                
+                setResetSuccess(true);
+                setResetError(null);
+                
+                // Close modal after 5 seconds
+                setTimeout(() => {
+                    setForgotPasswordOpen(false);
+                    setResetSuccess(false);
+                    setIsAdminReset(false);
+                }, 5000);
+            } else {
+                // For non-admin users, require new password and send for admin approval
+                if (!newPassword || !confirmPassword) {
+                    setResetError("All fields are required");
+                    setIsSubmittingReset(false);
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    setResetError("Passwords do not match");
+                    setIsSubmittingReset(false);
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    setResetError("Password must be at least 6 characters long");
+                    setIsSubmittingReset(false);
+                    return;
+                }
+
+                const response = await axiosInstance.post("/auth/password-reset/request", {
+                    email: resetEmail,
+                    newPassword: newPassword
+                });
+
+                console.log("Password reset request submitted:", response.data);
+                setResetSuccess(true);
+                
+                // Close modal after 3 seconds
+                setTimeout(() => {
+                    setForgotPasswordOpen(false);
+                    setResetSuccess(false);
+                }, 3000);
+            }
 
         } catch (err) {
             console.error("Password reset error:", err);
             if (err.response?.data?.message) {
                 setResetError(err.response.data.message);
             } else {
-                setResetError("Failed to submit password reset request. Please try again.");
+                setResetError(err.message || "Failed to process password reset request. Please try again.");
             }
         } finally {
             setIsSubmittingReset(false);
@@ -359,11 +404,27 @@ const Login = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Request Submitted!</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                {isAdminReset ? "Reset Email Sent!" : "Request Submitted!"}
+                            </h3>
                             <p className="text-sm text-gray-600">
-                                Your password reset request has been submitted successfully.
-                                <br />
-                                Please wait for admin approval.
+                                {isAdminReset ? (
+                                    <>
+                                        A password reset link has been sent to your email.
+                                        <br />
+                                        Please check your inbox (and spam folder) and follow the instructions to reset your password.
+                                        <br />
+                                        <span className="text-xs text-gray-500 mt-2 block">
+                                            The link will expire in 1 hour. If you don't receive the email, check your Supabase email configuration.
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        Your password reset request has been submitted successfully.
+                                        <br />
+                                        Please wait for admin approval.
+                                    </>
+                                )}
                             </p>
                         </div>
                     ) : (
@@ -391,57 +452,62 @@ const Login = () => {
                                     className="h-11"
                                     required
                                 />
+                                <p className="text-xs text-gray-500">
+                                    Admin users will receive a secure reset link via email. Others will submit a request for approval.
+                                </p>
                             </div>
 
-                            {/* New Password Field */}
-                            <div className="space-y-2">
-                                <label htmlFor="new-password" className="text-sm font-semibold text-gray-700">
-                                    New Password
-                                </label>
-                                <div className="relative">
-                                    <Input
-                                        id="new-password"
-                                        type={showNewPassword ? "text" : "password"}
-                                        placeholder="Enter new password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className="h-11 pr-10"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                                    >
-                                        {showNewPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </div>
+                            {/* New Password Field - Only shown for non-admin users */}
+                            {resetEmail && !resetEmail.includes('admin') && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label htmlFor="new-password" className="text-sm font-semibold text-gray-700">
+                                            New Password
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                id="new-password"
+                                                type={showNewPassword ? "text" : "password"}
+                                                placeholder="Enter new password"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className="h-11 pr-10"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                                            >
+                                                {showNewPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                                            </button>
+                                        </div>
+                                    </div>
 
-                            {/* Confirm Password Field */}
-                            <div className="space-y-2">
-                                <label htmlFor="confirm-password" className="text-sm font-semibold text-gray-700">
-                                    Confirm New Password
-                                </label>
-                                <div className="relative">
-                                    <Input
-                                        id="confirm-password"
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="Confirm new password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="h-11 pr-10"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                                    >
-                                        {showConfirmPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </div>
+                                    {/* Confirm Password Field */}
+                                    <div className="space-y-2">
+                                        <label htmlFor="confirm-password" className="text-sm font-semibold text-gray-700">
+                                            Confirm New Password
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                id="confirm-password"
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                placeholder="Confirm new password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className="h-11 pr-10"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                                            >
+                                                {showConfirmPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             <DialogFooter className="gap-2 pt-4">
                                 <Button
@@ -457,7 +523,7 @@ const Login = () => {
                                     disabled={isSubmittingReset}
                                     className="bg-blue-600 hover:bg-blue-700"
                                 >
-                                    {isSubmittingReset ? "Submitting..." : "Submit Request"}
+                                    {isSubmittingReset ? "Processing..." : "Submit"}
                                 </Button>
                             </DialogFooter>
                         </form>

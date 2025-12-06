@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 // --- Vitals Field Component for Consultation ---
 export const VitalsField = ({ onDataChange, recordId }) => {
+    const isInitialMount = useRef(true);
     const [vitalData, setVitalData] = useState({
         date_of_check: new Date().toISOString().split('T')[0],
         blood_pressure: "",
@@ -35,6 +36,11 @@ export const VitalsField = ({ onDataChange, recordId }) => {
 
     // Notify parent of data changes with validation info
     useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        
         if (onDataChange) {
             const filledFields = Object.keys(vitalData).filter(key => 
                 key !== 'date_of_check' && vitalData[key] && vitalData[key] !== ''
@@ -53,7 +59,8 @@ export const VitalsField = ({ onDataChange, recordId }) => {
                 }
             });
         }
-    }, [vitalData, recordId, onDataChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [vitalData, recordId]);
 
     const handleInputChange = (field, value) => {
         setVitalData(prev => ({ ...prev, [field]: value }));
@@ -176,6 +183,7 @@ export const VitalsField = ({ onDataChange, recordId }) => {
 
 // --- Lab Field Component for Consultation ---
 export const LabFields = ({ onDataChange, recordId }) => {
+    const isInitialMount = useRef(true);
     // Standard lab test fields from database schema
     const standardLabFields = {
         hgb: '',
@@ -215,6 +223,11 @@ export const LabFields = ({ onDataChange, recordId }) => {
     
     // Notify parent of data changes with validation info
     useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        
         if (onDataChange) {
             const filledStandardFields = Object.keys(labData).filter(key => 
                 labData[key] && labData[key] !== ''
@@ -237,6 +250,7 @@ export const LabFields = ({ onDataChange, recordId }) => {
                 }
             });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [labData, customFields, recordId]);
 
     const handleStandardFieldChange = (field, value) => {
@@ -425,6 +439,7 @@ export const LabFields = ({ onDataChange, recordId }) => {
 
 // --- Consultation Notes Component ---
 export const ConsultationNotes = ({ onDataChange, recordId }) => { 
+    const isInitialMount = useRef(true);
     const [consultationData, setConsultationData] = useState({
         date_of_check: new Date().toISOString().split('T')[0],
         symptoms: "",
@@ -449,6 +464,11 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
 
     // Notify parent of data changes with validation info
     useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        
         if (onDataChange) {
             const { date_of_check, remarks, ...consultationFields } = consultationData;
             
@@ -481,7 +501,8 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                 }
             });
         }
-    }, [consultationData, prescriptions, recordId, onDataChange]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [consultationData, prescriptions, recordId]);
 
     const handleConsultationChange = (field, value) => {
         setConsultationData(prev => ({ ...prev, [field]: value }));

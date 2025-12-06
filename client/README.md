@@ -5,7 +5,7 @@
        │
        │ 1. User enters email/password
        │    Login.jsx (handleLogin)
-       ▼
+       ▼3
 ┌─────────────────────────┐
 │   AuthContext.login()   │
 │   (Supabase Client)     │

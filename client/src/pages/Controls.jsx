@@ -138,7 +138,7 @@ const Controls = () => {
               <div className="md:w-1/2 space-y-4">
                 {/* Role Transfer */}
                 <div className="bg-white rounded-xl border border-outline p-3">
-                  <p className="text-sm font-semibold mb-2">Transfer Admin Role</p>
+                  <p className="text-sm font-semibold mb-2"> Transfer Admin Role </p>
                   <p className="text-xs text-gray-600 mb-2">
                     Select a verified user to become the new Admin. After transfer, your own role will be
                     changed to <span className="font-semibold">staff</span>.
@@ -176,7 +176,7 @@ const Controls = () => {
                         ) : (
                           <>
                             <Shield className="w-4 h-4 mr-1" />
-                            Transfer Role
+                            Transfer 
                           </>
                         )}
                       </Button>
