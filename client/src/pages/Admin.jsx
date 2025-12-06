@@ -125,6 +125,13 @@ const Admin = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["verifiedUsers"] });
             setDeleteDialog({ open: false, userId: null, userName: "" });
+            alert("User deleted successfully!");
+        },
+        onError: (error) => {
+            console.error("Error deleting user:", error);
+            const errorMessage = error?.response?.data?.error || error?.response?.data?.hint || error.message || "Failed to delete user";
+            alert(`Error: ${errorMessage}`);
+            setDeleteDialog({ open: false, userId: null, userName: "" });
         }
     });
 

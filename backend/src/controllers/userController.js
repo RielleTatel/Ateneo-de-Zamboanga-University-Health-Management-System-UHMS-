@@ -193,6 +193,32 @@ const UserController = {
       const { uuid } = req.params;
       console.log("[deleteUser] Deleting user:", uuid);
 
+      // First, check if user exists
+      const existingUser = await UserModel.findById(uuid);
+      if (!existingUser) {
+        console.log("[deleteUser] User not found:", uuid);
+        return res.status(404).json({ 
+          success: false, 
+          error: "User not found" 
+        });
+      }
+
+      // Delete related patient record first (if exists) to avoid foreign key issues
+      try {
+        const { error: patientError } = await supabase
+          .from("patient")
+          .delete()
+          .eq("uuid", uuid);
+        
+        if (patientError) {
+          console.log("[deleteUser] Note: No patient record or error deleting patient:", patientError.message);
+        } else {
+          console.log("[deleteUser] Patient record deleted");
+        }
+      } catch (patientErr) {
+        console.log("[deleteUser] Patient deletion note:", patientErr.message);
+      }
+
       // Delete from custom users table
       const { error: dbError } = await UserModel.deleteUser(uuid);
 
@@ -200,7 +226,8 @@ const UserController = {
         console.error("[deleteUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
-          error: dbError.message 
+          error: dbError.message,
+          hint: "This user may have associated records that prevent deletion. Check foreign key constraints."
         });
       }
 
