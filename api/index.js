@@ -5,6 +5,12 @@ import dotenv from 'dotenv';
 import authRoutes from '../backend/src/routes/authRoutes.js';
 import userRoutes from '../backend/src/routes/userRoutes.js';
 import debuggingRoutes from '../backend/src/routes/debuggingRoutes.js';
+import patientRoutes from '../backend/src/routes/patientRoutes.js';
+import vitalRoutes from '../backend/src/routes/vitalRoutes.js';
+import resultRoutes from '../backend/src/routes/resultRoutes.js';
+import consultationRoutes from '../backend/src/routes/consultationRoutes.js';
+import prescriptionRoutes from '../backend/src/routes/prescriptionRoutes.js';
+import immunizationRoutes from '../backend/src/routes/immunizationRoutes.js';
 
 dotenv.config();
 
@@ -61,6 +67,12 @@ app.use((req, res, next) => {
 app.use('/api/debugging', debuggingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/vitals', vitalRoutes);
+app.use('/api/results', resultRoutes);
+app.use('/api/consultations', consultationRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/immunizations', immunizationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
