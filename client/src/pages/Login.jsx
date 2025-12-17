@@ -88,6 +88,7 @@ const Login = () => {
             }
 
             // Redirect based on role
+            setIsSubmitting(false);
             if (userData.role === "admin") {
                 navigate("/admin");
             } else {

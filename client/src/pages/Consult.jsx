@@ -115,9 +115,6 @@ const Consult = () => {
             // Check lab results if component was selected
             if (allowedComponents.includes('lab') && labData) {
                 if (labData._meta) {
-                    if (labData._meta.emptyStandardCount > 0) {
-                        warnings.push(`Lab Tests: ${labData._meta.emptyStandardCount} standard test(s) left empty`);
-                    }
                     if (labData._meta.hasData) {
                         console.log('Saving lab results:', labData);
                         promises.push(createLabMutation.mutateAsync(labData));

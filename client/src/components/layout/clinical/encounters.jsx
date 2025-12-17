@@ -10,7 +10,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// API Functions
 const fetchConsultationsByPatient = async (uuid) => {
     const { data } = await axiosInstance.get(`/consultations/user/${uuid}`);
     return data.consultations;
