@@ -65,7 +65,6 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        console.log('Sign in with:', { email }); 
         setError(null);
         setIsSubmitting(true);
 

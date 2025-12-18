@@ -60,12 +60,12 @@ const StudentProfile = ({ formData, setFormData }) => {
                             <SelectValue placeholder="Select Student Department" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="School of Arts and Sciences">School of Arts and Sciences</SelectItem>
-                            <SelectItem value="School of Business and Entrepreneurship">School of Business and Entrepreneurship</SelectItem>
-                            <SelectItem value="School of Education">School of Education</SelectItem>
-                            <SelectItem value="School of Engineering and Architecture">School of Engineering and Architecture</SelectItem>
-                            <SelectItem value="School of Nursing">School of Nursing</SelectItem>
-                            <SelectItem value="School of Law">School of Law</SelectItem>
+                            <SelectItem value="Science, Information Technology, and Engineering Academic Organization"> Science, Information Technology, and Engineering Academic Organization (SITEAO) </SelectItem>
+                            <SelectItem value="Liberal Arts Academic Organization">Liberal Arts Academic Organization (LAAO) </SelectItem>
+                            <SelectItem value=" Education Academic Organization"> Education Academic Organization (EAO) </SelectItem>
+                            <SelectItem value="Nursing Academic Organization"> Nursing Academic Organization (NAO) </SelectItem>
+                            <SelectItem value="Accountancy Academic Organization"> Accountancy Academic Organization (AAO) </SelectItem>
+                            <SelectItem value="Management Academic Organizaion">Management Academic Organizaion (MAO) </SelectItem>
                         </SelectContent>
                     </Select>
                     {errors.department && (
@@ -86,15 +86,43 @@ const StudentProfile = ({ formData, setFormData }) => {
                             <SelectValue placeholder="Select Student Course" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="BS Computer Science">BS Computer Science</SelectItem>
-                            <SelectItem value="BS Information Technology">BS Information Technology</SelectItem>
-                            <SelectItem value="BS Business Administration">BS Business Administration</SelectItem>
+                            {/* School of Management and Accountancy */}
                             <SelectItem value="BS Accountancy">BS Accountancy</SelectItem>
+                            <SelectItem value="BS Business Administration - Entrepreneurship">BS Business Administration - Entrepreneurship</SelectItem>
+                            <SelectItem value="BS Business Administration - Financial Management">BS Business Administration - Financial Management</SelectItem>
+                            <SelectItem value="BS Business Administration - Marketing Management">BS Business Administration - Marketing Management</SelectItem>
+                            <SelectItem value="BS Legal Management">BS Legal Management</SelectItem>
+                            <SelectItem value="BS Management Accounting">BS Management Accounting</SelectItem>
+                            <SelectItem value="BS Office Administration">BS Office Administration</SelectItem>
+                            
+                            {/* School of Liberal Arts */}
+                            <SelectItem value="BA Communication">BA Communication</SelectItem>
+                            <SelectItem value="BA English Language Studies">BA English Language Studies</SelectItem>
+                            <SelectItem value="BA International Studies">BA International Studies</SelectItem>
+                            <SelectItem value="BA Philosophy">BA Philosophy</SelectItem>
                             <SelectItem value="BS Psychology">BS Psychology</SelectItem>
-                            <SelectItem value="BS Nursing">BS Nursing</SelectItem>
+                            
+                            {/* College of Science, Information Technology, and Engineering */}
+                            <SelectItem value="BS Biology">BS Biology</SelectItem>
+                            <SelectItem value="BS Biomedical Engineering">BS Biomedical Engineering</SelectItem>
                             <SelectItem value="BS Civil Engineering">BS Civil Engineering</SelectItem>
+                            <SelectItem value="BS Computer Engineering">BS Computer Engineering</SelectItem>
+                            <SelectItem value="BS Computer Science">BS Computer Science</SelectItem>
+                            <SelectItem value="BS Electronics Engineering">BS Electronics Engineering</SelectItem>
+                            <SelectItem value="BS Information Technology">BS Information Technology</SelectItem>
+                            <SelectItem value="BS Mathematics">BS Mathematics</SelectItem>
+                            <SelectItem value="BS New Media and Computer Animation">BS New Media and Computer Animation</SelectItem>
+                            <SelectItem value="Associate in Electronics Technology">Associate in Electronics Technology</SelectItem>
+                            
+                            {/* School of Education */}
+                            <SelectItem value="Bachelor of Early Childhood Education">Bachelor of Early Childhood Education</SelectItem>
                             <SelectItem value="Bachelor of Elementary Education">Bachelor of Elementary Education</SelectItem>
-                            <SelectItem value="Bachelor of Secondary Education">Bachelor of Secondary Education</SelectItem>
+                            <SelectItem value="Bachelor of Physical Education">Bachelor of Physical Education</SelectItem>
+                            <SelectItem value="Bachelor of Special Needs Education">Bachelor of Special Needs Education</SelectItem>
+                            <SelectItem value="Certificate in Professional Education">Certificate in Professional Education</SelectItem>
+                            
+                            {/* College of Nursing */}
+                            <SelectItem value="BS Nursing">BS Nursing</SelectItem>
                         </SelectContent>
                     </Select>
                     {errors.course && (

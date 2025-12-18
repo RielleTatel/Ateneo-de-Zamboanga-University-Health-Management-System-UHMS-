@@ -8,18 +8,17 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   
-  const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null); // Backend's user role 
+  const [session, setSession] = useState(null); // Access token
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
 
-    const initializeAuth = async () => {
+    const initializeAuth = async () => { // returns session if user is actually logged in
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (currentSession) {
-          console.log("[AuthContext] Session found, fetching user profile...");
           setSession(currentSession);
           await fetchUserProfile(currentSession.user.id, currentSession.access_token);
         } else {
@@ -36,7 +35,6 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log("[AuthContext] Auth state changed:", event, "Session:", !!newSession);
       
       // Handle different auth events
       if (event === 'SIGNED_IN') {
@@ -85,8 +83,7 @@ export const AuthProvider = ({ children }) => {
   const fetchUserProfile = async (userId, accessToken) => {
     try {
       const apiUrl = getApiBaseURL();
-      console.log("[AuthContext] Fetching user profile for:", userId);
-      
+            
       const response = await fetch(`${apiUrl}/auth/me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`
@@ -95,7 +92,6 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("[AuthContext] User profile fetched:", data.user);
         
         // Check if user is approved (status: true)
         if (data.user && !data.user.status) {
@@ -109,14 +105,12 @@ export const AuthProvider = ({ children }) => {
         
         setUser(data.user);
       } else {
-        console.error("[AuthContext] Failed to fetch user profile:", response.status);
         setUser(null);
         // Clear session if profile fetch fails
         await supabase.auth.signOut();
         setSession(null);
       }
     } catch (error) {
-      console.error("[AuthContext] Error fetching user profile:", error);
       setUser(null);
       // Clear session on error
       await supabase.auth.signOut();

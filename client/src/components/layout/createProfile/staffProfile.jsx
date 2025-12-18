@@ -65,13 +65,17 @@ const StaffProfile = ({ formData, setFormData }) => {
                             <SelectValue placeholder="Select Staff Department" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="Administration">Administration</SelectItem>
+                            {/* Academic Organizations */}
+                            <SelectItem value="School of Management and Accountancy">School of Management and Accountancy</SelectItem>
+                            <SelectItem value="School of Liberal Arts">School of Liberal Arts</SelectItem>
+                            <SelectItem value="College of Science, Information Technology, and Engineering">College of Science, Information Technology, and Engineering</SelectItem>
+                            <SelectItem value="School of Education">School of Education</SelectItem>
+                            <SelectItem value="College of Nursing">College of Nursing</SelectItem>
+                            
+                            {/* Administrative Departments */}
                             <SelectItem value="Registrar">Registrar</SelectItem>
-                            <SelectItem value="Library">Library</SelectItem>
-                            <SelectItem value="IT Department">IT Department</SelectItem>
-                            <SelectItem value="Finance">Finance</SelectItem>
-                            <SelectItem value="Human Resources">Human Resources</SelectItem>
-                            <SelectItem value="Maintenance">Maintenance</SelectItem>
+                            <SelectItem value="Student Affairs">Student Affairs</SelectItem>
+
                         </SelectContent>
                     </Select>
                     {errors.department && (
