@@ -517,7 +517,6 @@ const Encounters = ({ recordId }) => {
 
     const handleOpenViewModal = async (encounter) => {
         setSelectedEncounter(encounter);
-        setIsViewModalOpen(true);
         
         // Fetch patient information
         try {
@@ -530,21 +529,33 @@ const Encounters = ({ recordId }) => {
         
         // Fetch prescriptions for this consultation
         try {
+            console.log('[encounters] Fetching prescriptions for consultation:', encounter.consultation_id);
             const prescriptions = await fetchPrescriptionsByConsultation(encounter.consultation_id);
+            console.log('[encounters] Received prescriptions:', prescriptions);
             
             // For each prescription, fetch its schedules
             const prescriptionsWithSchedules = await Promise.all(
                 prescriptions.map(async (prescription) => {
                     const schedules = await fetchSchedulesByPrescription(prescription.prescription_id);
+                    console.log(`[encounters] Schedules for prescription ${prescription.prescription_id}:`, schedules);
                     return { ...prescription, schedules };
                 })
             );
             
+            console.log('[encounters] Final prescriptions with schedules:', prescriptionsWithSchedules);
             setSelectedPrescriptions(prescriptionsWithSchedules);
         } catch (error) {
             console.error("Error fetching prescriptions:", error);
             setSelectedPrescriptions([]);
         }
+        
+        // Open modal AFTER fetching data
+        setIsViewModalOpen(true);
+    };
+
+    const handleCloseViewModal = () => {
+        setIsViewModalOpen(false);
+        // Don't clear the data immediately - let it persist for smooth closing animation
     }; 
 
     const handleDeleteEncounter = (e, consultation_id) => {
@@ -809,7 +820,7 @@ const Encounters = ({ recordId }) => {
             </div>
         
             {/* --- VIEW MODAL --- */}   
-            <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+            <Dialog open={isViewModalOpen} onOpenChange={handleCloseViewModal}>
                 <DialogContent className="sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     {selectedEncounter ? (
                         <div className="space-y-6">
@@ -905,7 +916,8 @@ const Encounters = ({ recordId }) => {
                             </div>
 
                             {/* Prescriptions Section */}
-                            {selectedPrescriptions.length > 0 && (
+                            {console.log('[encounters] Rendering prescriptions section, count:', selectedPrescriptions?.length)}
+                            {selectedPrescriptions && selectedPrescriptions.length > 0 ? (
                                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                                     <div className="flex items-center gap-2 mb-4">
                                         <Pill className="h-5 w-5 text-gray-700" />
@@ -964,13 +976,18 @@ const Encounters = ({ recordId }) => {
                                         </Table>
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                                    <Pill className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                                    <p className="text-gray-500 text-sm">No prescriptions recorded for this encounter</p>
+                                </div>
                             )}
 
                             {/* Footer */}
                             <DialogFooter className="pt-2">
                                 <Button 
                                     variant="outline" 
-                                    onClick={() => setIsViewModalOpen(false)}
+                                    onClick={handleCloseViewModal}
                                     className="px-6"
                                 >
                                     Close

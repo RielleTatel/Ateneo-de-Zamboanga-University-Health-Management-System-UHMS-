@@ -130,6 +130,11 @@ const Consult = () => {
                     }
                     if (consultationData._meta.hasData) {
                         console.log('Saving consultation:', consultationData);
+                        console.log('Consultation structure:', {
+                            consultation: consultationData.consultation,
+                            prescriptions: consultationData.prescriptions,
+                            prescriptionCount: consultationData.prescriptions?.length || 0
+                        });
                         promises.push(createConsultationMutation.mutateAsync(consultationData));
                     }
                 }

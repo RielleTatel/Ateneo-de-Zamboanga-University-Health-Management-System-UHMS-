@@ -107,8 +107,12 @@ const ConsultationController = {
   async createConsultation(req, res) {
     try {
       console.log("[createConsultation] Creating new consultation...");
+      console.log("[createConsultation] Request body:", JSON.stringify(req.body, null, 2));
 
       const { consultation, prescriptions } = req.body;
+
+      console.log("[createConsultation] Extracted consultation:", consultation);
+      console.log("[createConsultation] Extracted prescriptions:", prescriptions);
 
       // Insert the main consultation record
       const { data, error } = await ConsultationModel.insertConsultation(consultation);
@@ -126,38 +130,53 @@ const ConsultationController = {
       // If prescriptions exist, store them in consultation_prescriptions table
       if (prescriptions && prescriptions.length > 0) {
         console.log("[createConsultation] Storing", prescriptions.length, "prescriptions...");
+        console.log("[createConsultation] Raw prescriptions data:", JSON.stringify(prescriptions, null, 2));
         
         for (const prescription of prescriptions) {
           // Extract schedules from prescription
-          const { schedules, ...prescriptionData } = prescription;
+          const { schedules, id, ...prescriptionData } = prescription;
 
           // Insert prescription into consultation_prescriptions
           const prescriptionToInsert = {
             consultation_id: data.consultation_id,
             medication_name: prescriptionData.name || prescriptionData.medication_name,
-            quantity: prescriptionData.quantity,
-            instructions: prescriptionData.frequency || prescriptionData.instructions
+            quantity: prescriptionData.quantity || null,
+            instructions: prescriptionData.frequency || prescriptionData.instructions,
+            created_by: consultation.uuid || null
           };
+
+          console.log("[createConsultation] Inserting prescription:", prescriptionToInsert);
 
           const { data: prescriptionResult, error: prescriptionError } = 
             await ConsultationPrescriptionsModel.insertPrescription(prescriptionToInsert);
 
           if (prescriptionError) {
             console.error("[createConsultation] Error storing prescription:", prescriptionError);
+            console.error("[createConsultation] Failed prescription data:", prescriptionToInsert);
             continue; // Skip to next prescription
           }
 
+          if (!prescriptionResult) {
+            console.error("[createConsultation] No prescription result returned");
+            continue;
+          }
+
+          console.log("[createConsultation] Prescription result:", prescriptionResult);
           console.log("[createConsultation] Prescription stored with ID:", prescriptionResult.prescription_id);
 
           // If schedules exist for this prescription, store them
           if (schedules && schedules.length > 0) {
             console.log("[createConsultation] Storing", schedules.length, "schedules for prescription...");
+            console.log("[createConsultation] Raw schedules data:", JSON.stringify(schedules, null, 2));
             
             const schedulesToInsert = schedules.map(schedule => ({
               prescription_id: prescriptionResult.prescription_id,
               meal_time: schedule.time,
-              dosage: schedule.tabsPerSchedule || schedule.dosage
+              dosage: schedule.tabsPerSchedule || schedule.dosage,
+              created_by: consultation.uuid || null
             }));
+
+            console.log("[createConsultation] Schedules to insert:", schedulesToInsert);
 
             const { error: schedulesError } = 
               await PrescriptionSchedulesModel.insertMultipleSchedules(schedulesToInsert);
@@ -167,8 +186,12 @@ const ConsultationController = {
             } else {
               console.log("[createConsultation] Successfully stored", schedulesToInsert.length, "schedules");
             }
+          } else {
+            console.log("[createConsultation] No schedules to store for this prescription");
           }
         }
+      } else {
+        console.log("[createConsultation] No prescriptions to store");
       }
 
       res.json({
