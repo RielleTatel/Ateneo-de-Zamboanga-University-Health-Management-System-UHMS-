@@ -16,8 +16,6 @@ const AuthController = {
 
       const { email, password } = req.body;
 
-      console.log("[login] Attempting login for:", email);
-
       // Authenticate with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -25,20 +23,16 @@ const AuthController = {
       });
 
       if (authError) {
-        console.log("[login] Authentication failed:", authError.message);
         return res.status(401).json({ 
           error: "Authentication failed",
           message: authError.message 
         });
       }
 
-      console.log("[login] Authentication successful for user:", authData.user.id);
-
       // Get user details from database
       const userData = await UserModel.findById(authData.user.id);
 
       if (!userData) {
-        console.log("[login] User profile not found in database");
         return res.status(404).json({ 
           error: "User not found",
           message: "User profile not found in database" 
@@ -47,14 +41,11 @@ const AuthController = {
 
       // Check if user is verified
       if (!userData.status) {
-        console.log("[login] User not verified:", userData.uuid);
         return res.status(403).json({ 
           error: "Account not verified",
           message: "Your account is pending admin approval" 
         });
       }
-
-      console.log("[login] Login successful");
 
       // Return session and user data
       res.json({
@@ -69,7 +60,6 @@ const AuthController = {
         }
       });
     } catch (err) {
-      console.error("[login] Unexpected error:", err);
       res.status(500).json({ 
         error: "Server error",
         message: err.message 
@@ -85,7 +75,6 @@ const AuthController = {
     try {
       // Check if Supabase client is initialized
       if (!supabase) {
-        console.error("[register] Supabase client not initialized - missing environment variables");
         return res.status(500).json({ 
           error: "Configuration error",
           message: "Server is not properly configured. Please contact the administrator."
@@ -96,12 +85,6 @@ const AuthController = {
       
       // Validate required fields
       if (!email || !password || !full_name || !role) {
-        console.log("[register] Missing required fields:", { 
-          hasEmail: !!email, 
-          hasPassword: !!password, 
-          hasFullName: !!full_name, 
-          hasRole: !!role 
-        });
         return res.status(400).json({
           error: "Validation error",
           message: "All fields are required: email, password, full_name, and role"
@@ -113,7 +96,6 @@ const AuthController = {
       const normalizedRole = role.toLowerCase();
       
       if (!validRoles.includes(normalizedRole)) {
-        console.log("[register] Invalid role:", role);
         return res.status(400).json({
           error: "Validation error",
           message: `Invalid role. Must be one of: ${validRoles.join(', ')}`
@@ -127,13 +109,11 @@ const AuthController = {
           message: "Password must be at least 6 characters long"
         });
       }
-      
-      console.log("[register] Registration attempt:", { email, full_name, role: normalizedRole });
 
       // Check if user already exists in database
       const existingUser = await UserModel.findByEmail(email);
       if (existingUser) {
-        console.log("[register] User already exists:", email);
+
         return res.status(400).json({
           error: "Registration failed",
           message: "An account with this email already exists. Please login or use a different email."
@@ -154,9 +134,7 @@ const AuthController = {
         }
       });
 
-      if (authError) {
-        console.error("[register] Auth error:", authError);
-        
+      if (authError) {        
         // Provide user-friendly error messages
         let errorMessage = authError.message;
         if (authError.message.includes("already registered")) {
@@ -172,14 +150,11 @@ const AuthController = {
       }
 
       if (!authData.user) {
-        console.error("[register] No user returned from Supabase Auth");
         return res.status(500).json({
           error: "Registration failed",
           message: "Failed to create authentication account"
         });
       }
-
-      console.log("[register] Supabase auth user created:", authData.user.id);
 
       // Create user profile in database (pending approval)
       const { data: userData, error: dbError } = await UserModel.insertUser(
@@ -190,13 +165,10 @@ const AuthController = {
       );
 
       if (dbError) {
-        console.error("[register] Database error:", dbError);
         
         // Clean up: Delete the auth user if database insert fails
         try {
-          console.log("[register] Cleaning up auth user due to database error...");
           await supabase.auth.admin.deleteUser(authData.user.id);
-          console.log("[register] Auth user cleaned up successfully");
         } catch (cleanupError) {
           console.error("[register] Failed to cleanup auth user:", cleanupError);
         }
@@ -216,14 +188,11 @@ const AuthController = {
         });
       }
 
-      console.log("[register] User profile created successfully");
-
       return res.status(201).json({
         message: "Registration successful. Awaiting admin approval.",
         user: userData
       });
     } catch (err) {
-      console.error("[register] Unexpected error:", err);
       return res.status(500).json({ 
         error: "Server error",
         message: err.message 
@@ -237,8 +206,6 @@ const AuthController = {
    */
   async logout(req, res) {
     try {
-      console.log("[logout] Logout request received");
-      
       // Supabase handles logout on the client side
       // This endpoint can be used for logging or additional cleanup
       
@@ -246,7 +213,6 @@ const AuthController = {
         message: "Logout successful" 
       });
     } catch (err) {
-      console.error("[logout] Error:", err);
       res.status(500).json({ 
         error: "Server error",
         message: err.message 
@@ -260,22 +226,15 @@ const AuthController = {
    */
   async getMe(req, res) {
     try {
-      console.log("[getMe] Fetching user data for:", req.user.id);
-      console.log("[getMe] Request user object:", req.user);
-
       const userData = await UserModel.findById(req.user.id);
 
-      console.log("[getMe] User data retrieved:", userData);
-
       if (!userData) {
-        console.log("[getMe] User not found in database, user exists in auth but not in users table");
         return res.status(404).json({ 
           error: "User not found",
           message: "User profile not found in database. Please contact admin." 
         });
       }
 
-      console.log("[getMe] Returning user data");
       res.json({
         user: {
           id: userData.uuid,
@@ -286,8 +245,6 @@ const AuthController = {
         }
       });
     } catch (err) {
-      console.error("[getMe] Unexpected error:", err);
-      console.error("[getMe] Error stack:", err.stack);
       res.status(500).json({ 
         error: "Server error",
         message: err.message,
@@ -304,8 +261,6 @@ const AuthController = {
   async requestPasswordReset(req, res) {
     try {
       const { email, newPassword } = req.body;
-
-      console.log("[requestPasswordReset] Password reset request for:", email);
 
       // Validate input
       if (!email || !newPassword) {
@@ -340,14 +295,11 @@ const AuthController = {
         newPassword
       );
 
-      console.log("[requestPasswordReset] Reset request created:", resetRequest.id);
-
       return res.status(201).json({
         message: "Password reset request submitted successfully. Please wait for admin approval.",
         requestId: resetRequest.id
       });
     } catch (err) {
-      console.error("[requestPasswordReset] Error:", err);
       return res.status(500).json({
         error: "Server error",
         message: err.message
@@ -362,8 +314,6 @@ const AuthController = {
   async checkUserRole(req, res) {
     try {
       const { email } = req.body;
-
-      console.log("[checkUserRole] Checking role for:", email);
 
       if (!email) {
         return res.status(400).json({
@@ -381,14 +331,11 @@ const AuthController = {
         });
       }
 
-      console.log("[checkUserRole] User found with role:", user.role);
-
       return res.json({
         role: user.role,
         email: user.email
       });
     } catch (err) {
-      console.error("[checkUserRole] Error:", err);
       return res.status(500).json({
         error: "Server error",
         message: err.message
@@ -402,17 +349,12 @@ const AuthController = {
    */
   async getPendingResetRequests(req, res) {
     try {
-      console.log("[getPendingResetRequests] Fetching pending reset requests");
-
       const requests = await PasswordResetModel.getPendingRequests();
-
-      console.log(`[getPendingResetRequests] Found ${requests.length} pending requests`);
 
       return res.json({
         requests: requests
       });
     } catch (err) {
-      console.error("[getPendingResetRequests] Error:", err);
       return res.status(500).json({
         error: "Server error",
         message: err.message
@@ -427,8 +369,6 @@ const AuthController = {
   async approvePasswordReset(req, res) {
     try {
       const { requestId } = req.params;
-
-      console.log("[approvePasswordReset] Approving request:", requestId);
 
       // Get the reset request
       const resetRequest = await PasswordResetModel.getRequestById(requestId);
@@ -454,7 +394,6 @@ const AuthController = {
       );
 
       if (authError) {
-        console.error("[approvePasswordReset] Auth error:", authError);
         return res.status(500).json({
           error: "Failed to update password",
           message: authError.message
@@ -464,8 +403,6 @@ const AuthController = {
       // Update request status to approved
       await PasswordResetModel.updateRequestStatus(requestId, 'approved');
 
-      console.log("[approvePasswordReset] Password reset approved successfully");
-
       return res.json({
         message: "Password reset approved successfully",
         user: {
@@ -474,7 +411,6 @@ const AuthController = {
         }
       });
     } catch (err) {
-      console.error("[approvePasswordReset] Error:", err);
       return res.status(500).json({
         error: "Server error",
         message: err.message
@@ -488,8 +424,6 @@ const AuthController = {
   async rejectPasswordReset(req, res) {
     try {
       const { requestId } = req.params;
-
-      console.log("[rejectPasswordReset] Rejecting request:", requestId);
 
       // Get the reset request
       const resetRequest = await PasswordResetModel.getRequestById(requestId);
@@ -511,13 +445,10 @@ const AuthController = {
       // Update request status to rejected
       await PasswordResetModel.updateRequestStatus(requestId, 'rejected');
 
-      console.log("[rejectPasswordReset] Password reset rejected successfully");
-
       return res.json({
         message: "Password reset request rejected"
       });
     } catch (err) {
-      console.error("[rejectPasswordReset] Error:", err);
       return res.status(500).json({
         error: "Server error",
         message: err.message

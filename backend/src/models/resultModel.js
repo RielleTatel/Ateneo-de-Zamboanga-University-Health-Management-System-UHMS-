@@ -17,7 +17,6 @@ const ResultModel = {
 
   // Get results by patient UUID
   async getResultsByPatient(uuid) {
-    console.log("[getResultsByPatient] Fetching results for patient UUID:", uuid);
     
     const { data, error } = await supabase
       .from("results")

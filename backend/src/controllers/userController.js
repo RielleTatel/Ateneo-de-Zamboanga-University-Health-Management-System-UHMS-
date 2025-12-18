@@ -6,13 +6,10 @@ const UserController = {
   async getPendingUsers(req, res) { 
 
       try { 
-        console.log("[getPendingUsers] Getting pending users...");  
-
         const pendingUsers = await UserModel.getUsers({status: false}) 
 
         // Return empty array instead of 404 when no users found
         if (!pendingUsers || pendingUsers.length === 0) {
-          console.log("[getPendingUsers] No pending users found");
           return res.json({ 
             success: true, 
             message: "No pending users",
@@ -20,8 +17,6 @@ const UserController = {
           });
         }   
 
-        console.log(`[getPendingUsers] ✅ Found ${pendingUsers.length} pending user(s)`);  
-        
         const pendingUsersSanitized = pendingUsers.map(user => ({
           uuid: user.uuid,
           email: user.email,
@@ -37,8 +32,6 @@ const UserController = {
         });
  
       } catch (err) {
-          console.error("[getPendingUsers] ❌ Error:", err.message);
-          console.error("[getPendingUsers] Full error:", err);
           res.status(500).json({ 
             success: false, 
             error: err.message,
@@ -50,13 +43,10 @@ const UserController = {
   async getVerifiedUsers (req, res) { 
 
       try { 
-        console.log("[getVerifiedUsers] Getting verified users...");  
-
         const verifiedUsers = await UserModel.getUsers({status: true}) 
 
         // Return empty array instead of 404 when no users found
         if (!verifiedUsers || verifiedUsers.length === 0) {
-          console.log("[getVerifiedUsers] No verified users found");
           return res.json({ 
             success: true, 
             message: "No verified users",
@@ -64,8 +54,6 @@ const UserController = {
           });
         }   
 
-        console.log(`[getVerifiedUsers] ✅ Found ${verifiedUsers.length} verified user(s)`);  
-        
         const verifiedUsersSanitized = verifiedUsers.map(user => ({
           uuid: user.uuid,
           email: user.email,
@@ -81,8 +69,6 @@ const UserController = {
         });
 
       } catch (err) {
-          console.error("[getVerifiedUsers] ❌ Error:", err.message);
-          console.error("[getVerifiedUsers] Full error:", err);
           res.status(500).json({ 
             success: false, 
             error: err.message,
@@ -94,20 +80,16 @@ const UserController = {
   async approveUser(req, res) {
     try {
       const { uuid } = req.params;
-      console.log("[approveUser] Approving user:", uuid);
 
       // Step 1: Update user status in custom users table
       const { data: userData, error: dbError } = await UserModel.updateUserStatus(uuid, true);
 
       if (dbError) {
-        console.error("[approveUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
           error: dbError.message 
         });
       }
-
-      console.log("[approveUser] Database status updated successfully");
 
       // Step 2: Confirm user in Supabase Auth (CRITICAL FIX)
       // This removes the "Email not confirmed" error
@@ -120,23 +102,18 @@ const UserController = {
         if (authError) {
           console.error("[approveUser] Supabase Auth error:", authError);
           // Don't fail the whole operation - status is already updated
-          console.warn("[approveUser] User status updated but email confirmation failed");
-        } else {
-          console.log("[approveUser] User email confirmed in Supabase Auth");
         }
       } catch (authErr) {
         console.error("[approveUser] Failed to confirm user in Supabase Auth:", authErr);
         // Don't fail - status is updated, user can still login after page refresh
       }
 
-      console.log("[approveUser] User approved successfully");
       return res.json({
         success: true,
         message: "User approved successfully",
         user: userData
       });
     } catch (err) {
-      console.error("[approveUser] Unexpected error:", err);
       return res.status(500).json({ 
         success: false, 
         error: err.message 
@@ -147,13 +124,11 @@ const UserController = {
   async rejectUser(req, res) {
     try {
       const { uuid } = req.params;
-      console.log("[rejectUser] Rejecting user:", uuid);
 
       // Delete from custom users table
       const { error: dbError } = await UserModel.deleteUser(uuid);
 
       if (dbError) {
-        console.error("[rejectUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
           error: dbError.message 
@@ -167,20 +142,16 @@ const UserController = {
         if (authError) {
           console.error("[rejectUser] Failed to delete from Supabase Auth:", authError);
           // Don't fail the operation - database record is already deleted
-        } else {
-          console.log("[rejectUser] User deleted from Supabase Auth");
         }
       } catch (authErr) {
         console.error("[rejectUser] Auth deletion error:", authErr);
       }
 
-      console.log("[rejectUser] User rejected successfully");
       return res.json({
         success: true,
         message: "User rejected successfully"
       });
     } catch (err) {
-      console.error("[rejectUser] Unexpected error:", err);
       return res.status(500).json({ 
         success: false, 
         error: err.message 
@@ -191,12 +162,10 @@ const UserController = {
   async deleteUser(req, res) {
     try {
       const { uuid } = req.params;
-      console.log("[deleteUser] Deleting user:", uuid);
 
       // First, check if user exists
       const existingUser = await UserModel.findById(uuid);
       if (!existingUser) {
-        console.log("[deleteUser] User not found:", uuid);
         return res.status(404).json({ 
           success: false, 
           error: "User not found" 
@@ -212,18 +181,14 @@ const UserController = {
         
         if (patientError) {
           console.log("[deleteUser] Note: No patient record or error deleting patient:", patientError.message);
-        } else {
-          console.log("[deleteUser] Patient record deleted");
         }
       } catch (patientErr) {
-        console.log("[deleteUser] Patient deletion note:", patientErr.message);
       }
 
       // Delete from custom users table
       const { error: dbError } = await UserModel.deleteUser(uuid);
 
       if (dbError) {
-        console.error("[deleteUser] Database error:", dbError);
         return res.status(500).json({ 
           success: false, 
           error: dbError.message,
@@ -237,20 +202,16 @@ const UserController = {
         
         if (authError) {
           console.error("[deleteUser] Failed to delete from Supabase Auth:", authError);
-        } else {
-          console.log("[deleteUser] User deleted from Supabase Auth");
         }
       } catch (authErr) {
         console.error("[deleteUser] Auth deletion error:", authErr);
       }
 
-      console.log("[deleteUser] User deleted successfully");
       return res.json({
         success: true,
         message: "User deleted successfully"
       });
     } catch (err) {
-      console.error("[deleteUser] Unexpected error:", err);
       return res.status(500).json({ 
         success: false, 
         error: err.message 
@@ -263,8 +224,6 @@ const UserController = {
     try {
       const currentAdminUuid = req.user.id;
       const { targetUuid } = req.body;
-
-      console.log("[transferAdminRole] Request to transfer admin role from", currentAdminUuid, "to", targetUuid);
 
       if (!targetUuid) {
         return res.status(400).json({
@@ -299,7 +258,6 @@ const UserController = {
       // Update roles: promote target to admin, demote current admin to staff
       const { error: promoteError } = await UserModel.updateUserRole(targetUuid, "admin");
       if (promoteError) {
-        console.error("[transferAdminRole] Error promoting target user:", promoteError);
         return res.status(500).json({
           success: false,
           message: "Failed to promote target user to admin"
@@ -308,7 +266,6 @@ const UserController = {
 
       const { error: demoteError } = await UserModel.updateUserRole(currentAdminUuid, "staff");
       if (demoteError) {
-        console.error("[transferAdminRole] Error demoting current admin:", demoteError);
         // We already changed the target to admin; report partial success
         return res.status(500).json({
           success: false,
@@ -316,7 +273,6 @@ const UserController = {
         });
       }
 
-      console.log("[transferAdminRole] Admin role transferred successfully");
       return res.json({
         success: true,
         message: "Admin role transferred successfully. You will lose admin permissions after your next login.",
@@ -326,7 +282,6 @@ const UserController = {
         }
       });
     } catch (err) {
-      console.error("[transferAdminRole] Unexpected error:", err);
       return res.status(500).json({
         success: false,
         error: err.message

@@ -4,7 +4,6 @@ const ConsultationModel = {
 
   // CREATE
   async insertConsultation(consultationData) {
-    console.log("[insertConsultation] Inserting consultation:", consultationData);
 
     const { data, error } = await supabase
       .from("consultations")
@@ -23,7 +22,6 @@ const ConsultationModel = {
 
   // READ BY ID
   async getConsultationById(consultation_id) {
-    console.log("[getConsultationById] Looking up:", consultation_id);
 
     const { data, error } = await supabase
       .from("consultations")
@@ -32,7 +30,6 @@ const ConsultationModel = {
       .single();
 
     if (error) {
-      console.error("[getConsultationById] Error:", error);
       return null;
     }
 
@@ -41,7 +38,6 @@ const ConsultationModel = {
 
   // READ BY USER UUID
   async getConsultationsByUUID(uuid) {
-    console.log("[getConsultationsByUUID] Fetching consultations for uuid:", uuid);
 
     const { data, error } = await supabase
       .from("consultations")
@@ -50,7 +46,6 @@ const ConsultationModel = {
       .order("date_of_check", { ascending: false });
 
     if (error) {
-      console.error("[getConsultationsByUUID] Error:", error);
       throw new Error(error.message);
     }
 
@@ -59,14 +54,12 @@ const ConsultationModel = {
 
   // READ ALL
   async getAllConsultations() {
-    console.log("[getAllConsultations] Fetching all consultations");
 
     const { data, error } = await supabase
       .from("consultations")
       .select("*");
 
     if (error) {
-      console.error("[getAllConsultations] Error:", error);
       throw new Error(error.message);
     }
 
@@ -75,7 +68,6 @@ const ConsultationModel = {
 
   // UPDATE
   async updateConsultation(consultation_id, updates) {
-    console.log("[updateConsultation] Updating:", { consultation_id, updates });
 
     const { data, error } = await supabase
       .from("consultations")
@@ -95,7 +87,6 @@ const ConsultationModel = {
 
   // DELETE
   async deleteConsultation(consultation_id) {
-    console.log("[deleteConsultation] Deleting:", consultation_id);
 
     const { data, error } = await supabase
       .from("consultations")

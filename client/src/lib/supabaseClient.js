@@ -44,7 +44,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-console.log('[Supabase Client] Initialized successfully');
-
 export default supabase;
 

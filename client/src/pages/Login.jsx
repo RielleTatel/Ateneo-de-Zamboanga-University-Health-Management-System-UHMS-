@@ -95,7 +95,6 @@ const Login = () => {
             }
 
         } catch (err) {
-            console.error("Login error:", err);
             
             // Handle specific error messages
             let errorMessage = "Login failed. Please check your credentials.";
@@ -154,19 +153,14 @@ const Login = () => {
             if (role === 'admin') {
                 setIsAdminReset(true);
                 
-                console.log('[Password Reset] Sending reset email to admin:', resetEmail);
-                
                 // Use Supabase's password reset email
                 const { data, error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
                     redirectTo: `${window.location.origin}/reset-password`
                 });
 
                 if (resetError) {
-                    console.error('[Password Reset] Supabase error:', resetError);
                     throw new Error(resetError.message);
                 }
-
-                console.log('[Password Reset] Email sent successfully:', data);
                 
                 setResetSuccess(true);
                 setResetError(null);
@@ -201,8 +195,6 @@ const Login = () => {
                     email: resetEmail,
                     newPassword: newPassword
                 });
-
-                console.log("Password reset request submitted:", response.data);
                 setResetSuccess(true);
                 
                 // Close modal after 3 seconds

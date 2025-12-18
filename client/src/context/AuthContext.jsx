@@ -167,7 +167,6 @@ export const AuthProvider = ({ children }) => {
       // Supabase might have created a session during registration
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       if (currentSession) {
-        console.log("[AuthContext] Signing out auto-created session after registration");
         await supabase.auth.signOut();
         setUser(null);
         setSession(null);

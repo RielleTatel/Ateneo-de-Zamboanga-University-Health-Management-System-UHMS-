@@ -8,10 +8,7 @@ const supabaseKey = process.env.SUPABASE_KEY;
 
 let supabase = null;
 
-// Only create client if configuration is available
 if (supabaseUrl && supabaseKey) {
-  console.log('[Supabase] Initializing client with URL:', supabaseUrl);
-  console.log('[Supabase] Using service_role key:', supabaseKey.substring(0, 20) + '...');
   
   supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
@@ -29,8 +26,6 @@ if (supabaseUrl && supabaseKey) {
     }
   });
   
-  console.log('[Supabase] Client initialized successfully');
-  console.log('[Supabase] RLS should be bypassed with service_role key');
 } else {
   console.error('[Supabase] Cannot initialize - missing configuration');
   console.error('[Supabase] SUPABASE_URL:', supabaseUrl ? 'SET' : 'MISSING');

@@ -106,7 +106,6 @@ const Consult = () => {
                         warnings.push(`Vitals: ${vitalsData._meta.emptyFieldCount} field(s) left empty`);
                     }
                     if (vitalsData._meta.hasData) {
-                        console.log('Saving vitals:', vitalsData);
                         promises.push(createVitalMutation.mutateAsync(vitalsData));
                     }
                 }
@@ -116,7 +115,6 @@ const Consult = () => {
             if (allowedComponents.includes('lab') && labData) {
                 if (labData._meta) {
                     if (labData._meta.hasData) {
-                        console.log('Saving lab results:', labData);
                         promises.push(createLabMutation.mutateAsync(labData));
                     }
                 }
@@ -129,12 +127,6 @@ const Consult = () => {
                         warnings.push(`Consultation: ${consultationData._meta.emptyFieldCount} field(s) left empty`);
                     }
                     if (consultationData._meta.hasData) {
-                        console.log('Saving consultation:', consultationData);
-                        console.log('Consultation structure:', {
-                            consultation: consultationData.consultation,
-                            prescriptions: consultationData.prescriptions,
-                            prescriptionCount: consultationData.prescriptions?.length || 0
-                        });
                         promises.push(createConsultationMutation.mutateAsync(consultationData));
                     }
                 }

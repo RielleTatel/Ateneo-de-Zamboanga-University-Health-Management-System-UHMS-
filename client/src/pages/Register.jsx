@@ -25,7 +25,6 @@ const Register = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
 
-        console.log('Register with:', { email, full_name, role }); 
         setError(null);
         setSuccess(false);
 
@@ -79,7 +78,6 @@ const Register = () => {
             }, 3000);
 
         } catch (err) {
-            console.error('Registration error:', err);
             if (err.response?.data?.message) {
                 setError(err.response.data.message);
             } else if (err.response?.data?.error) {

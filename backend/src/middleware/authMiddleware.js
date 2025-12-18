@@ -8,7 +8,6 @@ export const verifyToken = async (req, res, next) => {
   try {
     // Check if Supabase client is initialized
     if (!supabase) {
-      console.error("[authMiddleware] Supabase client not initialized - missing environment variables");
       return res.status(500).json({ 
         error: "Configuration error",
         message: "Server is not properly configured. Please contact the administrator."
@@ -18,7 +17,6 @@ export const verifyToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log("[authMiddleware] No token provided");
       return res.status(401).json({ 
         error: "Authentication required",
         message: "No access token provided" 
@@ -26,24 +24,16 @@ export const verifyToken = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    console.log("[authMiddleware] Verifying token for request:", req.url);
 
     // Verify the token with Supabase
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      console.error("[authMiddleware] Token verification failed:", {
-        error: error?.message,
-        hasUser: !!user,
-        url: req.url
-      });
       return res.status(401).json({ 
         error: "Invalid token",
         message: error?.message || "Token verification failed" 
       });
     }
-
-    console.log("[authMiddleware] User authenticated:", user.id);
 
     // Attach user info to request object
     req.user = {
@@ -54,11 +44,6 @@ export const verifyToken = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("[authMiddleware] Unexpected error:", {
-      error: err.message,
-      stack: err.stack,
-      url: req.url
-    });
     return res.status(500).json({ 
       error: "Server error",
       message: "Failed to authenticate request",
@@ -77,7 +62,6 @@ export const requireRole = (allowedRoles) => {
     try {
       // Check if Supabase client is initialized
       if (!supabase) {
-        console.error("[authMiddleware] Supabase client not initialized");
         return res.status(500).json({ 
           error: "Configuration error",
           message: "Server is not properly configured. Please contact the administrator."
@@ -99,7 +83,6 @@ export const requireRole = (allowedRoles) => {
         .single();
 
       if (error || !userData) {
-        console.log("[authMiddleware] User not found in database:", req.user.id);
         return res.status(403).json({ 
           error: "Access denied",
           message: "User profile not found" 
@@ -108,7 +91,6 @@ export const requireRole = (allowedRoles) => {
 
       // Check if user is verified
       if (!userData.status) {
-        console.log("[authMiddleware] User not verified:", req.user.id);
         return res.status(403).json({ 
           error: "Access denied",
           message: "User account not verified by admin" 
@@ -122,20 +104,14 @@ export const requireRole = (allowedRoles) => {
       const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
       
       if (!roles.includes(userData.role)) {
-        console.log("[authMiddleware] Insufficient permissions:", {
-          required: roles,
-          current: userData.role
-        });
         return res.status(403).json({ 
           error: "Access denied",
           message: "Insufficient permissions for this action" 
         });
       }
 
-      console.log("[authMiddleware] Role authorized:", userData.role);
       next();
     } catch (err) {
-      console.error("[authMiddleware] Role check error:", err);
       return res.status(500).json({ 
         error: "Server error",
         message: "Failed to verify permissions" 

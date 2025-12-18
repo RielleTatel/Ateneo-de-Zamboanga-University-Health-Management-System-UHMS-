@@ -13,14 +13,9 @@ const TestSupabase = () => {
     setData(null);
 
     try {
-      console.log("🔍 Testing Supabase connection...");
       const response = await axios.get("http://localhost:3001/api/debugging/test-supabase");
       
-      console.log("✅ Supabase Response:", response.data);
-      
       if (response.data.users && response.data.users.length > 0) {
-        console.log("👤 Users from Supabase:", response.data.users.length);
-        console.log("👤 First user:", response.data.users[0]);
       }
       
       setData(response.data); 

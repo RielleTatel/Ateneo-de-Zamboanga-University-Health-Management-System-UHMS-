@@ -4,7 +4,6 @@ const ConsultationPrescriptionsModel = {
 
   // INSERT a new prescription
   async insertPrescription(prescriptionData) {
-    console.log("[insertPrescription] Inserting prescription:", prescriptionData);
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")
@@ -23,7 +22,6 @@ const ConsultationPrescriptionsModel = {
 
   // INSERT multiple prescriptions at once
   async insertMultiplePrescriptions(prescriptionsArray) {
-    console.log("[insertMultiplePrescriptions] Inserting", prescriptionsArray.length, "prescriptions");
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")
@@ -41,7 +39,6 @@ const ConsultationPrescriptionsModel = {
 
   // GET prescriptions for a specific consultation
   async getPrescriptionsByConsultationId(consultation_id) {
-    console.log("[getPrescriptionsByConsultationId] Fetching prescriptions for consultation:", consultation_id);
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")
@@ -50,7 +47,6 @@ const ConsultationPrescriptionsModel = {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("[getPrescriptionsByConsultationId] Error:", error);
       throw new Error(error.message);
     }
 
@@ -59,7 +55,6 @@ const ConsultationPrescriptionsModel = {
 
   // GET a specific prescription by ID
   async getPrescriptionById(prescription_id) {
-    console.log("[getPrescriptionById] Fetching prescription:", prescription_id);
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")
@@ -68,7 +63,6 @@ const ConsultationPrescriptionsModel = {
       .single();
 
     if (error) {
-      console.error("[getPrescriptionById] Error:", error);
       return null;
     }
 
@@ -77,7 +71,6 @@ const ConsultationPrescriptionsModel = {
 
   // UPDATE a prescription
   async updatePrescription(prescription_id, updates) {
-    console.log("[updatePrescription] Updating prescription:", { prescription_id, updates });
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")
@@ -97,7 +90,6 @@ const ConsultationPrescriptionsModel = {
 
   // DELETE a prescription
   async deletePrescription(prescription_id) {
-    console.log("[deletePrescription] Deleting prescription:", prescription_id);
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")
@@ -115,7 +107,6 @@ const ConsultationPrescriptionsModel = {
 
   // DELETE all prescriptions for a consultation
   async deleteAllPrescriptionsForConsultation(consultation_id) {
-    console.log("[deleteAllPrescriptionsForConsultation] Deleting all prescriptions for consultation:", consultation_id);
 
     const { data, error } = await supabase
       .from("consultation_prescriptions")

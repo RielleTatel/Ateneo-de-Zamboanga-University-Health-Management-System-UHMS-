@@ -41,7 +41,6 @@ const ResetPassword = () => {
       });
 
       if (updateError) {
-        console.error("Password update error:", updateError);
         setError(updateError.message || "Failed to update password.");
         setSaving(false);
         return;

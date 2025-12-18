@@ -65,7 +65,6 @@ const CreateProfile = () => {
     const addPatientMutation = useMutation({
         mutationFn: addPatient,
         onSuccess: (data) => {
-            console.log('Patient created successfully:', data);
             // Navigate back to records page after successful submission
             navigate('/records');
         },

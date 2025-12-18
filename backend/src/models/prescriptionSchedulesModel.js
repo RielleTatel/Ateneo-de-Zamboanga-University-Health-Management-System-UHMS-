@@ -4,7 +4,6 @@ const PrescriptionSchedulesModel = {
 
   // INSERT a new schedule
   async insertSchedule(scheduleData) {
-    console.log("[insertSchedule] Inserting schedule:", scheduleData);
 
     const { data, error } = await supabase
       .from("prescription_schedules")
@@ -23,7 +22,6 @@ const PrescriptionSchedulesModel = {
 
   // INSERT multiple schedules at once
   async insertMultipleSchedules(schedulesArray) {
-    console.log("[insertMultipleSchedules] Inserting", schedulesArray.length, "schedules");
 
     const { data, error } = await supabase
       .from("prescription_schedules")
@@ -41,7 +39,6 @@ const PrescriptionSchedulesModel = {
 
   // GET schedules for a specific prescription
   async getSchedulesByPrescriptionId(prescription_id) {
-    console.log("[getSchedulesByPrescriptionId] Fetching schedules for prescription:", prescription_id);
 
     const { data, error } = await supabase
       .from("prescription_schedules")
@@ -50,7 +47,6 @@ const PrescriptionSchedulesModel = {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("[getSchedulesByPrescriptionId] Error:", error);
       throw new Error(error.message);
     }
 
@@ -59,7 +55,6 @@ const PrescriptionSchedulesModel = {
 
   // GET a specific schedule by ID
   async getScheduleById(schedule_id) {
-    console.log("[getScheduleById] Fetching schedule:", schedule_id);
 
     const { data, error } = await supabase
       .from("prescription_schedules")
@@ -68,7 +63,6 @@ const PrescriptionSchedulesModel = {
       .single();
 
     if (error) {
-      console.error("[getScheduleById] Error:", error);
       return null;
     }
 
@@ -77,7 +71,6 @@ const PrescriptionSchedulesModel = {
 
   // UPDATE a schedule
   async updateSchedule(schedule_id, updates) {
-    console.log("[updateSchedule] Updating schedule:", { schedule_id, updates });
 
     const { data, error } = await supabase
       .from("prescription_schedules")
@@ -97,7 +90,6 @@ const PrescriptionSchedulesModel = {
 
   // DELETE a schedule
   async deleteSchedule(schedule_id) {
-    console.log("[deleteSchedule] Deleting schedule:", schedule_id);
 
     const { data, error } = await supabase
       .from("prescription_schedules")
@@ -115,7 +107,6 @@ const PrescriptionSchedulesModel = {
 
   // DELETE all schedules for a prescription
   async deleteAllSchedulesForPrescription(prescription_id) {
-    console.log("[deleteAllSchedulesForPrescription] Deleting all schedules for prescription:", prescription_id);
 
     const { data, error } = await supabase
       .from("prescription_schedules")

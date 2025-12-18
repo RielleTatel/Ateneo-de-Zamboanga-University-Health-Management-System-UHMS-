@@ -21,10 +21,8 @@ import axiosInstance from "@/lib/axiosInstance";
 const fetchAllConsultations = async () => {
   try {
     const { data } = await axiosInstance.get('/consultations/');
-    console.log('📊 [DASHBOARD] Consultations data received:', data.consultations);
     return data.consultations || [];
   } catch (error) {
-    console.error("❌ [DASHBOARD] Error fetching consultations:", error);
     return [];
   }
 };
@@ -32,10 +30,8 @@ const fetchAllConsultations = async () => {
 const fetchAllResults = async () => {
   try {
     const { data } = await axiosInstance.get('/results/all');
-    console.log('📊 [DASHBOARD] Results data received:', data.results);
     return data.results || [];
   } catch (error) {
-    console.error("❌ [DASHBOARD] Error fetching results:", error);
     return [];
   }
 };
@@ -43,10 +39,8 @@ const fetchAllResults = async () => {
 const fetchAllVitals = async () => {
   try {
     const { data } = await axiosInstance.get('/vitals/');
-    console.log('📊 [DASHBOARD] Vitals data received:', data.vitals);
     return data.vitals || [];
   } catch (error) {
-    console.error("❌ [DASHBOARD] Error fetching vitals:", error);
     return [];
   }
 };
@@ -54,10 +48,8 @@ const fetchAllVitals = async () => {
 const fetchAllPatients = async () => {
   try {
     const { data } = await axiosInstance.get('/patients/');
-    console.log('📊 [DASHBOARD] Patients data received:', data.patients);
     return data.patients || [];
   } catch (error) {
-    console.error("❌ [DASHBOARD] Error fetching patients:", error);
     return [];
   }
 };
@@ -111,12 +103,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (loadingConsultations || loadingResults || loadingVitals || loadingPatients) return;
 
-    console.log('🔄 [DASHBOARD] Processing data...');
-    console.log('📋 Total Consultations:', consultations.length);
-    console.log('🧪 Total Results:', results.length);
-    console.log('💓 Total Vitals:', vitals.length);
-    console.log('👥 Unique Patients:', patients.length);
-
     // ========== FILTER TO GET LATEST RECORDS PER PATIENT ==========
     
     // Get latest consultation per patient
@@ -153,11 +139,6 @@ const Dashboard = () => {
     const latestConsultationsArray = Object.values(latestConsultations);
     const latestResultsArray = Object.values(latestResults);
     const latestVitalsArray = Object.values(latestVitals);
-
-    console.log('📊 [DASHBOARD] Latest records only:');
-    console.log('  Consultations:', latestConsultationsArray.length);
-    console.log('  Results:', latestResultsArray.length);
-    console.log('  Vitals:', latestVitalsArray.length);
 
     // Process KPI Cards (using latest data only)
     let hypertensiveCount = 0;
@@ -207,8 +188,6 @@ const Dashboard = () => {
     });
 
     // Process Risk Stratification (calculated from latest health data only)
-    console.log('🔍 [DASHBOARD] Processing risk stratification...');
-    
     // Create a map to track each unique patient's worst risk level
     const patientRiskMap = {};
     
@@ -289,8 +268,6 @@ const Dashboard = () => {
       riskCounts[risk]++;
     });
 
-    console.log('📊 [DASHBOARD] Risk counts:', riskCounts);
-
     const riskStratification = [
       { name: 'Normal', value: riskCounts.Normal, color: '#22c55e' },
       { name: 'At Risk', value: riskCounts['At Risk'], color: '#f59e0b' },
@@ -299,7 +276,6 @@ const Dashboard = () => {
 
     // Process Chronic Risk Factors (from latest consultations only)
     const chronicFactorCounts = {};
-    console.log('🔍 [DASHBOARD] Processing chronic risk factors...');
     
     latestConsultationsArray.forEach(consultation => {
       const rawFactor = consultation.chronic_risk_factor;
@@ -331,14 +307,10 @@ const Dashboard = () => {
       }
     });
 
-    console.log('📊 [DASHBOARD] Chronic factor counts:', chronicFactorCounts);
-
     const chronicFactors = Object.entries(chronicFactorCounts)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 6);
-
-    console.log('📊 [DASHBOARD] Processed chronic factors:', chronicFactors);
 
     // Process Lipid Profile (Average values from latest results only)
     const lipidValues = {
@@ -381,7 +353,6 @@ const Dashboard = () => {
     ];
 
     // Process BMI vs BP Scatter Plot (one point per patient, latest data)
-    console.log('🔍 [DASHBOARD] Processing BMI vs BP correlation...');
     const bmiVsBP = latestVitalsArray
       .map(v => {
         let systolic = null;
@@ -415,29 +386,13 @@ const Dashboard = () => {
         return isValid;
       });
 
-    console.log('📊 [DASHBOARD] BMI vs BP data points:', bmiVsBP.length);
-    if (bmiVsBP.length > 0) {
-      console.log('Sample point:', bmiVsBP[0]);
-    } else {
-      console.log('⚠️ No valid BMI/BP data points found. Check vitals data structure.');
-      if (latestVitalsArray.length > 0) {
-        console.log('Sample vital record:', latestVitalsArray[0]);
-      }
-    }
-    if (bmiVsBP.length > 0) {
-      console.log('Sample point:', bmiVsBP[0]);
-    }
-
     // Process At-Risk Cohort (using latest data only)
-    console.log('🔍 [DASHBOARD] Processing at-risk cohort...');
     
     // Create a patient name lookup map
     const patientNameMap = {};
     patients.forEach(patient => {
       patientNameMap[patient.uuid] = patient.name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Unknown';
     });
-
-    console.log('👥 [DASHBOARD] Patient name map created:', Object.keys(patientNameMap).length, 'patients');
     
     // Create a map to combine data by user with risk factors
     const userDataMap = {};
@@ -586,12 +541,9 @@ const Dashboard = () => {
         return 0;
       });
 
-    console.log('📊 [DASHBOARD] At-risk cohort:', atRiskCohort.length, 'patients');
-
     // Process Critical Risk Ranker – department risk mix (Green / Yellow / Red)
     // Iterate through ALL patients so every department in the registry appears,
     // even if some departments currently have only "Normal" students.
-    console.log('🔍 [DASHBOARD] Processing department risk mix...');
     const departmentRiskCounts = {};
 
     patients.forEach((pt) => {
@@ -633,10 +585,7 @@ const Dashboard = () => {
         return b.yellow - a.yellow;
       });
 
-    console.log('📊 [DASHBOARD] Department risk mix:', departmentRiskMix);
-
     // Process Chronic Risk Factor Distribution by Department (100% stacked bar)
-    console.log('🔍 [DASHBOARD] Processing department chronic risk factor distribution...');
     const departmentChronicCounts = {};
 
     // Map each patient to their department and chronic risk factors
@@ -706,8 +655,6 @@ const Dashboard = () => {
         const bRisk = b.smoking + b.drinking + b.hypertension + b.diabetes;
         return bRisk - aRisk;
       });
-
-    console.log('📊 [DASHBOARD] Department chronic risk mix:', departmentChronicRiskMix);
 
     setProcessedData({
       hypertensiveCount,
@@ -783,7 +730,7 @@ const Dashboard = () => {
 
                   <Card className="bg-white shadow-md border-2" style={{ borderColor: '#0033A0' }}>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Critical LDL</CardTitle>
+                      <CardTitle className="text-sm font-medium"> High Cholesterol </CardTitle>
                       <Droplet className="h-5 w-5 text-orange-600" />
                                 </CardHeader>
                                 <CardContent>

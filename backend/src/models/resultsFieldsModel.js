@@ -4,7 +4,6 @@ const ResultsFieldsModel = {
 
   // INSERT custom field for a result
   async insertResultField(result_id, field_key, field_value, value_type = "text", created_by = null) {
-    console.log("[insertResultField] Inserting custom field:", { result_id, field_key, value_type });
 
     const { data, error } = await supabase
       .from("results_fields")
@@ -29,7 +28,6 @@ const ResultsFieldsModel = {
 
   // INSERT multiple custom fields at once
   async insertMultipleResultFields(fieldsArray) {
-    console.log("[insertMultipleResultFields] Inserting", fieldsArray.length, "custom fields");
 
     const { data, error } = await supabase
       .from("results_fields")
@@ -65,7 +63,6 @@ const ResultsFieldsModel = {
 
   // GET a specific custom field by result_id and field_key
   async getFieldByKey(result_id, field_key) {
-    console.log("[getFieldByKey] Fetching custom field:", { result_id, field_key });
 
     const { data, error } = await supabase
       .from("results_fields")
@@ -75,7 +72,6 @@ const ResultsFieldsModel = {
       .single();
 
     if (error) {
-      console.error("[getFieldByKey] Error:", error);
       return null;
     }
 
@@ -84,7 +80,6 @@ const ResultsFieldsModel = {
 
   // UPDATE a custom field
   async updateResultField(id, field_value) {
-    console.log("[updateResultField] Updating custom field:", { id, field_value });
 
     const { data, error } = await supabase
       .from("results_fields")
@@ -104,7 +99,6 @@ const ResultsFieldsModel = {
 
   // DELETE a custom field by id
   async deleteResultField(id) {
-    console.log("[deleteResultField] Deleting custom field:", id);
 
     const { data, error } = await supabase
       .from("results_fields")
@@ -122,7 +116,6 @@ const ResultsFieldsModel = {
 
   // DELETE all custom fields for a result
   async deleteAllFieldsForResult(result_id) {
-    console.log("[deleteAllFieldsForResult] Deleting all custom fields for result:", result_id);
 
     const { data, error } = await supabase
       .from("results_fields")

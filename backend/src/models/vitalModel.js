@@ -4,7 +4,6 @@ const VitalModel = {
 
   // Insert a new vital record
   async insertVital(vitalData) {
-    console.log("[insertVital] Inserting vital record:", vitalData);
     
     const { data, error } = await supabase.from('vitals').insert([vitalData])
     .select()
@@ -21,7 +20,6 @@ const VitalModel = {
 
   // Get all vitals
   async getAllVitals() {
-    console.log("[getAllVitals] Fetching all vitals");
     const { data, error } = await supabase.from('vitals').select('*');
 
     if (error) {
@@ -29,13 +27,11 @@ const VitalModel = {
       throw new Error(`Supabase error: ${error.message}`);
     }
 
-    console.log(`[getAllVitals] ✅ Fetched ${data.length} vital records`);
     return data;
   },
 
   // Get vitals by patient UUID
   async getVitalsByPatient(uuid) {
-    console.log("[getVitalsByPatient] Fetching vitals for patient UUID:", uuid);
     const { data, error } = await supabase
       .from('vitals')
       .select('*')
@@ -43,31 +39,25 @@ const VitalModel = {
       .order('date_of_check', { ascending: false });
 
     if (error) {
-      console.error("[getVitalsByPatient] Error:", error);
       throw new Error(`Supabase error: ${error.message}`);
     }
 
-    console.log(`[getVitalsByPatient] ✅ Fetched ${data.length} records`);
     return data;
   },
 
   // Get a single vital record by ID
   async getVitalById(vital_id) {
-    console.log("[getVitalById] Fetching vital ID:", vital_id);
     const { data, error } = await supabase.from('vitals').select('*').eq('vital_id', vital_id).single();
 
     if (error) {
-      console.error("[getVitalById] Error:", error);
       return null;
     }
 
-    console.log("[getVitalById] Record found:", data ? 'Yes' : 'No');
     return data;
   },
 
   // Update a vital record
   async updateVital(vital_id, updates) {
-    console.log("[updateVital] Updating vital record:", { vital_id, updates });
     const { data, error } = await supabase.from('vitals').update(updates).eq('vital_id', vital_id).select().single();
 
     if (error) {
@@ -81,7 +71,6 @@ const VitalModel = {
 
   // Delete a vital record
   async deleteVital(vital_id) {
-    console.log("[deleteVital] Deleting vital ID:", vital_id);
     const { data, error } = await supabase.from('vitals').delete().eq('vital_id', vital_id);
 
     if (error) {
