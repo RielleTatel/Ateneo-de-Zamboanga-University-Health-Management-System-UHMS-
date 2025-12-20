@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileText, Download, Plus, Trash2, Loader2, AlertCircle } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
+import { supabase } from "@/lib/supabaseClient";
 
-// API Functions
 const fetchResultsByPatient = async (uuid) => {
     const { data } = await axiosInstance.get(`/results/patient/${uuid}`);
     return data.results;
@@ -63,13 +63,30 @@ const Lab = ({ recordId }) => {
         { key: 'vitd', label: 'Vitamin D', unit: 'ng/mL', category: 'Vitamins' },
         { key: 'b12', label: 'Vitamin B12', unit: 'pg/mL', category: 'Vitamins' },
         { key: 'tsh', label: 'TSH', unit: 'mIU/L', category: 'Thyroid' },
+        // Imaging tests (PDF uploads)
+        { key: 'ekg', label: 'EKG', unit: 'PDF', category: 'Imaging' },
+        { key: 'echo_2d', label: '2D Echo', unit: 'PDF', category: 'Imaging' },
+        { key: 'cxr', label: 'CXR (Chest X-Ray)', unit: 'PDF', category: 'Imaging' },
     ];
+
+    // Imaging test keys for special rendering
+    const imagingTestKeys = ['ekg', 'echo_2d', 'cxr'];
+
+    const getImagingPublicUrl = (path) => {
+        if (!path) return null;
+
+        if (path.startsWith('http')) return path;
+
+        const { data } = supabase.storage
+            .from('lab-imaging')
+            .getPublicUrl(path);
+        return data?.publicUrl;
+    };
 
     const [newResult, setNewResult] = useState({
         ...labTests.reduce((acc, test) => ({ ...acc, [test.key]: '' }), {})
     });
 
-    // Fetch results for the patient
     const { 
         data: results = [], 
         isLoading,
@@ -81,7 +98,6 @@ const Lab = ({ recordId }) => {
         refetchOnWindowFocus: false
     });
 
-    // Add result mutation
     const addResultMutation = useMutation({
         mutationFn: addResult,
         onSuccess: () => {
@@ -91,7 +107,6 @@ const Lab = ({ recordId }) => {
         }
     });
 
-    // Delete result mutation
     const deleteResultMutation = useMutation({
         mutationFn: deleteResult,
         onSuccess: () => {
@@ -99,7 +114,6 @@ const Lab = ({ recordId }) => {
         }
     });
 
-    // Fetch custom fields for all results (must be before any conditional returns)
     useEffect(() => {
         const fetchAllCustomFields = async () => {
             if (!results || results.length === 0) return;
@@ -120,12 +134,11 @@ const Lab = ({ recordId }) => {
     }, [results]);
 
     const handleAddResult = () => {
-        // Filter out empty values and convert to appropriate types
+
         const resultData = {
             user_uuid: recordId,
             ...Object.keys(newResult).reduce((acc, key) => {
                 if (newResult[key]) {
-                    // Check if it's a numeric field
                     const test = labTests.find(t => t.key === key);
                     if (test && test.category !== 'Diagnostics' && test.unit !== 'Result') {
                         acc[key] = parseFloat(newResult[key]) || newResult[key];
@@ -146,7 +159,6 @@ const Lab = ({ recordId }) => {
         }
     };
 
-    // Format date for display
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -179,12 +191,10 @@ const Lab = ({ recordId }) => {
         );
     }
 
-    // Sort results by date (most recent first) and limit to last 5 records
     const sortedResults = [...results].sort((a, b) => 
         new Date(b.created_at) - new Date(a.created_at)
     ).slice(0, 5);
 
-    // Get all unique custom field keys across all results
     const allCustomFieldKeys = Object.values(customFieldsMap)
         .flat()
         .reduce((acc, field) => {
@@ -287,7 +297,7 @@ const Lab = ({ recordId }) => {
                     </TableHeader>
                     <TableBody>
                             {labTests.map((test) => (
-                                <TableRow key={test.key} className="hover:bg-gray-50">
+                                <TableRow key={test.key} className={`hover:bg-gray-50 ${test.category === 'Imaging' ? 'bg-purple-50' : ''}`}>
                                 <TableCell className="font-medium">
                                         <div className="font-semibold">{test.label}</div>
                                         <div className="text-xs text-gray-500">{test.unit}</div>
@@ -295,7 +305,18 @@ const Lab = ({ recordId }) => {
                                     {sortedResults.map((result) => (
                                         <TableCell key={result.result_id} className="text-center">
                                             {result[test.key] ? (
-                                                test.category === 'Diagnostics' ? (
+                                                // Check if it's an imaging test
+                                                imagingTestKeys.includes(test.key) ? (
+                                                    <a 
+                                                        href={getImagingPublicUrl(result[test.key])} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                                                    >
+                                                        <FileText className="w-3 h-3" />
+                                                        {test.label}
+                                                    </a>
+                                                ) : test.category === 'Diagnostics' ? (
                                                     <div className="flex items-center justify-center gap-1">
                                                         <FileText className="w-3 h-3 text-blue-500" />
                                                         <span className="text-blue-500 text-xs cursor-pointer hover:underline">

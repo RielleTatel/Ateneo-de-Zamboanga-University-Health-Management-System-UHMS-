@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Plus, Trash2, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus } from "lucide-react";
+import { Plus, Trash2, CheckIcon, ChevronsUpDownIcon, XIcon, UserPlus, Upload, FileText, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabaseClient";
 
-// --- Vitals Field Component for Consultation ---
 export const VitalsField = ({ onDataChange, recordId }) => {
     const isInitialMount = useRef(true);
     const [vitalData, setVitalData] = useState({
@@ -181,10 +181,9 @@ export const VitalsField = ({ onDataChange, recordId }) => {
     );
 };
 
-// --- Lab Field Component for Consultation ---
+
 export const LabFields = ({ onDataChange, recordId }) => {
     const isInitialMount = useRef(true);
-    // Standard lab test fields from database schema
     const standardLabFields = {
         hgb: '',
         mcv: '',
@@ -215,13 +214,115 @@ export const LabFields = ({ onDataChange, recordId }) => {
     };
 
     const [labData, setLabData] = useState(standardLabFields);
-    
-    // Custom user-defined fields (for results_fields table)
     const [customFields, setCustomFields] = useState([]);
     
     const [editingCell, setEditingCell] = useState(null);
+
+    const [imagingFiles, setImagingFiles] = useState({
+        ekg: null,
+        echo_2d: null,
+        cxr: null
+    });
+
+    const [uploadingStatus, setUploadingStatus] = useState({
+        ekg: false,
+        echo_2d: false,
+        cxr: false
+    });
+
+    const imagingTests = [
+        { key: 'ekg', label: 'EKG', type: 'imaging' },
+        { key: 'echo_2d', label: '2D Echo', type: 'imaging' },
+        { key: 'cxr', label: 'CXR (Chest X-Ray)', type: 'imaging' }
+    ];
+
+    const handleFileUpload = async (testKey, file) => {
+        if (!file) return;
+        
+        if (file.type !== 'application/pdf') {
+            alert('Please upload a PDF file only');
+            return;
+        }
+        
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('File size must be less than 10MB');
+            return;
+        }
+        
+        setUploadingStatus(prev => ({ ...prev, [testKey]: true }));
+        
+        try {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError || !session) {
+                alert('You must be logged in to upload files. Please refresh and try again.');
+                return;
+            }
+            
+            const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+            console.log('[Upload] Available buckets:', buckets);
+
+            if (bucketsError) {
+                console.error('[Upload] Error listing buckets:', bucketsError);
+            }
+            
+            const timestamp = Date.now();
+            const fileName = `${recordId}/${testKey}_${timestamp}.pdf`;
+            
+            const { data, error } = await supabase.storage
+                .from('lab-imaging')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+            
+            if (error) {
+                console.error('Storage upload error:', error);
+                throw error;
+            }
+            
+            const storagePath = fileName;
+            
+            setImagingFiles(prev => ({ ...prev, [testKey]: storagePath }));
+            setLabData(prev => ({ ...prev, [testKey]: storagePath }));
+            
+        } catch (error) {
+            alert(`Failed to upload file: ${error.message || 'Please try again.'}`);
+        } finally {
+            setUploadingStatus(prev => ({ ...prev, [testKey]: false }));
+        }
+    };
+
+    const handleRemoveFile = async (testKey) => {
+        const currentPath = imagingFiles[testKey];
+        
+        if (currentPath) {
+            try {
+                const { error } = await supabase.storage
+                    .from('lab-imaging')
+                    .remove([currentPath]);
+                
+                if (error) {
+                    console.error('Delete error:', error);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+        
+        setImagingFiles(prev => ({ ...prev, [testKey]: null }));
+        setLabData(prev => ({ ...prev, [testKey]: '' }));
+    };
+
+    const getPublicUrl = (path) => {
+        if (!path) return null;
+        const { data } = supabase.storage
+            .from('lab-imaging')
+            .getPublicUrl(path);
+        return data?.publicUrl;
+    };
     
-    // Notify parent of data changes with validation info
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -290,7 +391,7 @@ export const LabFields = ({ onDataChange, recordId }) => {
         setCustomFields(customFields.filter((_, idx) => idx !== index));
     };
 
-    // Lab test definitions
+    // Lab test definitions (excluding imaging tests which are handled separately)
     const labTests = [
         { key: 'hgb', label: 'HGB (Hemoglobin)', unit: 'g/dL' },
         { key: 'mcv', label: 'MCV', unit: 'fL' },
@@ -356,6 +457,91 @@ export const LabFields = ({ onDataChange, recordId }) => {
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Imaging Tests Section */}
+            <div className="mt-8 pt-6 border-t-2 border-gray-200">
+                <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700">Imaging Tests</h3>
+                    <p className="text-sm text-gray-500">Upload PDF files for imaging results</p>
+                </div>
+                
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="bg-gray-800 hover:bg-gray-800">
+                                <TableHead className="text-white font-semibold">Test Name</TableHead>
+                                <TableHead className="text-white font-semibold text-center min-w-48">Upload PDF</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        
+                        <TableBody>
+                            {imagingTests.map((test) => (
+                                <TableRow key={test.key} className="hover:bg-gray-50">
+                                    <TableCell className="font-medium">
+                                        <div className="font-semibold">{test.label}</div>
+                                        <div className="text-xs text-gray-500">PDF File</div>
+                                    </TableCell>
+                                    
+                                    <TableCell className="text-center">
+                                        {imagingFiles[test.key] ? (
+                                            // File uploaded - show preview link
+                                            <div className="flex items-center justify-center gap-2">
+                                                <FileText className="w-4 h-4 text-green-600" />
+                                                <a 
+                                                    href={getPublicUrl(imagingFiles[test.key])} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline text-sm font-medium"
+                                                >
+                                                    View {test.label}
+                                                </a>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveFile(test.key)}
+                                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            // No file - show upload button
+                                            <div className="flex items-center justify-center">
+                                                <label className="cursor-pointer">
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf,application/pdf"
+                                                        className="hidden"
+                                                        onChange={(e) => handleFileUpload(test.key, e.target.files[0])}
+                                                        disabled={uploadingStatus[test.key]}
+                                                    />
+                                                    <div className={cn(
+                                                        "flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-dashed",
+                                                        "hover:border-blue-500 hover:bg-blue-50 transition-colors",
+                                                        uploadingStatus[test.key] ? "opacity-50 cursor-not-allowed" : ""
+                                                    )}>
+                                                        {uploadingStatus[test.key] ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
+                                                                <span className="text-sm text-gray-500">Uploading...</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Upload className="w-4 h-4 text-gray-500" />
+                                                                <span className="text-sm text-gray-500">Upload PDF</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
             {/* Custom User-Defined Fields Section */}
