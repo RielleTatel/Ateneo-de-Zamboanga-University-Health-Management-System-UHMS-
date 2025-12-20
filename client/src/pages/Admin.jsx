@@ -600,13 +600,8 @@ const Admin = () => {
                             </div>
                         </TabsContent>
                     </Tabs> 
-
-
-
                 </div> 
             </div> 
-
-            
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && handleCancelDelete()}>

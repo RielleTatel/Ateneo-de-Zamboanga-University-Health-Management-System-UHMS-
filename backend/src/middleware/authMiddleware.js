@@ -5,7 +5,8 @@ import supabase from "../config/supabaseClient.js";
  * Extracts token from Authorization header and validates it with Supabase
  */
 export const verifyToken = async (req, res, next) => {
-  try {
+  try { 
+    
     // Check if Supabase client is initialized
     if (!supabase) {
       return res.status(500).json({ 
