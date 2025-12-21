@@ -4,7 +4,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { AlertCircle } from 'lucide-react';
 import { CHART_COLORS } from '@/components/layout/dashboard/domain/riskRules';
 
-const ChronicFactorsChart = ({ data }) => {
+const ChronicFactorsChart = ({ data }) => { 
+  
   return (
     <Card className="bg-white shadow-md border-2 border-outline">
       <CardHeader>

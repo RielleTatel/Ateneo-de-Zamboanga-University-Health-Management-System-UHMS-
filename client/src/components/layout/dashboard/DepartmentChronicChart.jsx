@@ -4,13 +4,29 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { AlertCircle } from 'lucide-react';
 import { CHART_COLORS } from '@/components/layout/dashboard/domain/riskRules';
 
-const DepartmentChronicChart = ({ data }) => {
+const DepartmentChronicChart = ({ data }) => { 
+
+const DEPARTMENT_ABBREVIATIONS = {
+  'Science, Information Technology, and Engineering Academic Organization': 'SITEAO',
+  'Liberal Arts Academic Organization': 'LAAO', 
+  'Education Academic Organization': 'EAO', 
+  'Nursing Academic Organization': 'NAO', 
+  'Accountancy Academic Organization': 'AAO', 
+  'Management Academic Organizaion': 'MAO', 
+
+  'School of Management and Accountancy': 'SMA', 
+  'School of Liberal Arts': 'SLA', 
+  'College of Science, Information Technology, and Engineering': 'CSITE', 
+  'School of Education': 'SOE', 
+  'College of Nursing': 'COE'
+}; 
+
   return (
     <Card className="bg-white shadow-md border-2 border-outline">
       <CardHeader>
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <AlertCircle className="h-5 w-5" style={{ color: CHART_COLORS.PRIMARY }} />
-          Chronic Risk Factor Distribution
+          Frequency of Chronic Risk Factors 
         </CardTitle>
         <p className="text-sm text-gray-500">
           Departments ranked by share of students with chronic risk factors
@@ -32,9 +48,17 @@ const DepartmentChronicChart = ({ data }) => {
               width={140} 
               tick={{ fontSize: 12 }}
               interval={0}
+                tickFormatter={(value) =>
+                DEPARTMENT_ABBREVIATIONS[value] || value
+              }
             />
             <Tooltip
               formatter={(value, name) => [`${Math.round(value * 100)}%`, name]}
+                labelFormatter={(label) =>
+              DEPARTMENT_ABBREVIATIONS[label]
+                ? `${DEPARTMENT_ABBREVIATIONS[label]} – ${label}`
+                : label
+            }
             />
             <Legend />
             <Bar dataKey="smoking" stackId="chronic" fill={CHART_COLORS.CHRONIC_FACTORS.SMOKING} name="Smoking" />

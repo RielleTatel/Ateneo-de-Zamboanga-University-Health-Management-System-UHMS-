@@ -20,30 +20,25 @@ import {
 } from '@/utils/healthParsing';
 
 export const buildDashboardAnalytics = ({ consultations, results, vitals, patients }) => {
-  // Get latest records per patient
+
   const latestConsultations = getLatestByUser(consultations, 'uuid', 'date_of_check');
   const latestResults = getLatestByUser(results, 'user_uuid', 'created_at');
   const latestVitals = getLatestByUser(vitals, 'user_uuid', 'date_of_check');
 
-  // Convert to arrays
   const latestConsultationsArray = Object.values(latestConsultations);
   const latestResultsArray = Object.values(latestResults);
   const latestVitalsArray = Object.values(latestVitals);
 
-  // Build patient name lookup
   const patientNameMap = createPatientNameMap(patients);
 
-  // Build patient risk map (used for multiple calculations)
   const patientRiskMap = buildPatientRiskMap(
     latestConsultationsArray, 
     latestVitalsArray, 
     latestResultsArray
   );
 
-  // Calculate KPIs
   const kpis = calculateKPIs(latestVitalsArray, latestResultsArray);
 
-  // Build risk stratification
   const riskStratification = buildRiskStratification(
     latestConsultationsArray,
     latestVitalsArray,
@@ -51,16 +46,12 @@ export const buildDashboardAnalytics = ({ consultations, results, vitals, patien
     patientRiskMap
   );
 
-  // Build chronic factors chart data
   const chronicFactors = buildChronicFactors(latestConsultationsArray);
 
-  // Build lipid profile chart data
   const lipidProfile = buildLipidProfile(latestResultsArray);
 
-  // Build BMI vs BP scatter data
   const bmiVsBP = buildBmiVsBP(latestVitalsArray);
 
-  // Build at-risk cohort table data
   const atRiskCohort = buildAtRiskCohort(
     latestVitalsArray,
     latestResultsArray,
@@ -69,10 +60,8 @@ export const buildDashboardAnalytics = ({ consultations, results, vitals, patien
     patientRiskMap
   );
 
-  // Build department risk mix
   const departmentRiskMix = buildDepartmentRiskMix(patients, patientRiskMap);
 
-  // Build department chronic risk mix
   const departmentChronicRiskMix = buildDepartmentChronicRiskMix(patients, latestConsultations);
 
   return {
@@ -87,13 +76,9 @@ export const buildDashboardAnalytics = ({ consultations, results, vitals, patien
   };
 };
 
-/**
- * Build patient risk map from all health records
- */
 const buildPatientRiskMap = (consultations, vitals, results) => {
   const patientRiskMap = {};
 
-  // Check consultations first (medical_clearance takes priority)
   consultations.forEach(consultation => {
     const uuid = consultation.uuid;
     const clearance = consultation.medical_clearance;
@@ -103,7 +88,6 @@ const buildPatientRiskMap = (consultations, vitals, results) => {
     }
   });
 
-  // Check vitals for risk
   vitals.forEach(vital => {
     const uuid = vital.user_uuid;
     const { risk } = calculateVitalRisk(vital);
@@ -115,7 +99,6 @@ const buildPatientRiskMap = (consultations, vitals, results) => {
     }
   });
 
-  // Check lab results for risk
   results.forEach(result => {
     const uuid = result.user_uuid;
     const { risk } = calculateLabRisk(result);
@@ -130,9 +113,6 @@ const buildPatientRiskMap = (consultations, vitals, results) => {
   return patientRiskMap;
 };
 
-/**
- * Calculate KPI values
- */
 const calculateKPIs = (vitals, results) => {
   let hypertensiveCount = 0;
   let criticalLDLCount = 0;
@@ -152,9 +132,7 @@ const calculateKPIs = (vitals, results) => {
   return { hypertensiveCount, criticalLDLCount, diabeticWatchCount, obesityCount };
 };
 
-/**
- * Build risk stratification pie chart data
- */
+
 const buildRiskStratification = (consultations, vitals, results, patientRiskMap) => {
   const allPatientUUIDs = new Set([
     ...consultations.map(c => c.uuid),
@@ -180,9 +158,6 @@ const buildRiskStratification = (consultations, vitals, results, patientRiskMap)
   ];
 };
 
-/**
- * Build chronic factors bar chart data
- */
 const buildChronicFactors = (consultations) => {
   const factorCounts = {};
 
@@ -199,9 +174,7 @@ const buildChronicFactors = (consultations) => {
     .slice(0, 6);
 };
 
-/**
- * Build lipid profile radar chart data
- */
+
 const buildLipidProfile = (results) => {
   const lipidValues = {
     'Total Chol': [],
@@ -242,9 +215,6 @@ const buildLipidProfile = (results) => {
   ];
 };
 
-/**
- * Build BMI vs BP scatter plot data
- */
 const buildBmiVsBP = (vitals) => {
   return vitals
     .map(vital => {
@@ -260,9 +230,6 @@ const buildBmiVsBP = (vitals) => {
     .filter(v => !isNaN(v.bmi) && v.bmi > 0 && !isNaN(v.systolic) && v.systolic > 0);
 };
 
-/**
- * Build at-risk cohort table data
- */
 const buildAtRiskCohort = (vitals, results, consultations, patientNameMap, patientRiskMap) => {
   const userDataMap = {};
 
@@ -276,24 +243,23 @@ const buildAtRiskCohort = (vitals, results, consultations, patientNameMap, patie
         lastCheckup: checkupDate
       };
     } else {
-      // Update to higher risk level if needed
+
       if (status === RISK_LEVELS.CRITICAL && userDataMap[uuid].status !== RISK_LEVELS.CRITICAL) {
         userDataMap[uuid].status = RISK_LEVELS.CRITICAL;
       } else if (status === RISK_LEVELS.AT_RISK && userDataMap[uuid].status === RISK_LEVELS.NORMAL) {
         userDataMap[uuid].status = RISK_LEVELS.AT_RISK;
       }
-      // Add factor if not already present
+
       if (!userDataMap[uuid].chronicFactors.includes(factor)) {
         userDataMap[uuid].chronicFactors.push(factor);
       }
-      // Use most recent checkup date
+
       if (new Date(checkupDate) > new Date(userDataMap[uuid].lastCheckup)) {
         userDataMap[uuid].lastCheckup = checkupDate;
       }
     }
   };
 
-  // Process vitals
   vitals.forEach(vital => {
     const { risk, factors } = calculateVitalRisk(vital);
     if (risk !== RISK_LEVELS.NORMAL) {
@@ -303,7 +269,6 @@ const buildAtRiskCohort = (vitals, results, consultations, patientNameMap, patie
     }
   });
 
-  // Process results
   results.forEach(result => {
     const { risk, factors } = calculateLabRisk(result);
     if (risk !== RISK_LEVELS.NORMAL) {
@@ -313,7 +278,6 @@ const buildAtRiskCohort = (vitals, results, consultations, patientNameMap, patie
     }
   });
 
-  // Process consultations
   consultations.forEach(consultation => {
     const clearance = consultation.medical_clearance;
     if (clearance === RISK_LEVELS.CRITICAL || clearance === RISK_LEVELS.AT_RISK) {
@@ -326,7 +290,6 @@ const buildAtRiskCohort = (vitals, results, consultations, patientNameMap, patie
     }
   });
 
-  // Filter and format
   return Object.values(userDataMap)
     .filter(patient => {
       const riskFromMap = patientRiskMap[patient.uuid];
@@ -353,9 +316,6 @@ const buildAtRiskCohort = (vitals, results, consultations, patientNameMap, patie
     });
 };
 
-/**
- * Build department risk mix chart data
- */
 const buildDepartmentRiskMix = (patients, patientRiskMap) => {
   const departmentRiskCounts = {};
 
@@ -393,9 +353,6 @@ const buildDepartmentRiskMix = (patients, patientRiskMap) => {
     });
 };
 
-/**
- * Build department chronic risk factor distribution
- */
 const buildDepartmentChronicRiskMix = (patients, latestConsultationsMap) => {
   const departmentChronicCounts = {};
 
