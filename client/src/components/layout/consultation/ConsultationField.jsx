@@ -335,9 +335,17 @@ export const LabFields = ({ onDataChange, recordId }) => {
             const filledCustomFields = customFields.filter(field => 
                 field.field_key && field.field_value
             );
+
+            const filteredLabData = Object.keys(labData).reduce((acc, key) => {
+                const value = labData[key];
+                if (value !== '' && value !== null && value !== undefined) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {});
             
             onDataChange({
-                standardFields: { ...labData, user_uuid: recordId },
+                standardFields: { ...filteredLabData, user_uuid: recordId },
                 customFields: customFields,
                 _meta: {
                     hasData: filledStandardFields.length > 0 || filledCustomFields.length > 0,
@@ -830,7 +838,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                     </div>
                                 </div>
 
-                                {/* DROPDOWN SELECTION 2 - Multi-select */}
                                 <div className="flex flex-col flex-1">
                                     <div>
                         <label className="block text-md font-semibold mb-1 text-gray-700">Chronic Risk Factors</label>
@@ -914,8 +921,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                 />
                             </div>   
 
-
-                        {/* --- PRESCRIPTION SECTION --- */}
                         <div className="flex flex-col gap-y-4 mt-6 ">
                             <div className="flex justify-between items-center">
                                 <label className="block text-md font-semibold mb-2 text-[#353535]">
@@ -931,7 +936,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                 </Button>
                             </div>
 
-                            {/* Only show fields if at least one prescription exists */}
                             {showPrescriptionFields && prescriptions.length > 0 && (
                                 <div className="space-y-6 ">
                                     {prescriptions.map((p, index) => (
@@ -953,7 +957,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                 </Button>
                                             </div>
 
-                                            {/* Name */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700">
                                                     Medication Name
@@ -968,7 +971,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                 />
                                             </div>
 
-                                            {/* Quantity */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700">
                                                     Quantity
@@ -983,7 +985,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                 />
                                             </div>
 
-                                            {/* Frequency */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700">
                                                     General Instructions
@@ -998,7 +999,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                 />
                                             </div>
 
-                                            {/* Schedules Section */}
                                             <div className="space-y-3">
                                                 <div className="flex justify-between items-center">
                                                     <label className="block text-sm font-medium text-gray-700">
@@ -1027,7 +1027,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                                 key={schedule.id}
                                                                 className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
                                                             >
-                                                                {/* Time/Meal Selection */}
                                                                 <div>
                                                                     <label className="block text-xs font-medium text-gray-600 mb-1">
                                                                         Time/Meal
@@ -1056,7 +1055,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                                     </Select>
                                                                 </div>
 
-                                                                {/* Tablets per Schedule */}
                                                                 <div>
                                                                     <label className="block text-xs font-medium text-gray-600 mb-1">
                                                                         Dosage
@@ -1076,7 +1074,6 @@ const [showPrescriptionFields, setShowPrescriptionFields] = useState(false);
                                                                     />
                                                                 </div>
 
-                                                                {/* Remove Schedule Button */}
                                                                 <div className="flex items-end">
                                                                     <Button
                                                                         type="button"
