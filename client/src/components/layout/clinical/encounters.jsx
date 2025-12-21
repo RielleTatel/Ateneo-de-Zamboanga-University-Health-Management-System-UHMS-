@@ -815,12 +815,10 @@ const Encounters = ({ recordId }) => {
                 )}
             </div>
         
-            {/* --- VIEW MODAL --- */}   
             <Dialog open={isViewModalOpen} onOpenChange={handleCloseViewModal}>
                 <DialogContent className="sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     {selectedEncounter ? (
                         <div className="space-y-6">
-                            {/* Header */}
                             <DialogHeader className="pb-2">
                                 <DialogTitle className="text-2xl font-bold text-gray-900">
                                     Encounter Details
@@ -832,7 +830,7 @@ const Encounters = ({ recordId }) => {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Activity className="h-4 w-4 text-gray-600" />
-                                        <span className="text-gray-600">Medical Clearance:</span>
+                                        <span className="text-gray-600"> Medical Clearance: </span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                             selectedEncounter.medical_clearance === 'Normal' 
                                                 ? 'bg-green-100 text-green-700' 
@@ -843,33 +841,32 @@ const Encounters = ({ recordId }) => {
                                             {selectedEncounter.medical_clearance || 'N/A'}
                                         </span>
                                     </div>
+                                    <div className="flex items-center gap-2"> 
+
+                                        <div className="flex flex-row"> 
+                                            <span className="text-gray-600 text-bold"> Risk Factors: </span>
+                                        </div>
+
+                                        {selectedEncounter.chronic_risk_factor && selectedEncounter !== 'None' && (
+                                            <div className="flex flex-wrap gap-2 ">
+                                                {Array.isArray(selectedEncounter.chronic_risk_factor) 
+                                                    ? selectedEncounter.chronic_risk_factor.map((factor, index) => (
+                                                        <span 
+                                                            key={index}
+                                                            className="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-orange-100 text-orange-800 border border-orange-300"
+                                                        >
+                                                            {factor}
+                                                        </span>
+                                                    ))
+                                                    : <span className="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-orange-100 text-orange-800 border border-orange-300">
+                                                        {selectedEncounter.chronic_risk_factor}
+                                                    </span>
+                                                }
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </DialogHeader> 
-
-                                {/* Chronic Risk Factors */}
-                                {selectedEncounter.chronic_risk_factor && selectedEncounter.chronic_risk_factor !== 'None' && (
-                                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-5 w-5 text-orange-600" />
-                                            <h3 className="text-base font-semibold text-orange-900">Chronic Risk Factors</h3>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 pl-7">
-                                            {Array.isArray(selectedEncounter.chronic_risk_factor) 
-                                                ? selectedEncounter.chronic_risk_factor.map((factor, index) => (
-                                                    <span 
-                                                        key={index}
-                                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-[15px] font-medium bg-orange-100 text-orange-800 border border-orange-300"
-                                                    >
-                                                        {factor}
-                                                    </span>
-                                                ))
-                                                : <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[15px] font-medium bg-orange-100 text-orange-800 border border-orange-300">
-                                                    {selectedEncounter.chronic_risk_factor}
-                                                </span>
-                                            }
-                                        </div>
-                                    </div>
-                                )}
 
                             {/* Clinical Information Grid */}
                             <div className="grid grid-cols-1 gap-4">
