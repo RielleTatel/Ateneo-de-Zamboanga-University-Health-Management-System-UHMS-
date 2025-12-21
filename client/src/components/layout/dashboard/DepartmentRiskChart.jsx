@@ -1,12 +1,8 @@
-/**
- * Department Risk Mix Chart Component
- * 100% stacked bar chart showing risk distribution by department
- */
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import { CHART_COLORS, RISK_COLORS, RISK_LEVELS } from '@/domain/riskRules';
+import { CHART_COLORS, RISK_COLORS, RISK_LEVELS } from '@/components/layout/dashboard/domain/riskRules';
 
 const DepartmentRiskChart = ({ data }) => {
   return (

@@ -1,11 +1,6 @@
-/**
- * Dashboard API Layer
- * Centralizes all API calls for the dashboard
- */
 import axiosInstance from '@/lib/axiosInstance';
 
 /**
- * Fetch all consultations
  * @returns {Promise<Array>} Array of consultation records
  */
 export const fetchAllConsultations = async () => {

@@ -1,11 +1,6 @@
-/**
- * Domain Layer: Risk Rules & Thresholds
- * Contains all medical risk classification constants and calculation logic
- */
 
-// ========== RISK THRESHOLDS ==========
+
 export const RISK_THRESHOLDS = {
-  // Blood Pressure Thresholds (mmHg)
   BP: {
     CRITICAL_SYSTOLIC: 160,
     CRITICAL_DIASTOLIC: 100,
@@ -13,25 +8,21 @@ export const RISK_THRESHOLDS = {
     AT_RISK_DIASTOLIC: 90
   },
   
-  // BMI Thresholds (kg/m²)
   BMI: {
     CRITICAL: 35,
     AT_RISK: 30
   },
   
-  // LDL Cholesterol Thresholds (mg/dL)
   LDL: {
     CRITICAL: 160,
     AT_RISK: 130
   },
-  
-  // HbA1c Thresholds (%)
+
   HBA1C: {
     CRITICAL: 8,
     AT_RISK: 6.5
   },
-  
-  // Lipid Profile Healthy Limits (mg/dL)
+
   LIPID: {
     TOTAL_CHOL: 200,
     HDL: 60,
@@ -40,21 +31,18 @@ export const RISK_THRESHOLDS = {
   }
 };
 
-// ========== RISK LEVELS ==========
 export const RISK_LEVELS = {
   NORMAL: 'Normal',
   AT_RISK: 'At Risk',
   CRITICAL: 'Critical'
 };
 
-// ========== RISK COLORS ==========
 export const RISK_COLORS = {
-  [RISK_LEVELS.NORMAL]: '#22c55e',    // Green
-  [RISK_LEVELS.AT_RISK]: '#f59e0b',   // Yellow/Amber
-  [RISK_LEVELS.CRITICAL]: '#ef4444'   // Red
+  [RISK_LEVELS.NORMAL]: '#22c55e',    
+  [RISK_LEVELS.AT_RISK]: '#f59e0b',   
+  [RISK_LEVELS.CRITICAL]: '#ef4444'  
 };
 
-// ========== CHART COLOR SCHEME ==========
 export const CHART_COLORS = {
   PRIMARY: '#0033A0',
   CHRONIC_FACTORS: {
@@ -66,16 +54,11 @@ export const CHART_COLORS = {
   }
 };
 
-/**
- * Calculate patient risk level from vitals data
- * @param {Object} vital - Vital signs record
- * @returns {{ risk: string, factors: string[] }}
- */
+
 export const calculateVitalRisk = (vital) => {
   const factors = [];
   let risk = RISK_LEVELS.NORMAL;
 
-  // Parse blood pressure
   let systolic, diastolic;
   if (vital.systolic && vital.diastolic) {
     systolic = parseFloat(vital.systolic);
@@ -90,7 +73,6 @@ export const calculateVitalRisk = (vital) => {
 
   const bmi = parseFloat(vital.bmi);
 
-  // Check BP thresholds
   if (systolic && diastolic) {
     if (systolic > RISK_THRESHOLDS.BP.CRITICAL_SYSTOLIC || diastolic > RISK_THRESHOLDS.BP.CRITICAL_DIASTOLIC) {
       risk = RISK_LEVELS.CRITICAL;
@@ -101,7 +83,6 @@ export const calculateVitalRisk = (vital) => {
     }
   }
 
-  // Check BMI thresholds
   if (bmi) {
     if (bmi > RISK_THRESHOLDS.BMI.CRITICAL) {
       risk = RISK_LEVELS.CRITICAL;
@@ -115,11 +96,6 @@ export const calculateVitalRisk = (vital) => {
   return { risk, factors };
 };
 
-/**
- * Calculate patient risk level from lab results
- * @param {Object} result - Lab result record
- * @returns {{ risk: string, factors: string[] }}
- */
 export const calculateLabRisk = (result) => {
   const factors = [];
   let risk = RISK_LEVELS.NORMAL;
@@ -127,7 +103,6 @@ export const calculateLabRisk = (result) => {
   const ldl = parseFloat(result.ldl);
   const hba1c = parseFloat(result.hba1c);
 
-  // Check LDL thresholds
   if (ldl) {
     if (ldl > RISK_THRESHOLDS.LDL.CRITICAL) {
       risk = RISK_LEVELS.CRITICAL;
@@ -138,7 +113,6 @@ export const calculateLabRisk = (result) => {
     }
   }
 
-  // Check HbA1c thresholds
   if (hba1c) {
     if (hba1c > RISK_THRESHOLDS.HBA1C.CRITICAL) {
       risk = RISK_LEVELS.CRITICAL;
@@ -152,19 +126,10 @@ export const calculateLabRisk = (result) => {
   return { risk, factors };
 };
 
-/**
- * Calculate combined patient risk level
- * @param {Object} params - Patient data
- * @param {Object} params.vital - Latest vital record
- * @param {Object} params.result - Latest lab result
- * @param {Object} params.consultation - Latest consultation
- * @returns {{ risk: string, factors: string[] }}
- */
 export const calculatePatientRisk = ({ vital, result, consultation }) => {
   let highestRisk = RISK_LEVELS.NORMAL;
   const allFactors = [];
 
-  // Check consultation clearance first
   if (consultation?.medical_clearance && consultation.medical_clearance !== RISK_LEVELS.NORMAL) {
     highestRisk = consultation.medical_clearance;
     
@@ -215,11 +180,6 @@ export const calculatePatientRisk = ({ vital, result, consultation }) => {
   return { risk: highestRisk, factors: allFactors };
 };
 
-/**
- * Check if patient is hypertensive
- * @param {Object} vital - Vital signs record
- * @returns {boolean}
- */
 export const isHypertensive = (vital) => {
   let systolic, diastolic;
   
@@ -238,31 +198,16 @@ export const isHypertensive = (vital) => {
          diastolic > RISK_THRESHOLDS.BP.AT_RISK_DIASTOLIC;
 };
 
-/**
- * Check if patient is obese
- * @param {Object} vital - Vital signs record
- * @returns {boolean}
- */
 export const isObese = (vital) => {
   const bmi = parseFloat(vital.bmi);
   return bmi > RISK_THRESHOLDS.BMI.AT_RISK;
 };
 
-/**
- * Check if patient has critical LDL
- * @param {Object} result - Lab result record
- * @returns {boolean}
- */
 export const hasCriticalLDL = (result) => {
   const ldl = parseFloat(result.ldl);
   return ldl > RISK_THRESHOLDS.LDL.AT_RISK;
 };
 
-/**
- * Check if patient is diabetic watch
- * @param {Object} result - Lab result record
- * @returns {boolean}
- */
 export const isDiabeticWatch = (result) => {
   const hba1c = parseFloat(result.hba1c);
   return hba1c > RISK_THRESHOLDS.HBA1C.AT_RISK;

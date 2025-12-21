@@ -1,12 +1,8 @@
-/**
- * Department Chronic Risk Distribution Chart Component
- * 100% stacked bar chart showing chronic risk factors by department
- */
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { AlertCircle } from 'lucide-react';
-import { CHART_COLORS } from '@/domain/riskRules';
+import { CHART_COLORS } from '@/components/layout/dashboard/domain/riskRules';
 
 const DepartmentChronicChart = ({ data }) => {
   return (

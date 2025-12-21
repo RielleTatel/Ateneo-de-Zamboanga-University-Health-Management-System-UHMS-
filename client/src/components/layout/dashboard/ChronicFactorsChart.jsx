@@ -1,12 +1,8 @@
-/**
- * Chronic Risk Factors Bar Chart Component
- * Displays prevalence of chronic risk factors
- */
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AlertCircle } from 'lucide-react';
-import { CHART_COLORS } from '@/domain/riskRules';
+import { CHART_COLORS } from '@/components/layout/dashboard/domain/riskRules';
 
 const ChronicFactorsChart = ({ data }) => {
   return (

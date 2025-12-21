@@ -13,7 +13,7 @@ import {
 } from '@/api/dashboard.api';
 
 // Service Layer
-import { buildDashboardAnalytics } from '@/services/dashboardAnalytics';
+import { buildDashboardAnalytics } from '@/components/layout/dashboard/services/dashboardAnalytics';
 
 // UI Components
 import {

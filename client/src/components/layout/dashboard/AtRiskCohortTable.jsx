@@ -1,7 +1,3 @@
-/**
- * At-Risk Cohort Table Component
- * Displays paginated table of patients requiring attention
- */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, Shield, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/utils/healthParsing';
-import { RISK_LEVELS, CHART_COLORS } from '@/domain/riskRules';
+import { RISK_LEVELS, CHART_COLORS } from '@/components/layout/dashboard/domain/riskRules';
 
 const ITEMS_PER_PAGE = 6;
 

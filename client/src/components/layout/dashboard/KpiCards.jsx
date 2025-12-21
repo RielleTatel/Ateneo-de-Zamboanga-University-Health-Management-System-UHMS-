@@ -1,7 +1,3 @@
-/**
- * KPI Cards Component
- * Displays the top 4 health metric cards on the dashboard
- */
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Droplet, Activity, Scale } from 'lucide-react';

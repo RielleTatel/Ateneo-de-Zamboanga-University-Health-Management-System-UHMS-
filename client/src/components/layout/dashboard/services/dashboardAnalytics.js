@@ -1,8 +1,3 @@
-/**
- * Service Layer: Dashboard Analytics
- * Aggregates all processed data for the dashboard
- */
-
 import { 
   RISK_THRESHOLDS, 
   RISK_LEVELS, 
@@ -13,7 +8,7 @@ import {
   isDiabeticWatch,
   calculateVitalRisk,
   calculateLabRisk
-} from '@/domain/riskRules';
+} from '@/components/layout/dashboard/domain/riskRules';
 
 import {
   getLatestByUser,
@@ -24,15 +19,6 @@ import {
   extractLipidProfile
 } from '@/utils/healthParsing';
 
-/**
- * Build complete dashboard analytics from raw data
- * @param {Object} data - Raw data from API
- * @param {Array} data.consultations - Consultation records
- * @param {Array} data.results - Lab result records
- * @param {Array} data.vitals - Vital records
- * @param {Array} data.patients - Patient records
- * @returns {Object} Processed dashboard data
- */
 export const buildDashboardAnalytics = ({ consultations, results, vitals, patients }) => {
   // Get latest records per patient
   const latestConsultations = getLatestByUser(consultations, 'uuid', 'date_of_check');

@@ -1,7 +1,3 @@
-/**
- * Risk Stratification Donut Chart Component
- * Displays patient distribution by risk level
- */
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';

@@ -23,7 +23,6 @@ export const VitalsField = ({ onDataChange, recordId }) => {
         bmi: ""
     });
 
-    // Auto-calculate BMI
     useEffect(() => {
         const weight = parseFloat(vitalData.weight);
         const height = parseFloat(vitalData.height);
@@ -34,7 +33,6 @@ export const VitalsField = ({ onDataChange, recordId }) => {
         }
     }, [vitalData.weight, vitalData.height]);
 
-    // Notify parent of data changes with validation info
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -59,7 +57,7 @@ export const VitalsField = ({ onDataChange, recordId }) => {
                 }
             });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [vitalData, recordId]);
 
     const handleInputChange = (field, value) => {
@@ -175,7 +173,7 @@ export const VitalsField = ({ onDataChange, recordId }) => {
                         className="rounded-lg bg-gray-50"
                         placeholder="Auto-calculated"
                     />
-                                    </div>
+                </div>
             </div>
         </div>
     );
@@ -216,8 +214,6 @@ export const LabFields = ({ onDataChange, recordId }) => {
     const [labData, setLabData] = useState(standardLabFields);
     const [customFields, setCustomFields] = useState([]);
     
-    const [editingCell, setEditingCell] = useState(null);
-
     const [imagingFiles, setImagingFiles] = useState({
         ekg: null,
         echo_2d: null,
@@ -351,7 +347,7 @@ export const LabFields = ({ onDataChange, recordId }) => {
                 }
             });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [labData, customFields, recordId]);
 
     const handleStandardFieldChange = (field, value) => {
@@ -391,7 +387,6 @@ export const LabFields = ({ onDataChange, recordId }) => {
         setCustomFields(customFields.filter((_, idx) => idx !== index));
     };
 
-    // Lab test definitions (excluding imaging tests which are handled separately)
     const labTests = [
         { key: 'hgb', label: 'HGB (Hemoglobin)', unit: 'g/dL' },
         { key: 'mcv', label: 'MCV', unit: 'fL' },
