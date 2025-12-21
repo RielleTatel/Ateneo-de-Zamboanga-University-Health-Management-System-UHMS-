@@ -1,4 +1,3 @@
-// Vercel serverless function wrapper for Express app
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -27,22 +26,18 @@ const corsOptions = {
       'http://127.0.0.1:5173',
     ];
     
-    // Add Vercel deployment URL if available
     if (process.env.VERCEL_URL) {
       allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
     }
     
-    // Add custom frontend URL if set
     if (process.env.FRONTEND_URL) {
       allowedOrigins.push(process.env.FRONTEND_URL);
     }
     
-    // Allow any *.vercel.app domain (for preview deployments)
     if (origin.includes('.vercel.app')) {
       return callback(null, true);
     }
     
-    // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -57,13 +52,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Log all incoming requests
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// Register routes
 app.use('/api/debugging', debuggingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -74,7 +67,6 @@ app.use('/api/consultations', consultationRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/immunizations', immunizationRoutes);
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   const envCheck = {
     SUPABASE_URL: !!process.env.SUPABASE_URL,
@@ -92,6 +84,5 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Export the Express app as a serverless function
 export default app;
 

@@ -1,6 +1,3 @@
-// Simple diagnostic endpoint to check environment variables
-// This can be deployed as a separate serverless function to verify configuration
-
 export default function handler(req, res) {
   const diagnostics = {
     timestamp: new Date().toISOString(),
@@ -25,8 +22,7 @@ export default function handler(req, res) {
       }
     }
   };
-
-  // Determine overall status
+  
   const criticalVars = [
     process.env.SUPABASE_URL,
     process.env.SUPABASE_KEY
