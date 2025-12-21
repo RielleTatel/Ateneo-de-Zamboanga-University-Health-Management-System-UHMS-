@@ -44,13 +44,12 @@ const formatDate = (dateString) => {
     });
 };
 
-// PDF Styles
 const pdfStyles = StyleSheet.create({
     page: {
         padding: 50,
         fontSize: 10,
         fontFamily: 'Helvetica',
-        size: [595.28, 700], // A4 width (595.28) x shorter height (700 instead of 841.89)
+        size: [595.28, 700], 
     },
     header: {
         marginBottom: 20,
@@ -202,7 +201,6 @@ const pdfStyles = StyleSheet.create({
     },
 });
 
-// Helper function to check if meal time matches category
 const checkMealTime = (mealTime, category) => {
     if (!mealTime) return false;
     const time = mealTime.toLowerCase().trim();
@@ -219,9 +217,8 @@ const checkMealTime = (mealTime, category) => {
     }
 };
 
-// PDF Document Component
 const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
-    // Calculate patient age
+
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return 'N/A';
         const today = new Date();
@@ -234,18 +231,15 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
         return age;
     };
 
-    // Process prescriptions  
     const processedPrescriptions = prescriptions.map(prescription => {
         const schedules = prescription.schedules || [];
         
-        // Get all schedule times as a formatted string
         const scheduleText = schedules.map(s => {
             const time = s.meal_time || '';
             const dose = s.dosage || '';
             return `${time}${dose ? ` (${dose})` : ''}`;
         }).join('\n');
         
-        // Get dosage info - combine all unique dosages
         const dosages = [...new Set(schedules.map(s => s.dosage).filter(Boolean))];
         const dosageInfo = dosages.length > 0 ? dosages.join(' / ') : '';
             
@@ -261,7 +255,7 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
     return (
         <Document>
             <Page style={pdfStyles.page}>
-                {/* Header */}
+
                 <View style={pdfStyles.header}>
                     <View style={pdfStyles.headerTop}>
                         <Text style={pdfStyles.doctorName}>FR. ALBERTO "TEX" PAUROM, SJ</Text>
@@ -273,7 +267,7 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
                     <Text style={pdfStyles.prescriptionTitle}>MEDICAL PRESCRIPTION</Text>
                 </View>
 
-                {/* Patient Information with Icon */}
+
                 <View style={pdfStyles.patientSection}>
                     <View style={pdfStyles.patientIcon}>
                         <Text style={pdfStyles.patientIconText}>
@@ -302,10 +296,9 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
                     </View>
                 </View>
 
-                {/* Prescription Table */}
                 {processedPrescriptions.length > 0 ? (
                     <View style={pdfStyles.table}>
-                        {/* Table Header */}
+      
                         <View style={[pdfStyles.tableRow, pdfStyles.tableHeader]}>
                             <View style={pdfStyles.tableColMed}>
                                 <Text style={pdfStyles.tableCellHeader}>Medicine</Text>
@@ -318,10 +311,10 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
                             </View>
                         </View>
 
-                        {/* Table Rows */}
+        
                         {processedPrescriptions.map((prescription, index) => (
                             <View key={index} style={pdfStyles.tableRow}>
-                                {/* Medicine Column */}
+                 
                                 <View style={pdfStyles.tableColMed}>
                                     <Text style={pdfStyles.tableCellMedName}>
                                         {prescription.medication_name}
@@ -333,14 +326,12 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
                                     )}
                                 </View>
                                 
-                                {/* Schedule Column */}
                                 <View style={pdfStyles.tableColSchedule}>
                                     <Text style={pdfStyles.tableCellSchedule}>
                                         {prescription.schedule}
                                     </Text>
                                 </View>
                                 
-                                {/* Quantity Column */}
                                 <View style={pdfStyles.tableColQty}>
                                     <Text style={pdfStyles.tableCell}>
                                         {prescription.quantity}
@@ -353,7 +344,6 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
                     <Text>No prescriptions available</Text>
                 )}
 
-                {/* Footer */}
                 <View style={pdfStyles.footer}>
                     <View style={pdfStyles.footerLeft}>
                         <Text style={pdfStyles.footerLabel}> For follow-up consult</Text>
@@ -372,9 +362,8 @@ const PrescriptionPDF = ({ patient, encounter, prescriptions }) => {
     );
 };
 
-// Medical Certificate PDF Component
 const MedicalCertificatePDF = ({ patient, encounter, diagnosis, remarks }) => {
-    // Calculate patient age
+
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return 'N/A';
         const today = new Date();
@@ -398,7 +387,6 @@ const MedicalCertificatePDF = ({ patient, encounter, diagnosis, remarks }) => {
     return (
         <Document>
             <Page style={pdfStyles.page}>
-                {/* Header */}
                 <View style={pdfStyles.header}>
                     <View style={pdfStyles.headerTop}>
                         <Text style={pdfStyles.doctorName}>FR. ALBERTO "TEX" PAUROM, SJ</Text>
@@ -998,7 +986,6 @@ const Encounters = ({ recordId }) => {
                 </DialogContent>
             </Dialog>
 
-            {/* --- MEDICAL CERTIFICATE MODAL --- */}
             <Dialog open={isMedCertModalOpen} onOpenChange={setIsMedCertModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>

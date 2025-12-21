@@ -85,7 +85,7 @@ const StudentProfile = ({ formData, setFormData }) => {
                         <SelectTrigger className={errors.course ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select Student Course" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-40 overflow-y-auto">
                             {/* School of Management and Accountancy */}
                             <SelectItem value="BS Accountancy">BS Accountancy</SelectItem>
                             <SelectItem value="BS Business Administration - Entrepreneurship">BS Business Administration - Entrepreneurship</SelectItem>
