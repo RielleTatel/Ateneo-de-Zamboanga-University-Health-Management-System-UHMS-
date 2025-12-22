@@ -81,6 +81,13 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch user profile from backend
   const fetchUserProfile = async (userId, accessToken) => {
+    // Skip if no access token provided
+    if (!accessToken) {
+      console.log("[AuthContext] No access token, skipping profile fetch");
+      setUser(null);
+      return;
+    }
+
     try {
       const apiUrl = getApiBaseURL();
             
@@ -104,13 +111,21 @@ export const AuthProvider = ({ children }) => {
         }
         
         setUser(data.user);
-      } else {
+      } else if (response.status === 401) {
+        // Token invalid/expired - silently clear session without console error
+        console.log("[AuthContext] Session expired or invalid, clearing auth state");
         setUser(null);
-        // Clear session if profile fetch fails
+        setSession(null);
+        // Only sign out if there was a session to clear
+        await supabase.auth.signOut();
+      } else {
+        console.error("[AuthContext] Profile fetch failed:", response.status);
+        setUser(null);
         await supabase.auth.signOut();
         setSession(null);
       }
     } catch (error) {
+      console.error("[AuthContext] Error fetching profile:", error);
       setUser(null);
       // Clear session on error
       await supabase.auth.signOut();
