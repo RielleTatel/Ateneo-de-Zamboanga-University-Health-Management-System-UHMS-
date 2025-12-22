@@ -17,9 +17,6 @@ import {
   RISK_LEVELS
 } from '@/components/layout/dashboard/domain/riskRules';
 
-/**
- * Department name → abbreviation (display only)
- */
 const DEPARTMENT_ABBREVIATIONS = {
   'Science, Information Technology, and Engineering Academic Organization': 'SITEAO',
   'Liberal Arts Academic Organization': 'LAAO',
@@ -32,7 +29,8 @@ const DEPARTMENT_ABBREVIATIONS = {
   'School of Liberal Arts': 'SLA',
   'College of Science, Information Technology, and Engineering': 'CSITE',
   'School of Education': 'SOE',
-  'College of Nursing': 'CON'
+  'College of Nursing': 'CON', 
+  'Others': 'Others'
 };
 
 const DepartmentRiskChart = ({ data }) => {

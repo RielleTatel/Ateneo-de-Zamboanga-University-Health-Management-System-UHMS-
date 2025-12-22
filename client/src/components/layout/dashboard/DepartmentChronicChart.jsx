@@ -18,7 +18,8 @@ const DEPARTMENT_ABBREVIATIONS = {
   'School of Liberal Arts': 'SLA', 
   'College of Science, Information Technology, and Engineering': 'CSITE', 
   'School of Education': 'SOE', 
-  'College of Nursing': 'COE'
+  'College of Nursing': 'COE', 
+  'Others': 'Others'
 }; 
 
   return (
