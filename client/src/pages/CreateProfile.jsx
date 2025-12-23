@@ -320,8 +320,6 @@ const CreateProfile = () => {
                 emergency_contact_number: formData.emergencyContactNumber
             };
 
-            console.log('Submitting patient data:', patientData);
-
             // Submit to backend
             addPatientMutation.mutate(patientData);
         }

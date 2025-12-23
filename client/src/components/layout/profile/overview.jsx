@@ -162,7 +162,7 @@ const Overview = ({ recordId }) => {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Course:</span>
-                                        <span className="text-gray-800">{patient.course || 'N/A'}</span>
+                                        <span className="text-gray-800 text-right"> {patient.course || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Address:</span>

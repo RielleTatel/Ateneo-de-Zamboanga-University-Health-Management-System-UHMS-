@@ -47,7 +47,7 @@ const VitalModel = {
 
   // Get a single vital record by ID
   async getVitalById(vital_id) {
-    const { data, error } = await supabase.from('vitals').select('*').eq('vital_id', vital_id).single();
+    const { data, error } = await supabase.from('vitals').select('*').eq('vitals_id', vital_id).single();
 
     if (error) {
       return null;
@@ -58,7 +58,7 @@ const VitalModel = {
 
   // Update a vital record
   async updateVital(vital_id, updates) {
-    const { data, error } = await supabase.from('vitals').update(updates).eq('vital_id', vital_id).select().single();
+    const { data, error } = await supabase.from('vitals').update(updates).eq('vitals_id', vital_id).select().single();
 
     if (error) {
       console.error("[updateVital] Error:", error);
@@ -71,7 +71,7 @@ const VitalModel = {
 
   // Delete a vital record
   async deleteVital(vital_id) {
-    const { data, error } = await supabase.from('vitals').delete().eq('vital_id', vital_id);
+    const { data, error } = await supabase.from('vitals').delete().eq('vitals_id', vital_id);
 
     if (error) {
       console.error("[deleteVital] Error:", error);
