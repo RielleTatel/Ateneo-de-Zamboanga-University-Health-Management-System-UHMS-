@@ -253,11 +253,6 @@ const AuthController = {
     }
   },
 
-  /**
-   * Request password reset (public route)
-   * User submits their email and new password
-   * Request goes to admin for approval
-   */
   async requestPasswordReset(req, res) {
     try {
       const { email, newPassword } = req.body;
