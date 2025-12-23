@@ -205,7 +205,6 @@ const Login = () => {
             }
 
         } catch (err) {
-            console.error("Password reset error:", err);
             if (err.response?.data?.message) {
                 setResetError(err.response.data.message);
             } else {
@@ -488,7 +487,7 @@ const Login = () => {
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                                 className="h-11 pr-10"
-                                            />
+                                            /> 
                                             <button
                                                 type="button"
                                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}

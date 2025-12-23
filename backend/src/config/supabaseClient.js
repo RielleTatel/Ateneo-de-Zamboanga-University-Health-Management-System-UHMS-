@@ -28,8 +28,6 @@ if (supabaseUrl && supabaseKey) {
   
 } else {
   console.error('[Supabase] Cannot initialize - missing configuration');
-  console.error('[Supabase] SUPABASE_URL:', supabaseUrl ? 'SET' : 'MISSING');
-  console.error('[Supabase] SUPABASE_KEY:', supabaseKey ? 'SET' : 'MISSING');
 }
 
 export default supabase;

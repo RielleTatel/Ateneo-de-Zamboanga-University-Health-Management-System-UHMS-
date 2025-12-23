@@ -56,7 +56,6 @@ const Register = () => {
                 role: role.toLowerCase() 
             });
 
-            console.log("Registration successful:", response.data);
             setSuccess(true);
             setIsSubmitting(false);
 
