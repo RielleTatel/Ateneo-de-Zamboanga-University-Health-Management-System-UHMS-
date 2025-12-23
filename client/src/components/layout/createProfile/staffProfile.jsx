@@ -71,6 +71,7 @@ const StaffProfile = ({ formData, setFormData }) => {
                             <SelectItem value="College of Science, Information Technology, and Engineering">College of Science, Information Technology, and Engineering</SelectItem>
                             <SelectItem value="School of Education">School of Education</SelectItem>
                             <SelectItem value="College of Nursing">College of Nursing</SelectItem>
+                            <SelectItem value="Campus Ministry">Campus Ministry</SelectItem>
                             <SelectItem value="Others"> Others </SelectItem>
                             
                             {/* Administrative Departments */}
