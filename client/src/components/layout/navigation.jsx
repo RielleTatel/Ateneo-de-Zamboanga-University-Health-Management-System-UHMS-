@@ -27,7 +27,7 @@ const Navigation = () => {
     "/Clinical": "/profile",
     "/admin": "admin",
     "/controls": "controls",
-    "/help": "help",
+    "/help": "help",x
   };
 
   const [activeTab, setActiveTab] = useState(pathToTab[location.pathname] || "overview");
@@ -46,22 +46,13 @@ const Navigation = () => {
 
   const handleConfirmLogout = async () => {
     setIsLoggingOut(true);
-    
     try {
-      // Call logout from AuthContext - this signs out from Supabase
       await logout();
-      
-      // Clear any remaining local storage
       localStorage.clear();
       sessionStorage.clear();
-      
       setLogoutDialog(false);
-      
-      // Navigate to login page
       navigate("/login");
     } catch (error) {
-      console.error("Logout error:", error);
-      // Even if logout fails, clear storage and redirect
       localStorage.clear();
       sessionStorage.clear();
       setLogoutDialog(false);
@@ -77,7 +68,7 @@ const Navigation = () => {
 
   return (
     <div className="bg-background-secondary w-[260px] min-h-screen border-outline border-2 flex flex-col items-center p-2">
-      {/* Logo */}
+
       <div className="flex flex-row items-center justify-center w-full mb-2">
         <div className="w-[64px] h-[63px] mr-2">
           <img src="/logo.png" alt="logo" className="w-full h-full object-contain" />
@@ -88,16 +79,13 @@ const Navigation = () => {
         </div>
       </div>
 
-      {/* Navigation */}
       <div className="flex flex-col items-start w-full gap-y-2 text-[13px]">
-        {/* Main Section */}
         <div className="w-full mt-4 mb-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-6">
             Main
           </p>
         </div> 
         
-        {/* Overview */}
         <div
           className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
             activeTab === "overview" ? "bg-attention-blue" : "bg-container"
@@ -118,7 +106,6 @@ const Navigation = () => {
           </p>
         </div>
 
-        {/* Records */}
         <div
           className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
             activeTab === "records" ? "bg-attention-blue" : "bg-container"
@@ -139,14 +126,12 @@ const Navigation = () => {
           </p>
         </div>
 
-        {/* Settings Section */}
         <div className="w-full mt-6 mb-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-6">
             Settings
           </p>
         </div>
 
-        {/* Admin */}
         <div
           className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
             activeTab === "admin" ? "bg-attention-blue" : "bg-container"
@@ -167,7 +152,6 @@ const Navigation = () => {
           </p>
         </div>
 
-        {/* Controls */}
         <div
           className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
             activeTab === "controls" ? "bg-attention-blue" : "bg-container"
@@ -188,7 +172,6 @@ const Navigation = () => {
           </p>
         </div>
 
-        {/* Help */}
         <div
           className={`w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-attention-blue hover:shadow-md transition-all cursor-pointer ${
             activeTab === "help" ? "bg-attention-blue" : "bg-container"
@@ -209,7 +192,6 @@ const Navigation = () => {
           </p>
         </div>
 
-        {/* Logout */}
         <div
           className="w-full h-[65px] rounded-[14px] flex items-center gap-x-3 pl-6 group hover:bg-red-500 hover:shadow-md transition-all cursor-pointer bg-container"
           onClick={handleLogoutClick}
@@ -223,7 +205,6 @@ const Navigation = () => {
         </div>
       </div>
 
-      {/* Logout Confirmation Dialog */}
       <Dialog open={logoutDialog} onOpenChange={(open) => !open && handleCancelLogout()}>
         <DialogContent>
           <DialogHeader>
@@ -255,7 +236,8 @@ const Navigation = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> 
+
     </div>
   );
 };

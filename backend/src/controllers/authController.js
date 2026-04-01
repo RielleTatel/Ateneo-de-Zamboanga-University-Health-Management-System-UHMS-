@@ -67,10 +67,6 @@ const AuthController = {
     }
   },
 
-  /**
-   * Sign up with Supabase Auth
-   * Supabase handles password hashing and user creation
-   */
   async register(req, res) {
     try {
       // Check if Supabase client is initialized
@@ -120,8 +116,6 @@ const AuthController = {
         });
       }
 
-      // Create user with Supabase Auth
-      // Set emailRedirectTo to null and disable auto-confirm to prevent immediate login
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -302,10 +296,6 @@ const AuthController = {
     }
   },
 
-  /**
-   * Check user role by email (public route)
-   * Used to determine if user should get direct reset link or admin approval
-   */
   async checkUserRole(req, res) {
     try {
       const { email } = req.body;
@@ -338,10 +328,6 @@ const AuthController = {
     }
   },
 
-  /**
-   * Get all pending password reset requests (admin only)
-   * Protected route - requires valid token and admin role
-   */
   async getPendingResetRequests(req, res) {
     try {
       const requests = await PasswordResetModel.getPendingRequests();
@@ -357,10 +343,7 @@ const AuthController = {
     }
   },
 
-  /**
-   * Approve password reset request (admin only)
-   * Updates the user's password in Supabase Auth
-   */
+
   async approvePasswordReset(req, res) {
     try {
       const { requestId } = req.params;
@@ -413,9 +396,6 @@ const AuthController = {
     }
   },
 
-  /**
-   * Reject password reset request (admin only)
-   */
   async rejectPasswordReset(req, res) {
     try {
       const { requestId } = req.params;

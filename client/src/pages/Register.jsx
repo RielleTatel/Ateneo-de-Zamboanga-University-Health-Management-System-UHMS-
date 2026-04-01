@@ -54,7 +54,7 @@ const Register = () => {
                 password, 
                 full_name, 
                 role: role.toLowerCase() 
-            });
+            }); 
 
             setSuccess(true);
             setIsSubmitting(false);

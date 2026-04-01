@@ -3,11 +3,6 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Loader2 } from "lucide-react";
 
-/**
- * ProtectedRoute component
- * Restricts access to authenticated users only
- * Optionally restricts by role
- */
 const ProtectedRoute = ({ children, requiredRole = null }) => {
   const { user, loading, isAuthenticated } = useAuth();
 
@@ -22,7 +17,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
       </div>
     );
   }
-3
+  
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

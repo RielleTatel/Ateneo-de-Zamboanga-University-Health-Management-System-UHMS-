@@ -26,6 +26,7 @@ const Login = () => {
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
     // Toggle password visibility state
     const [showPassword, setShowPassword] = useState(false);
     

@@ -1,7 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { supabase } from "../lib/supabaseClient";  // Import centralized Supabase client
+import { supabase } from "../lib/supabaseClient";  
 
-// Re-export for backwards compatibility
 export { supabase };
 
 const AuthContext = createContext(null);
@@ -12,9 +11,9 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null); // Access token
   const [loading, setLoading] = useState(true);
 
+  // returns session if user is actually logged in
   useEffect(() => {
-
-    const initializeAuth = async () => { // returns session if user is actually logged in
+    const initializeAuth = async () => { 
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
@@ -32,11 +31,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
-
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      
-      // Handle different auth events
       if (event === 'SIGNED_IN') {
         setSession(newSession);
         if (newSession?.user) {
@@ -70,18 +65,15 @@ export const AuthProvider = ({ children }) => {
       return import.meta.env.VITE_API_URL;
     }
     
-    // In production (Vercel), use relative URL
     if (import.meta.env.PROD || window.location.hostname !== 'localhost') {
       return '/api';
     }
-    
-    // Development: use localhost
+
     return "http://localhost:3001/api";
   };
 
-  // Fetch user profile from backend
+
   const fetchUserProfile = async (userId, accessToken) => {
-    // Skip if no access token provided
     if (!accessToken) {
       console.log("[AuthContext] No access token, skipping profile fetch");
       setUser(null);
@@ -100,10 +92,8 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         
-        // Check if user is approved (status: true)
         if (data.user && !data.user.status) {
           console.log("[AuthContext] User not approved yet, logging out");
-          // User exists but not approved - sign them out
           await supabase.auth.signOut();
           setUser(null);
           setSession(null);
@@ -112,11 +102,11 @@ export const AuthProvider = ({ children }) => {
         
         setUser(data.user);
       } else if (response.status === 401) {
-        // Token invalid/expired - silently clear session without console error
+
         console.log("[AuthContext] Session expired or invalid, clearing auth state");
         setUser(null);
         setSession(null);
-        // Only sign out if there was a session to clear
+
         await supabase.auth.signOut();
       } else {
         console.error("[AuthContext] Profile fetch failed:", response.status);
@@ -127,13 +117,12 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("[AuthContext] Error fetching profile:", error);
       setUser(null);
-      // Clear session on error
+
       await supabase.auth.signOut();
       setSession(null);
     }
   };
 
-  // Login with email and password
   const login = async (email, password) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -143,7 +132,6 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
-      // Fetch user profile from backend
       if (data.session) {
         await fetchUserProfile(data.user.id, data.session.access_token);
       }
@@ -155,12 +143,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register new user
+  // register
   const register = async (email, password, full_name, role) => {
     try {
       console.log("[AuthContext] Registering user:", email);
       
-      // Only register through backend - don't create session yet
       const apiUrl = getApiBaseURL();
       const response = await fetch(`${apiUrl}/auth/register`, {
         method: "POST",
@@ -178,8 +165,6 @@ export const AuthProvider = ({ children }) => {
       const result = await response.json();
       console.log("[AuthContext] Registration successful:", result);
 
-      // IMPORTANT: Sign out any auto-created session
-      // Supabase might have created a session during registration
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       if (currentSession) {
         await supabase.auth.signOut();
@@ -191,7 +176,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("[AuthContext] Registration error:", error);
       
-      // Clean up any session that might have been created
       try {
         await supabase.auth.signOut();
       } catch (signOutError) {

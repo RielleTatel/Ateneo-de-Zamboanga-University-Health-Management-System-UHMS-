@@ -24,7 +24,6 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.access_token) {

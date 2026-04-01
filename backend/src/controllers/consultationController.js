@@ -4,8 +4,7 @@ import PrescriptionSchedulesModel from "../models/prescriptionSchedulesModel.js"
 import supabase from "../config/supabaseClient.js";
 
 const ConsultationController = {
-
-  // GET ALL CONSULTATIONS
+  
   async getAllConsultations(req, res) {
     try {
       const consultations = await ConsultationModel.getAllConsultations();
@@ -33,7 +32,6 @@ const ConsultationController = {
     }
   },
 
-  // GET CONSULTATIONS BY USER UUID
   async getConsultationsByUUID(req, res) {
     try {
       const { uuid } = req.params;
@@ -62,7 +60,6 @@ const ConsultationController = {
     }
   },
 
-  // GET CONSULTATION BY ID
   async getConsultationById(req, res) {
     try {
       const { id } = req.params;
@@ -238,7 +235,6 @@ const ConsultationController = {
 
       const prescriptions = await ConsultationPrescriptionsModel.getPrescriptionsByConsultationId(id);
 
-
       res.json({
         success: true,
         message: `Found ${prescriptions.length} prescription(s)`,
@@ -253,7 +249,6 @@ const ConsultationController = {
     }
   },
 
-  // GET SCHEDULES BY PRESCRIPTION ID
   async getSchedulesByPrescription(req, res) {
     try {
       const { prescription_id } = req.params;

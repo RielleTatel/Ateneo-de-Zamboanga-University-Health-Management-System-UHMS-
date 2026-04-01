@@ -12,10 +12,8 @@ import {
   fetchAllPatients
 } from '@/api/dashboard.api';
 
-// Service Layer
 import { buildDashboardAnalytics } from '@/components/layout/dashboard/services/dashboardAnalytics';
 
-// UI Components
 import {
   KpiCards,
   RiskStratificationChart,
@@ -23,7 +21,7 @@ import {
   DepartmentRiskChart,
   DepartmentChronicChart,
   AtRiskCohortTable
-} from '@/components/layout/dashboard';
+} from '@/components/layout/dashboard';3
 
 // ========== QUERY KEYS ==========
 const QUERY_KEYS = {
@@ -110,7 +108,7 @@ const Dashboard = () => {
       <div className="flex-1 flex-col"> 
         <div className="flex-1 flex-col p-4">  
           <div className="min-w-full px-3 flex justify-between items-center">
-            <p className="text-[20px]"><b>Cardiovascular Health Dashboard</b></p>
+            <p className="text-[20px]"> <b> Cardiovascular Health Dashboard </b> </p>
             <UserNav />
           </div> 
 

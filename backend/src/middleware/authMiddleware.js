@@ -1,9 +1,5 @@
 import supabase from "../config/supabaseClient.js";
 
-/**
- * Middleware to verify Supabase access token
- * Extracts token from Authorization header and validates it with Supabase
- */
 export const verifyToken = async (req, res, next) => {
   try { 
     
@@ -26,7 +22,6 @@ export const verifyToken = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    // Verify the token with Supabase
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
@@ -36,7 +31,6 @@ export const verifyToken = async (req, res, next) => {
       });
     }
 
-    // Attach user info to request object
     req.user = {
       id: user.id,
       email: user.email,
@@ -53,11 +47,6 @@ export const verifyToken = async (req, res, next) => {
   }
 };
 
-/**
- * Middleware to check if user has required role(s)
- * Must be used after verifyToken middleware
- * @param {string|string[]} allowedRoles - Role or array of roles allowed
- */
 export const requireRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
@@ -98,10 +87,8 @@ export const requireRole = (allowedRoles) => {
         });
       }
 
-      // Attach role to request
       req.user.role = userData.role;
 
-      // Check if user has required role
       const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
       
       if (!roles.includes(userData.role)) {
