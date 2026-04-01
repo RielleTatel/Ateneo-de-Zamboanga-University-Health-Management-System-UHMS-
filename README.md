@@ -96,8 +96,8 @@ The following images from `documentation/` illustrate major screens and data pre
 
 ### Medical Records
 
-![Medical records](documentation/medical%20records.png)
-![Medical records 2](documentation/medical%20records%202.png)
+![Medical records](documentation/medical%20records%edited%2.png)
+![Medical records 2](documentation/medical%20records%20edited%202.png)
 
 ### New Entry
 
