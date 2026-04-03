@@ -27,7 +27,7 @@ const Navigation = () => {
     "/Clinical": "/profile",
     "/admin": "admin",
     "/controls": "controls",
-    "/help": "help",x
+    "/help": "help",
   };
 
   const [activeTab, setActiveTab] = useState(pathToTab[location.pathname] || "overview");
@@ -52,7 +52,7 @@ const Navigation = () => {
       sessionStorage.clear();
       setLogoutDialog(false);
       navigate("/login");
-    } catch (error) {
+    } catch {
       localStorage.clear();
       sessionStorage.clear();
       setLogoutDialog(false);
